@@ -1535,3 +1535,59 @@ body {
     gap: 12px;
   }
 }
+
+/* Completed Timeline Card Styles */
+.timeline-card.completed {
+  opacity: 0.55 !important;
+  filter: grayscale(15%);
+  border-left: 5px solid var(--success) !important;
+  box-shadow: none !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timeline-card.completed .place-title {
+  text-decoration: line-through !important;
+  color: var(--text-sub) !important;
+  opacity: 0.65;
+}
+
+.timeline-card.completed .place-time,
+.timeline-card.completed .place-memo,
+.timeline-card.completed .place-cost,
+.timeline-card.completed .badge,
+.timeline-card.completed .card-map-actions {
+  opacity: 0.55;
+  pointer-events: none; /* Disable map actions once completed to keep it clean */
+}
+
+/* Checkbox Toggle Button */
+.btn-complete-toggle {
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  font-size: 1.35rem;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.btn-complete-toggle:hover {
+  transform: scale(1.18);
+  color: var(--success);
+}
+
+.btn-complete-toggle.completed {
+  color: var(--success) !important;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1.0); }
+}

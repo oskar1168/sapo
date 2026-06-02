@@ -751,11 +751,16 @@ function renderTimeline(dayKey) {
 
     itemEl.innerHTML = `
       <div class="timeline-marker"></div>
-      <div class="card glass-card timeline-card">
+      <div class="card glass-card timeline-card ${item.completed ? "completed" : ""}">
         <div class="card-top">
           <div class="place-time-title">
             <span class="place-time"><i class="ri-time-line"></i> ${item.time}</span>
-            <h3 class="place-title">${escapeHTML(item.name)}</h3>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button class="btn-complete-toggle ${item.completed ? "completed" : ""}" onclick="toggleTimelineItemCompleted('${dayKey}', ${index})" title="${item.completed ? "미완료로 표시" : "완료로 표시"}">
+                <i class="${item.completed ? "ri-checkbox-circle-fill" : "ri-checkbox-blank-circle-line"}"></i>
+              </button>
+              <h3 class="place-title">${escapeHTML(item.name)}</h3>
+            </div>
             <span class="badge badge-${item.category}">${categoryLabels[item.category] || "기타"}</span>
           </div>
           ${isEditor ? `
@@ -892,6 +897,19 @@ window.deleteTimelineItem = function(dayKey, index) {
     saveToLocalStorage();
     renderApp();
     showToast("일정이 성공적으로 삭제되었습니다.", "success");
+  }
+};
+
+window.toggleTimelineItemCompleted = function(dayKey, index) {
+  const currentVal = travelData.days[dayKey][index].completed || false;
+  travelData.days[dayKey][index].completed = !currentVal;
+  saveToLocalStorage();
+  renderApp();
+  
+  if (!currentVal) {
+    showToast("🎉 일정을 완료했습니다! 정말 수고하셨습니다!", "success");
+  } else {
+    showToast("일정 완료 상태를 취소했습니다.", "info");
   }
 };
 
