@@ -1541,6 +1541,68 @@ body {
     grid-template-columns: 1fr;
     gap: 12px;
   }
+
+  /* Premium Bottom Sheet Modal for Mobile */
+  .modal-overlay {
+    align-items: flex-end !important; /* Bottom Alignment */
+    padding: 0 !important;
+  }
+
+  .modal-content {
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 88vh !important; /* Avoid screen suffocation */
+    width: 100% !important;
+    margin: 0 !important;
+    position: relative;
+    padding-top: 15px !important; /* Leaving space for drag handle */
+    animation: mobileSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+  }
+
+  /* Smooth Drag Indicator Handle Bar */
+  .modal-content::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 5px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+    z-index: 10;
+  }
+
+  .modal-header {
+    padding: 12px 20px 10px !important;
+  }
+
+  #formPlace, #formFood {
+    padding: 16px 20px 30px !important; /* Soft breathing margin for touch scroll */
+    max-height: calc(88vh - 60px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 18px !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group {
+    gap: 8px !important;
+  }
+
+  .form-input {
+    padding: 11px 14px !important;
+    font-size: 0.92rem !important;
+  }
+
+  .text-area {
+    min-height: 70px !important;
+  }
+
+  @keyframes mobileSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
 }
 
 /* Completed Timeline Card Styles */
