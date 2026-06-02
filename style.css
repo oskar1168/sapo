@@ -1602,11 +1602,12 @@ body {
 
   /* iOS Safari WebKit Specific Fix: Prevents time input and select from expanding and overlapping */
   input[type="time"].form-input {
-    padding: 10px 6px !important;
+    padding: 10px 4px !important;
     font-size: 0.85rem !important;
     text-align: center;
     min-width: 0 !important; /* Force safari to obey 1fr grid width */
     width: 100% !important;
+    max-width: 120px !important; /* Cap width to 120px to force grid separation margin! */
     box-sizing: border-box !important;
   }
 
