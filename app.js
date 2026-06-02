@@ -823,7 +823,6 @@ function renderSettlementTab() {
   elements.settleTotalBudget.innerText = formatNumber(totalCostKRW) + "원";
 
   // Calculate per member
-  const memberCount = parseInt(elements.inputMemberCount.value) || 1;
   const costPerMember = Math.round(totalCostKRW / memberCount);
   elements.settlePerMember.innerText = formatNumber(costPerMember) + "원";
 
