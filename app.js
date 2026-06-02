@@ -916,7 +916,7 @@ function renderFoodList(city, filterType = "all") {
         <div class="food-title-group">
           <h3 class="food-name">${escapeHTML(item.name)}</h3>
           <div class="food-meta">
-            <span class="badge badge-meal"><i class="${catInfo.icon}"></i> ${escapeHTML(catInfo.label)}</span>
+            <span class="badge badge-meal">${escapeHTML(catInfo.label)}</span>
             <span class="food-rating"><i class="ri-star-fill"></i> ${item.rating}</span>
             ${item.openTime ? `<span class="food-rating" style="background: rgba(255,255,255,0.08); color: var(--text-sub); display: inline-flex; align-items: center; gap: 4px;"><i class="ri-time-line"></i> ${item.openTime} ~ ${item.closeTime}</span>` : ""}
           </div>
@@ -1082,12 +1082,12 @@ function renderTimeline(dayKey) {
     // Calculate Triple-style sequential badge (Excluding flight & transport)
     let badgeHtml = "";
     if (item.category === "flight") {
-      badgeHtml = `<span class="timeline-badge timeline-badge-icon" title="항공편">✈️</span>`;
+      badgeHtml = "✈️";
     } else if (item.category === "transport") {
-      badgeHtml = `<span class="timeline-badge timeline-badge-icon" title="교통이동">🚌</span>`;
+      badgeHtml = "🚌";
     } else {
       placeNumber++;
-      badgeHtml = `<span class="timeline-badge timeline-badge-number" title="방문 순서">${placeNumber}</span>`;
+      badgeHtml = placeNumber;
     }
 
     // Generate Google Maps Links
@@ -1097,7 +1097,7 @@ function renderTimeline(dayKey) {
     const directionBtnHtml = `<a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" title="현재 내 위치에서 구글맵 길찾기 시작"><i class="ri-navigation-fill"></i> 내 위치에서 길찾기</a>`;
 
     itemEl.innerHTML = `
-      <div class="timeline-marker"></div>
+      <div class="timeline-marker">${badgeHtml}</div>
       <div class="card glass-card timeline-card ${item.completed ? "completed" : ""}">
         <div class="card-top">
           <div class="place-time-title">
@@ -1106,7 +1106,6 @@ function renderTimeline(dayKey) {
               <button class="btn-complete-toggle ${item.completed ? "completed" : ""}" onclick="toggleTimelineItemCompleted('${dayKey}', ${index})" title="${item.completed ? "미완료로 표시" : "완료로 표시"}">
                 <i class="${item.completed ? "ri-checkbox-circle-fill" : "ri-checkbox-blank-circle-line"}"></i>
               </button>
-              ${badgeHtml}
               <h3 class="place-title">${escapeHTML(item.name)}</h3>
             </div>
             <span class="badge badge-${item.category}">${categoryLabels[item.category] || "기타"}</span>
