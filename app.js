@@ -548,6 +548,8 @@ const elements = {
   foodAddress: document.getElementById("foodAddress"),
   foodOpenTime: document.getElementById("foodOpenTime"),
   foodCloseTime: document.getElementById("foodCloseTime"),
+  foodBreakStart: document.getElementById("foodBreakStart"),
+  foodBreakEnd: document.getElementById("foodBreakEnd"),
   foodTips: document.getElementById("foodTips"),
   btnFoodModalCancel: document.getElementById("btnFoodModalCancel"),
   btnFoodModalClose: document.getElementById("btnFoodModalClose"),
@@ -918,7 +920,8 @@ function renderFoodList(city, filterType = "all") {
           <div class="food-meta">
             <span class="badge badge-meal">${escapeHTML(catInfo.label)}</span>
             <span class="food-rating"><i class="ri-star-fill"></i> ${item.rating}</span>
-            ${item.openTime ? `<span class="food-rating" style="background: rgba(255,255,255,0.08); color: var(--text-sub); display: inline-flex; align-items: center; gap: 4px;"><i class="ri-time-line"></i> ${item.openTime} ~ ${item.closeTime}</span>` : ""}
+            ${item.openTime ? `<span class="food-rating" style="background: rgba(255,255,255,0.08); color: var(--text-sub); display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 6px;" title="영업 시간"><i class="ri-time-line"></i> ${item.openTime} ~ ${item.closeTime}</span>` : ""}
+            ${item.breakStart && item.breakEnd ? `<span class="food-rating" style="background: rgba(255,118,117,0.1); color: var(--danger); display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 6px;" title="브레이크 타임"><i class="ri-pause-circle-line"></i> 브레이크: ${item.breakStart} ~ ${item.breakEnd}</span>` : ""}
           </div>
         </div>
       </div>
@@ -962,6 +965,8 @@ window.openFoodModal = function(city) {
   // Clear time defaults
   elements.foodOpenTime.value = "11:00";
   elements.foodCloseTime.value = "21:00";
+  elements.foodBreakStart.value = "";
+  elements.foodBreakEnd.value = "";
   
   elements.modalFood.classList.remove("hidden");
 };
@@ -982,6 +987,8 @@ window.openFoodEditModal = function(city, originalIndex) {
   elements.foodAddress.value = item.address;
   elements.foodOpenTime.value = item.openTime || "11:00";
   elements.foodCloseTime.value = item.closeTime || "21:00";
+  elements.foodBreakStart.value = item.breakStart || "";
+  elements.foodBreakEnd.value = item.breakEnd || "";
   elements.foodTips.value = item.tips || "";
   
   elements.modalFood.classList.remove("hidden");
@@ -1501,9 +1508,11 @@ function setupEventListeners() {
     const address = elements.foodAddress.value.trim();
     const openTime = elements.foodOpenTime.value;
     const closeTime = elements.foodCloseTime.value;
+    const breakStart = elements.foodBreakStart.value;
+    const breakEnd = elements.foodBreakEnd.value;
     const tips = elements.foodTips.value.trim();
 
-    const newFoodItem = { name, category, rating, menu, address, openTime, closeTime, tips };
+    const newFoodItem = { name, category, rating, menu, address, openTime, closeTime, breakStart, breakEnd, tips };
     const editVal = elements.foodEditIndex.value;
 
     if (editVal) {
