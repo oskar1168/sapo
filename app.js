@@ -917,11 +917,19 @@ function renderFoodList(city, filterType = "all") {
       <div class="food-card-header" style="${isEditor ? "padding-right: 72px;" : ""}">
         <div class="food-title-group">
           <h3 class="food-name">${escapeHTML(item.name)}</h3>
-          <div class="food-meta">
-            <span class="badge badge-meal">${escapeHTML(catInfo.label)}</span>
-            <span class="food-rating"><i class="ri-star-fill"></i> ${item.rating}</span>
-            ${item.openTime ? `<span class="food-rating" style="background: rgba(255,255,255,0.08); color: var(--text-sub); display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 6px;" title="영업 시간"><i class="ri-time-line"></i> ${item.openTime} ~ ${item.closeTime}</span>` : ""}
-            ${item.breakStart && item.breakEnd ? `<span class="food-rating" style="background: rgba(255,118,117,0.1); color: var(--danger); display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 6px;" title="브레이크 타임"><i class="ri-pause-circle-line"></i> 브레이크: ${item.breakStart} ~ ${item.breakEnd}</span>` : ""}
+          <div class="food-meta" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin-top: 6px;">
+            <!-- 1층: 스팟 기본 정보 -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span class="badge badge-meal" style="font-size: 0.72rem; padding: 3px 6px;">${escapeHTML(catInfo.label)}</span>
+              <span class="food-rating" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 2px;"><i class="ri-star-fill"></i> ${item.rating}</span>
+            </div>
+            <!-- 2층: 영업 시간 & 브레이크 타임 세트 -->
+            ${(item.openTime || (item.breakStart && item.breakEnd)) ? `
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+              ${item.openTime ? `<span class="food-rating" style="background: rgba(255,255,255,0.08); color: var(--text-sub); display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem;" title="영업 시간"><i class="ri-time-line"></i> ${item.openTime} ~ ${item.closeTime}</span>` : ""}
+              ${item.breakStart && item.breakEnd ? `<span class="food-rating" style="background: rgba(255,118,117,0.1); color: var(--danger); display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 6px; font-size: 0.75rem;" title="브레이크 타임"><i class="ri-pause-circle-line"></i> 브레이크: ${item.breakStart} ~ ${item.breakEnd}</span>` : ""}
+            </div>
+            ` : ""}
           </div>
         </div>
       </div>
