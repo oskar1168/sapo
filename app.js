@@ -693,6 +693,11 @@ function renderTimeline(dayKey) {
   const items = travelData.days[dayKey] || [];
   elements.timelineList.innerHTML = "";
   
+  const routeBtnArea = document.getElementById("routeButtonArea");
+  if (routeBtnArea) {
+    routeBtnArea.innerHTML = "";
+  }
+  
   if (items.length === 0) {
     elements.timelineEmptyState.classList.remove("hidden");
     elements.timelineList.classList.add("hidden");
@@ -709,6 +714,19 @@ function renderTimeline(dayKey) {
 
   // Keep state updated in case sorting shuffled things
   travelData.days[dayKey] = sortedItems;
+
+  if (routeBtnArea) {
+    const routeUrl = generateDayRouteUrl(dayKey);
+    if (routeUrl) {
+      const dayIndex = dayKey.replace("day", "");
+      const routeBtn = document.createElement("a");
+      routeBtn.href = routeUrl;
+      routeBtn.target = "_blank";
+      routeBtn.className = "btn-full-route";
+      routeBtn.innerHTML = `<i class="ri-route-line"></i> Day ${dayIndex} 전체 경로 확인`;
+      routeBtnArea.appendChild(routeBtn);
+    }
+  }
 
   sortedItems.forEach((item, index) => {
     const itemEl = document.createElement("div");
@@ -1304,6 +1322,26 @@ function openGoogleMapsForSearch(inputId) {
   }
   
   window.open(targetUrl, "_blank");
+}
+
+// Generate complete routing path URL for Google Maps (Time sorted waypoints)
+function generateDayRouteUrl(dayKey) {
+  const items = travelData.days[dayKey] || [];
+  if (items.length < 2) return null;
+  
+  // Sort by time first to ensure sequential pathing
+  const sortedItems = [...items].sort((a, b) => a.time.localeCompare(b.time));
+  const locations = sortedItems.map(item => item.mapAddress || item.name);
+  
+  const origin = locations[0];
+  const destination = locations[locations.length - 1];
+  
+  if (locations.length === 2) {
+    return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+  }
+  
+  const waypoints = locations.slice(1, -1);
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${waypoints.map(encodeURIComponent).join('|')}`;
 }
 
 

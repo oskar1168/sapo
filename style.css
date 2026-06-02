@@ -1652,3 +1652,52 @@ body {
   }
 }
 
+/* ==========================================
+   12. DAY FULL ROUTE BUTTON UX SYSTEM
+   ========================================== */
+.btn-full-route {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-family);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  background: rgba(108, 92, 231, 0.08);
+  color: var(--secondary);
+  border: 1px solid rgba(108, 92, 231, 0.15);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  width: max-content;
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.03);
+}
+
+.btn-full-route:hover {
+  background: var(--secondary);
+  color: var(--text-white);
+  border-color: var(--secondary);
+  box-shadow: 0 6px 18px rgba(108, 92, 231, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-full-route:active {
+  transform: translateY(1px);
+}
+
+.btn-full-route i {
+  font-size: 1rem;
+  transition: transform 0.25s;
+}
+
+.btn-full-route:hover i {
+  animation: routeWiggle 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes routeWiggle {
+  0% { transform: rotate(-10deg) translateX(-1px); }
+  100% { transform: rotate(10deg) translateX(2px); }
+}
+
+

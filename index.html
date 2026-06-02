@@ -127,8 +127,11 @@
     <main class="app-content">
       <!-- Days Timelines -->
       <div id="tabContentDays" class="tab-content active">
-        <div class="timeline-header">
-          <h2 class="timeline-title" id="timelineDayTitle">Day 1 일정</h2>
+        <div class="timeline-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <h2 class="timeline-title" id="timelineDayTitle">Day 1 일정</h2>
+            <div id="routeButtonArea"></div>
+          </div>
           <button id="btnAddPlace" class="btn btn-secondary editor-only">
             <i class="ri-add-circle-fill"></i>
             <span>새 장소 추가</span>
