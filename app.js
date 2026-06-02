@@ -64,7 +64,9 @@ const SAPPORO_FOOD_LIST = [
     rating: "4.5",
     menu: "닭꼬치(시레토코도리) 스프카레 (약 1,400엔)",
     tips: "가라쿠(GARAKU)의 줄이 너무 길어 포기해야 할 때 1티어 대안지! 숯불에 구운 닭고기가 꼬치에 꽂혀 나와 먹기 편하고 국물이 대단히 깊고 얼큰합니다. 가라쿠 바로 근처에 본점과 2호점이 붙어있어 웨이팅 분산이 빠릅니다.",
-    address: "Suage+, South 4 West 5, Sapporo"
+    address: "Suage+, South 4 West 5, Sapporo",
+    openTime: "11:30",
+    closeTime: "21:30"
   },
   {
     name: "스프카레 트레져 (TREASURE)",
@@ -72,7 +74,9 @@ const SAPPORO_FOOD_LIST = [
     rating: "4.4",
     menu: "함바그 스프카레 (약 1,350엔)",
     tips: "스프카레 맛집 가라쿠(GARAKU)의 자매 브랜드 식당입니다. 비법 베이스 스프와 맛이 매우 유사하여 가라쿠 웨이팅이 감당이 안 될 때 바로 갈 수 있는 훌륭한 대안입니다. 철판 함바그 토핑이 대단히 잘 어울립니다.",
-    address: "스프카레 TREASURE, Sapporo"
+    address: "스프카레 TREASURE, Sapporo",
+    openTime: "11:30",
+    closeTime: "20:30"
   },
   {
     name: "징기스칸 아루코 (Alco)",
@@ -80,7 +84,9 @@ const SAPPORO_FOOD_LIST = [
     rating: "4.6",
     menu: "생양고기 어깨살 & 양갈비 (약 1,200엔)",
     tips: "다루마 본점과 스스키노 골목의 다른 지점에 줄이 수십 미터 서 있을 때 갈 수 있는 숨겨진 골목 생양고기 최강 대안! 고기 질이 다루마만큼 훌륭하고 가격도 착합니다. 아늑한 다찌석 위주로 조용히 맥주와 곁들이기 좋습니다.",
-    address: "Arco Jingisukan, Sapporo"
+    address: "Arco Jingisukan, Sapporo",
+    openTime: "17:00",
+    closeTime: "22:00"
   },
   {
     name: "라멘 요시야마 쇼텐 (Yoshiyama Shouten)",
@@ -88,7 +94,9 @@ const SAPPORO_FOOD_LIST = [
     rating: "4.3",
     menu: "매운 참깨 미소 라멘 (약 950엔)",
     tips: "라멘 신겐의 1~2시간 이상 웨이팅이 부담스러우시다면 삿포로역 ESTA 공화국이나 스스키노 빌딩 지하의 요시야마 쇼텐으로 가세요! 볶은 참깨의 고소함과 삿포로 정통 미소의 감칠맛이 폭발하는 국물이 웨이팅 타협 이상의 맛을 선사합니다.",
-    address: "Yoshiyama Shouten, Sapporo"
+    address: "Yoshiyama Shouten, Sapporo",
+    openTime: "11:00",
+    closeTime: "21:00"
   },
   {
     name: "스시잔마이 스스키노점 (Sushizanmai)",
@@ -96,7 +104,9 @@ const SAPPORO_FOOD_LIST = [
     rating: "4.1",
     menu: "참치 세트 & 단품 초밥 (세트 약 2,500엔)",
     tips: "삿포로 유명 스시야들이 대부분 사전 예약제이거나 대기가 일찍 마감됩니다. 스시잔마이는 24시간 영업하여 늦은 밤 야식으로도 웨이팅 없이 신선한 홋카이도 해산물 스시를 맛볼 수 있는 최고의 전천후 대체지입니다.",
-    address: "Sushizanmai Susukino, Sapporo"
+    address: "Sushizanmai Susukino, Sapporo",
+    openTime: "00:00",
+    closeTime: "24:00"
   }
 ];
 
@@ -107,7 +117,9 @@ const OTARU_FOOD_LIST = [
     rating: "4.5",
     menu: "도야마 특선 카이센동 (약 3,500엔)",
     tips: "오타루역 삼각시장 내부의 타키나미 식당 웨이팅이 시장 밖까지 가득 차 있을 때 탈출할 수 있는 최고의 1선 대체지입니다! 삼각시장 바로 뒤쪽에 위치하며, 재료 신선도와 우니, 게살 토핑 양이 전혀 밀리지 않는 숨은 로컬 강자입니다.",
-    address: "Otaru Toyama Kaisendon"
+    address: "Otaru Toyama Kaisendon",
+    openTime: "11:00",
+    closeTime: "18:00"
   },
   {
     name: "오타루 마사즈시 운하점 (Masazushi)",
@@ -115,7 +127,9 @@ const OTARU_FOOD_LIST = [
     rating: "4.4",
     menu: "타쿠미 스시 코스 (약 6,500엔)",
     tips: "미스터 초밥왕의 고향 오타루에서 가장 전통 있고 상징적인 대표 스시야입니다. 본관 웨이팅이 길다면 운하점의 아름다운 운하 전망 창가 자리를 노려보는 것을 적극 추천합니다. 이세즈시 대비 예약 난이도가 낮고 캐주얼합니다.",
-    address: "Otaru Masazushi Zenan"
+    address: "Otaru Masazushi Zenan",
+    openTime: "11:00",
+    closeTime: "21:00"
   },
   {
     name: "롯카테이 오타루점 (Rokkatei)",
@@ -123,7 +137,9 @@ const OTARU_FOOD_LIST = [
     rating: "4.4",
     menu: "슈크림 빵 & 유키콘치즈 (약 150엔~300엔)",
     tips: "사카이마치 거리의 르타오(LeTAO) 카페 테이블 웨이팅 대기가 50팀이 넘어갈 때, 바로 옆에 있는 롯카테이 2층 카페 스탠딩석으로 가세요! 갓 구운 바삭한 슈크림 빵을 사면 무료로 원두커피 한 잔을 제공하는 혜택이 있어 가성비 쉼터로 제격입니다.",
-    address: "Rokkatei Otaru"
+    address: "Rokkatei Otaru",
+    openTime: "09:00",
+    closeTime: "18:00"
   },
   {
     name: "기타카로 오타루 본점 (Kitakaro)",
@@ -131,7 +147,9 @@ const OTARU_FOOD_LIST = [
     rating: "4.3",
     menu: "홋카이도 우유 소프트 아이스크림 (약 400엔)",
     tips: "르타오 본점 웨이팅 타협을 위한 두 번째 대안! 기타카로 본관 안쪽의 조용하고 고풍스러운 정원에서 아주 진한 정통 홋카이도 목장 우유 맛 아이스크림과 달콤한 바움쿠헨 한 조각을 시켜서 벤치에 앉아 여유롭게 쉴 수 있습니다.",
-    address: "Kitakaro Otaru"
+    address: "Kitakaro Otaru",
+    openTime: "09:00",
+    closeTime: "18:00"
   }
 ];
 
@@ -189,6 +207,8 @@ const elements = {
   foodRating: document.getElementById("foodRating"),
   foodMenu: document.getElementById("foodMenu"),
   foodAddress: document.getElementById("foodAddress"),
+  foodOpenTime: document.getElementById("foodOpenTime"),
+  foodCloseTime: document.getElementById("foodCloseTime"),
   foodTips: document.getElementById("foodTips"),
   btnFoodModalCancel: document.getElementById("btnFoodModalCancel"),
   btnFoodModalClose: document.getElementById("btnFoodModalClose"),
@@ -555,6 +575,7 @@ function renderFoodList(city, filterType = "all") {
           <div class="food-meta">
             <span class="badge badge-meal"><i class="${catInfo.icon}"></i> ${escapeHTML(catInfo.label)}</span>
             <span class="food-rating"><i class="ri-star-fill"></i> ${item.rating}</span>
+            ${item.openTime ? `<span class="food-rating" style="background: rgba(255,255,255,0.08); color: var(--text-sub); display: inline-flex; align-items: center; gap: 4px;"><i class="ri-time-line"></i> ${item.openTime} ~ ${item.closeTime}</span>` : ""}
           </div>
         </div>
       </div>
@@ -1062,9 +1083,11 @@ function setupEventListeners() {
     const rating = elements.foodRating.value;
     const menu = elements.foodMenu.value.trim();
     const address = elements.foodAddress.value.trim();
+    const openTime = elements.foodOpenTime.value;
+    const closeTime = elements.foodCloseTime.value;
     const tips = elements.foodTips.value.trim();
 
-    const newFoodItem = { name, category, rating, menu, address, tips };
+    const newFoodItem = { name, category, rating, menu, address, openTime, closeTime, tips };
 
     if (city === "otaru") {
       travelData.otaruFoodList.push(newFoodItem);
