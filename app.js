@@ -165,6 +165,98 @@ let currentSapporoFilter = "all"; // Sapporo foodie filter state
 const CURRENCY_CONVERSION_RATE = 9.0; // 100 JPY = 900 KRW
 
 // ==========================================
+// 2-2. IN-APP LIVE MAP STATE & DB (TRIPLE STYLE)
+// ==========================================
+let leafletMap = null;
+let leafletMarkers = [];
+let leafletPolyline = null;
+const coordsCache = {};
+
+// Sapporo & Otaru Essential Coordinates Database (0-latency rendering)
+const LOCATION_COORDINATES = {
+  // Sapporo Core Area
+  "신치토세 공항": [42.7874, 141.6811],
+  "신치토세공항": [42.7874, 141.6811],
+  "신치토세 공항 ✈️": [42.7874, 141.6811],
+  "신치토세공항 ✈️": [42.7874, 141.6811],
+  "삿포로역": [43.0686, 141.3508],
+  "삿포로 역": [43.0686, 141.3508],
+  "머큐어 호텔": [43.0560, 141.3556],
+  "머큐어 호텔 삿포로": [43.0560, 141.3556],
+  "머큐어호텔 삿포로": [43.0560, 141.3556],
+  "스스기노": [43.0556, 141.3538],
+  "스스키노": [43.0556, 141.3538],
+  "스스키노 다루마": [43.0545, 141.3532],
+  "오도리 공원": [43.0601, 141.3491],
+  "오도리공원": [43.0601, 141.3491],
+  "스스키노 라멘 골목": [43.0549, 141.3547],
+  
+  // Otaru Core Area
+  "오타루 운하": [43.2014, 141.0022],
+  "오타루운하": [43.2014, 141.0022],
+  "오타루역": [43.1970, 140.9942],
+  "오타루 역": [43.1970, 140.9942],
+  "오타루 마사즈시": [43.1931, 141.0006],
+  "오타루 마사즈시 운하점": [43.2001, 141.0025],
+  "사카이마치 거리": [43.1918, 141.0076],
+  "사카이마치도리": [43.1918, 141.0076],
+  "오타루 이나호": [43.1970, 140.9942],
+  "오타루 이로나이": [43.2025, 141.0011],
+  
+  // Biei & Furano Core Area
+  "비에이": [43.5902, 142.4578],
+  "비에이역": [43.5902, 142.4578],
+  "청의 호수": [43.4936, 142.6144],
+  "청의호수": [43.4936, 142.6144],
+  "흰수염 폭포": [43.4735, 142.6393],
+  "흰수염폭포": [43.4735, 142.6393],
+  "후라노": [43.3421, 142.3831],
+  "팜 도미타": [43.4181, 142.4278],
+  
+  // Incheon / Korea (Prevents breaking in case of Korea tests)
+  "인천공항": [37.4602, 126.4407],
+  "인천국제공항": [37.4602, 126.4407],
+  "인천국제공항 제1여객터미널": [37.4602, 126.4407],
+  "노벨파킹센터": [37.4475, 126.3762]
+};
+
+// Async geocoding helper using 100% Free OpenStreetMap API
+async function getCoordinates(name, mapAddress) {
+  const query = (mapAddress || name || "").trim();
+  if (!query) return null;
+
+  // 1. Search local coordinate database first (0-latency match)
+  if (LOCATION_COORDINATES[query]) return LOCATION_COORDINATES[query];
+  
+  // Fuzzy match DB
+  for (const key of Object.keys(LOCATION_COORDINATES)) {
+    if (query.includes(key) || key.includes(query)) {
+      return LOCATION_COORDINATES[key];
+    }
+  }
+
+  // 2. Check local memory cache
+  if (coordsCache[query]) return coordsCache[query];
+
+  // 3. Fallback to OpenStreetMap Nominatim API (Hokkaido target)
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query + ", Hokkaido")}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        coordsCache[query] = coords; // Save cache
+        return coords;
+      }
+    }
+  } catch (error) {
+    console.warn("Geocoding failed for: " + query, error);
+  }
+
+  return null;
+}
+
+// ==========================================
 // 3. ELEMENT REFERENCES
 // ==========================================
 const elements = {
@@ -802,6 +894,9 @@ function renderTimeline(dayKey) {
     `;
     elements.timelineList.appendChild(itemEl);
   });
+
+  // Update Triple-style In-App Live Map dynamically
+  updateInAppMap(dayKey);
 }
 
 // Render Settlement Tab
@@ -1341,5 +1436,127 @@ function generateDayRouteUrl(dayKey) {
   const path = validLocations.map(loc => encodeURIComponent(loc.trim())).join("/");
   return `https://www.google.com/maps/dir/${path}`;
 }
+
+// ==========================================
+// 12. IN-APP LIVE MAP CORE ENGINE (TRIPLE STYLE)
+// ==========================================
+
+async function updateInAppMap(dayKey) {
+  const mapEl = document.getElementById("map");
+  if (!mapEl) return;
+
+  const items = travelData.days[dayKey] || [];
+
+  // 1. Initialize map if not already done
+  if (!leafletMap) {
+    try {
+      leafletMap = L.map('map', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([43.0686, 141.3508], 10);
+      
+      // Load premium CartoDB Voyager pastel maps (Beautiful light gray styling)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+      }).addTo(leafletMap);
+      
+      // Auto-invalidation on resize for flawless responsive rendering
+      const resizeObserver = new ResizeObserver(() => {
+        if (leafletMap) leafletMap.invalidateSize();
+      });
+      resizeObserver.observe(mapEl);
+      
+    } catch (e) {
+      console.error("Map initialization failed: ", e);
+      return;
+    }
+  }
+
+  // 2. Clear all previous markers and polylines safely
+  leafletMarkers.forEach(m => leafletMap.removeLayer(m));
+  leafletMarkers = [];
+  
+  if (leafletPolyline) {
+    leafletMap.removeLayer(leafletPolyline);
+    leafletPolyline = null;
+  }
+
+  if (items.length === 0) {
+    // Zoom back to general Sapporo view if no items
+    leafletMap.setView([43.0686, 141.3508], 10);
+    return;
+  }
+
+  // 3. Resolve all coordinates asynchronously in parallel (0.05-sec ultra speed)
+  const coordsPromises = items.map(item => getCoordinates(item.name, item.mapAddress));
+  const resolvedCoords = await Promise.all(coordsPromises);
+
+  const latlngs = [];
+  const validItems = [];
+
+  resolvedCoords.forEach((coords, idx) => {
+    if (coords) {
+      latlngs.push(coords);
+      validItems.push({
+        item: items[idx],
+        coords: coords,
+        index: idx
+      });
+    }
+  });
+
+  // 4. Draw Purple Number Pins (Triple style ①, ②, ③)
+  validItems.forEach((vi, pinIdx) => {
+    const customIcon = L.divIcon({
+      className: 'custom-number-marker',
+      html: `${pinIdx + 1}`
+    });
+
+    const popupHtml = `
+      <div style="font-family: var(--font-family); text-align: left; padding: 2px;">
+        <span style="font-weight:800; color:var(--secondary); font-size:0.9rem;">${pinIdx + 1}. ${escapeHTML(vi.item.name)}</span><br>
+        <span style="color:var(--text-sub); font-size:0.75rem;"><i class="ri-time-line"></i> ${vi.item.time}</span>
+      </div>
+    `;
+
+    const marker = L.marker(vi.coords, { icon: customIcon })
+      .bindPopup(popupHtml, { closeButton: false, offset: [0, -5] })
+      .addTo(leafletMap);
+      
+    leafletMarkers.push(marker);
+  });
+
+  // 5. Draw Beautiful Purple Dashed Connection Line
+  if (latlngs.length >= 2) {
+    leafletPolyline = L.polyline(latlngs, {
+      color: '#6c5ce7',
+      dashArray: '6, 8',
+      weight: 3,
+      opacity: 0.8
+    }).addTo(leafletMap);
+
+    // 6. Smoothly auto-fit bounds so all pins are visible
+    try {
+      leafletMap.fitBounds(leafletPolyline.getBounds(), {
+        padding: [40, 40],
+        maxZoom: 13,
+        animate: true,
+        duration: 0.6
+      });
+    } catch (err) {}
+  } else if (latlngs.length === 1) {
+    // Focus single pin smoothly
+    leafletMap.setView(latlngs[0], 12, { animate: true, duration: 0.6 });
+  } else {
+    // Default Sapporo view if no valid geocoded coordinates
+    leafletMap.setView([43.0686, 141.3508], 10);
+  }
+
+  // Ensures Leaflet recalculates and renders flawlessly
+  setTimeout(() => {
+    if (leafletMap) leafletMap.invalidateSize();
+  }, 100);
+}
+
 
 
