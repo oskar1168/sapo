@@ -300,8 +300,15 @@ function cleanAddress(addr) {
 // Low-level OSM Nominatim fetch helper
 async function callNominatim(q) {
   if (!q || q.length < 3) return null;
+  
+  // Only append ", Hokkaido" if it doesn't already contain it to prevent OSM confusion
+  let searchQuery = q;
+  if (!q.toLowerCase().includes("hokkaido")) {
+    searchQuery = q + ", Hokkaido";
+  }
+  
   try {
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q + ", Hokkaido")}`, {
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(searchQuery)}`, {
       headers: { "User-Agent": "SapoTravelPlanner/1.0" }
     });
     if (response.ok) {
@@ -316,7 +323,7 @@ async function callNominatim(q) {
   return null;
 }
 
-// Progressive backoff geocoder to guarantee nearest district match
+// Progressive backoff geocoder to guarantee nearest district match for both English & Japanese address styles
 async function geocodeWithProgressiveBackoff(cleanedQuery) {
   if (!cleanedQuery) return null;
 
@@ -324,17 +331,35 @@ async function geocodeWithProgressiveBackoff(cleanedQuery) {
   let coords = await callNominatim(cleanedQuery);
   if (coords) return coords;
 
-  // 2. Split query into parts and progressively truncate from the right
+  // Split query into parts
   let parts = cleanedQuery.split(/[\s,]+/);
+  if (parts.length <= 1) return null;
 
-  // Chop off detail from right one by one
-  while (parts.length > 1) {
-    parts.pop(); // chop last element (e.g. detailed building number, chome)
-    const subQuery = parts.join(" ").trim();
-    if (subQuery.length < 4) break; // Don't search too generic terms
+  // Detect if address is English/Romanized (contains typical Latin alphabets like Sapporo, Otaru, Chome)
+  const isEnglishAddress = /[a-zA-Z]/g.test(cleanedQuery);
 
-    coords = await callNominatim(subQuery);
-    if (coords) return coords;
+  if (isEnglishAddress) {
+    // English address style: Detailed is on the LEFT, Generic is on the RIGHT
+    // We progressively chop off from the LEFT (front)
+    while (parts.length > 1) {
+      parts.shift(); // Remove the leftmost detailed word (e.g. "4", "Chome")
+      const subQuery = parts.join(" ").trim();
+      if (subQuery.length < 5) break; // Don't search too generic terms like just "Hokkaido"
+      
+      coords = await callNominatim(subQuery);
+      if (coords) return coords;
+    }
+  } else {
+    // Japanese address style: Generic is on the LEFT, Detailed is on the RIGHT
+    // We progressively chop off from the RIGHT (back)
+    while (parts.length > 1) {
+      parts.pop(); // Remove the rightmost detailed word (e.g. building number, detailed chome)
+      const subQuery = parts.join(" ").trim();
+      if (subQuery.length < 4) break;
+      
+      coords = await callNominatim(subQuery);
+      if (coords) return coords;
+    }
   }
 
   // 3. Fuzzy fallback: search regional centers if specific words exist
@@ -344,6 +369,10 @@ async function geocodeWithProgressiveBackoff(cleanedQuery) {
   }
   if (cleanedQuery.toLowerCase().includes("otaru")) {
     coords = await callNominatim("Otaru");
+    if (coords) return coords;
+  }
+  if (cleanedQuery.toLowerCase().includes("sapporo")) {
+    coords = await callNominatim("Sapporo");
     if (coords) return coords;
   }
 
