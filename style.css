@@ -1600,11 +1600,30 @@ body {
   }
 
 
-  /* Compact Padding for Time Inputs to prevent layout collision in mobile */
+  /* iOS Safari WebKit Specific Fix: Prevents time input and select from expanding and overlapping */
   input[type="time"].form-input {
-    padding: 10px 8px !important;
-    font-size: 0.88rem !important;
+    padding: 10px 6px !important;
+    font-size: 0.85rem !important;
     text-align: center;
+    min-width: 0 !important; /* Force safari to obey 1fr grid width */
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Force centers text and fixes alignment in iPhone Safari time inputs */
+  input[type="time"]::-webkit-date-and-time-value {
+    text-align: center !important;
+    font-size: 0.85rem !important;
+    min-height: 1.5em !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Prevents iOS select elements from expanding and causing layout breaks */
+  select.form-input {
+    min-width: 0 !important;
+    width: 100% !important;
   }
 
   @keyframes mobileSlideUp {
