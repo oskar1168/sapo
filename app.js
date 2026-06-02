@@ -397,6 +397,34 @@ async function getCoordinates(name, mapAddress) {
     }
   }
 
+  // 1-2. Sapporo & Hokkaido Grid-style Address Fuzzy Resolver
+  const lowerQuery = targetQuery.toLowerCase();
+  if (lowerQuery.includes("kita 4") && (lowerQuery.includes("jonishi") || lowerQuery.includes("west"))) {
+    const coords = [43.0678, 141.3489];
+    coordsCache[query] = coords;
+    return coords;
+  }
+  if (lowerQuery.includes("kita 6") && (lowerQuery.includes("jonishi") || lowerQuery.includes("west"))) {
+    const coords = [43.0708, 141.3496];
+    coordsCache[query] = coords;
+    return coords;
+  }
+  if (lowerQuery.includes("minami 4") && (lowerQuery.includes("jonishi") || lowerQuery.includes("west"))) {
+    const coords = [43.0556, 141.3538];
+    coordsCache[query] = coords;
+    return coords;
+  }
+  if (lowerQuery.includes("ironai")) {
+    const coords = [43.2010, 141.0010];
+    coordsCache[query] = coords;
+    return coords;
+  }
+  if (lowerQuery.includes("motomachi") && lowerQuery.includes("biei")) {
+    const coords = [43.5900, 142.4415];
+    coordsCache[query] = coords;
+    return coords;
+  }
+
   // 2. Search local coordinate database first (0-latency match)
   if (LOCATION_COORDINATES[targetQuery]) {
     coordsCache[query] = LOCATION_COORDINATES[targetQuery];
