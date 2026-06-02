@@ -48,9 +48,10 @@ const SAPPORO_TEMPLATE = {
 };
 
 // ==========================================
-// 1-2. PLAN B FOODIE LISTS (삿포로 & 오타루 대체 맛집)
+// 1-2. PLAN B SPOT LISTS (삿포로 & 오타루 감성 스팟)
 // ==========================================
 const FOOD_CATEGORIES = {
+  spot: { label: "🏞️ 명소 / 관광지", icon: "ri-landscape-line" },
   meat: { label: "🥩 고기 / 육류", icon: "ri-restaurant-line" },
   seafood: { label: "🐟 해산물 / 스시", icon: "ri-goblet-line" },
   noodle: { label: "🍛 면 / 스프카레", icon: "ri-restaurant-2-line" },
@@ -58,6 +59,26 @@ const FOOD_CATEGORIES = {
 };
 
 const SAPPORO_FOOD_LIST = [
+  {
+    name: "오도리 공원 (Odori Park)",
+    category: "spot",
+    rating: "4.5",
+    menu: "공원 산책 및 구운 옥수수 맛보기 🌽",
+    tips: "삿포로 TV타워를 배경으로 완벽한 인생샷을 남길 수 있는 최고 명소입니다! 공원 내 포장마차(토키비 웨건)에서 파는 노릇노릇한 구운 옥수수와 버터 감자는 삿포로 여름의 상징이니 벤치에 앉아 꼭 드셔보세요.",
+    address: "Odori Park, Sapporo",
+    openTime: "00:00",
+    closeTime: "24:00"
+  },
+  {
+    name: "모이와야마 전망대 (Mt. Moiwa Ropeway)",
+    category: "spot",
+    rating: "4.7",
+    menu: "일본 3대 야경 로프웨이 탑승 🚡",
+    tips: "해발 531m 정상에서 감상하는 삿포로 시내의 360도 은하수 야경은 압도적입니다. 산 정상의 '사랑의 종'에서 하트 자물쇠를 걸거나 종을 함께 울리며 황홀하고 로맨틱한 삿포로의 밤을 연출해보세요.",
+    address: "Mt. Moiwa Ropeway, Sapporo",
+    openTime: "10:30",
+    closeTime: "22:00"
+  },
   {
     name: "스프카레 스아게플러스 (Suage+)",
     category: "noodle",
@@ -93,7 +114,7 @@ const SAPPORO_FOOD_LIST = [
     category: "noodle",
     rating: "4.3",
     menu: "매운 참깨 미소 라멘 (약 950엔)",
-    tips: "라멘 신겐의 1~2시간 이상 웨이팅이 부담스러우시다면 삿포로역 ESTA 공화국이나 스스키노 빌딩 지하의 요시야마 쇼텐으로 가세요! 볶은 참깨의 고소함과 삿포로 정통 미소의 감칠맛이 폭발하는 국물이 웨이팅 타협 이상의 맛을 선사합니다.",
+    tips: "라멘 신겐의 1~2시간 이상 웨이팅이 부담스러우시다면 삿포로역 ESTA 공화국이나 스스키노 빌딩 지하의 요시야마 쇼텐으로 가세요! 볶은 참깨의 고소함 and 삿포로 정통 미소의 감칠맛이 폭발하는 국물이 웨이팅 타협 이상의 맛을 선사합니다.",
     address: "Yoshiyama Shouten, Sapporo",
     openTime: "11:00",
     closeTime: "21:00"
@@ -111,6 +132,26 @@ const SAPPORO_FOOD_LIST = [
 ];
 
 const OTARU_FOOD_LIST = [
+  {
+    name: "오타루 운하 (Otaru Canal)",
+    category: "spot",
+    rating: "4.6",
+    menu: "운하 가스등 산책 및 크루즈 탑승 🛥️",
+    tips: "일몰 30분 전부터 붉은 노을과 함께 가스등 노란 불빛이 운하를 따라 켜지는 순간이 가장 환상적으로 아름답습니다. 낮보다 밤이 훨씬 아름다운 스팟으로, 옛 벽돌 창고를 개조한 비어홀이나 카페도 함께 둘러보세요.",
+    address: "Otaru Canal, Otaru",
+    openTime: "00:00",
+    closeTime: "24:00"
+  },
+  {
+    name: "오타루 오르골당 (Otaru Music Box Museum)",
+    category: "spot",
+    rating: "4.6",
+    menu: "천상의 오르골 선율 감상 🎶",
+    tips: "약 3만여 점에 달하는 아기자기한 오르골이 빛나는 세계 최대 규모의 오르골 전시장입니다. 입구의 상징적인 스팀 증기시계는 15분마다 아름다운 멜로디를 연주하며 증기를 뿜어내니 타이밍에 맞춰 인증샷을 찰칵!",
+    address: "Otaru Music Box Museum",
+    openTime: "09:00",
+    closeTime: "18:00"
+  },
   {
     name: "오타루 도야마 (Otaru Toyama)",
     category: "seafood",
@@ -803,6 +844,7 @@ function renderFoodFilters(city) {
   // Filter Options list
   const filters = [
     { value: "all", label: "🌟 전체보기" },
+    { value: "spot", label: "🏞️ 명소 / 관광지" },
     { value: "meat", label: "🥩 고기 / 육류" },
     { value: "seafood", label: "🐟 해산물 / 스시" },
     { value: "noodle", label: "🍛 면 / 스프카레" },
@@ -829,7 +871,7 @@ function renderFoodFilters(city) {
   });
 }
 
-// Render Food List dynamically (Otaru or Sapporo) with Filter support
+// Render Spot List dynamically (Otaru or Sapporo) with Filter support
 function renderFoodList(city, filterType = "all") {
   let list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
   const gridEl = city === "otaru" ? elements.otaruFoodGrid : elements.sapporoFoodGrid;
@@ -842,7 +884,7 @@ function renderFoodList(city, filterType = "all") {
   }
   
   if (!list || list.length === 0) {
-    gridEl.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 600;">등록된 카테고리의 대체 맛집이 없습니다.</p>`;
+    gridEl.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 600;">등록된 카테고리의 감성 스팟이 없습니다.</p>`;
     return;
   }
   
@@ -856,17 +898,17 @@ function renderFoodList(city, filterType = "all") {
     
     const googleMapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address || item.name)}`;
     const directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.address || item.name)}`;
-
+ 
     // Need to find original index of the item for correct deletion when filtered
     const originalList = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
     const originalIndex = originalList.indexOf(item);
-
+ 
     card.innerHTML = `
       ${isEditor ? `
-        <button class="btn-card-action btn-edit" style="position: absolute; top: 18px; right: 48px; font-size: 1.25rem;" onclick="openFoodEditModal('${city}', ${originalIndex})" title="맛집 수정">
+        <button class="btn-card-action btn-edit" style="position: absolute; top: 18px; right: 48px; font-size: 1.25rem;" onclick="openFoodEditModal('${city}', ${originalIndex})" title="스팟 수정">
           <i class="ri-edit-box-line"></i>
         </button>
-        <button class="btn-card-action btn-delete" style="position: absolute; top: 18px; right: 18px; font-size: 1.25rem;" onclick="deleteFoodItem('${city}', ${originalIndex})" title="맛집 삭제">
+        <button class="btn-card-action btn-delete" style="position: absolute; top: 18px; right: 18px; font-size: 1.25rem;" onclick="deleteFoodItem('${city}', ${originalIndex})" title="스팟 삭제">
           <i class="ri-delete-bin-line"></i>
         </button>
       ` : ""}
@@ -882,7 +924,7 @@ function renderFoodList(city, filterType = "all") {
       </div>
       <div class="food-recommend-menu">
         <i class="ri-thumb-up-fill" style="color: var(--success)"></i>
-        <span>추천메뉴: <strong>${escapeHTML(item.menu)}</strong></span>
+        <span>추천메뉴 / 즐길거리: <strong>${escapeHTML(item.menu)}</strong></span>
       </div>
       <p class="food-tips">${escapeHTML(item.tips)}</p>
       <div class="food-card-footer">
@@ -893,10 +935,10 @@ function renderFoodList(city, filterType = "all") {
     gridEl.appendChild(card);
   });
 }
-
-// Food list CRUD actions (Delete & Add Modal)
+ 
+// Spot list CRUD actions (Delete & Add Modal)
 window.deleteFoodItem = function(city, originalIndex) {
-  if (confirm("정말 이 맛집을 리스트에서 삭제하시겠습니까?")) {
+  if (confirm("정말 이 감성 스팟을 리스트에서 삭제하시겠습니까?")) {
     const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
     list.splice(originalIndex, 1);
     saveToLocalStorage();
@@ -904,12 +946,12 @@ window.deleteFoodItem = function(city, originalIndex) {
     // Re-render with the current filter state
     const currentFilter = city === "otaru" ? currentOtaruFilter : currentSapporoFilter;
     renderFoodList(city, currentFilter);
-    showToast("맛집이 리스트에서 삭제되었습니다.", "success");
+    showToast("감성 스팟이 리스트에서 삭제되었습니다.", "success");
   }
 };
-
+ 
 window.openFoodModal = function(city) {
-  elements.foodModalTitle.innerText = city === "otaru" ? "🍣 오타루 대체 맛집 추가" : "🍺 삿포로 대체 맛집 추가";
+  elements.foodModalTitle.innerText = city === "otaru" ? "🗺️ 오타루 감성 스팟 추가" : "🧭 삿포로 감성 스팟 추가";
   elements.foodCityType.value = city;
   elements.foodEditIndex.value = ""; // Clear edit index
   elements.formFood.reset();
@@ -923,12 +965,12 @@ window.openFoodModal = function(city) {
   
   elements.modalFood.classList.remove("hidden");
 };
-
+ 
 window.openFoodEditModal = function(city, originalIndex) {
   const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
   const item = list[originalIndex];
   
-  elements.foodModalTitle.innerText = city === "otaru" ? "🍣 오타루 대체 맛집 수정" : "🍺 삿포로 대체 맛집 수정";
+  elements.foodModalTitle.innerText = city === "otaru" ? "🗺️ 오타루 감성 스팟 수정" : "🧭 삿포로 감성 스팟 수정";
   elements.foodCityType.value = city;
   elements.foodEditIndex.value = `${city}:${originalIndex}`;
   
@@ -1474,7 +1516,7 @@ function setupEventListeners() {
       } else {
         travelData.sapporoFoodList[index] = newFoodItem;
       }
-      showToast("대체 맛집 정보가 성공적으로 수정되었습니다!", "success");
+      showToast("감성 스팟 정보가 성공적으로 수정되었습니다!", "success");
     } else {
       // ADD MODE
       if (city === "otaru") {
@@ -1482,7 +1524,7 @@ function setupEventListeners() {
       } else {
         travelData.sapporoFoodList.push(newFoodItem);
       }
-      showToast("새로운 대체 맛집이 리스트에 추가되었습니다!", "success");
+      showToast("새로운 감성 스팟이 리스트에 추가되었습니다!", "success");
     }
 
     saveToLocalStorage();

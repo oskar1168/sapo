@@ -116,12 +116,12 @@
             <span>체크리스트 & 정산</span>
           </button>
           <button class="nav-tab tab-special" data-tab="foodOtaru" role="tab" aria-selected="false" id="tabOtaruFood">
-            <i class="ri-restaurant-2-line"></i>
-            <span>맛집리스트(오타루)</span>
+            <i class="ri-map-pin-5-line"></i>
+            <span>오타루 스팟</span>
           </button>
           <button class="nav-tab tab-special" data-tab="foodSapporo" role="tab" aria-selected="false" id="tabSapporoFood">
-            <i class="ri-goblet-line"></i>
-            <span>맛집리스트(삿포로)</span>
+            <i class="ri-compass-3-line"></i>
+            <span>삿포로 스팟</span>
           </button>
         </div>
       </div>
@@ -222,15 +222,15 @@
         </div>
       </div>
 
-      <!-- Otaru Food List Content -->
+      <!-- Otaru Spot List Content -->
       <div id="tabContentFoodOtaru" class="tab-content hidden">
         <div class="food-list-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
           <div>
-            <h2 class="timeline-title">🍣 오타루 엄선 맛집 리스트</h2>
+            <h2 class="timeline-title">🗺️ 오타루 감성 스팟 가이드</h2>
           </div>
           <button class="btn btn-secondary editor-only" onclick="openFoodModal('otaru')">
             <i class="ri-add-circle-fill"></i>
-            <span>오타루 맛집 추가</span>
+            <span>오타루 스팟 추가</span>
           </button>
         </div>
         <div class="food-filter-container" id="otaruFoodFilter"></div>
@@ -239,17 +239,18 @@
         </div>
       </div>
 
-      <!-- Sapporo Food List Content -->
+      <!-- Sapporo Spot List Content -->
       <div id="tabContentFoodSapporo" class="tab-content hidden">
         <div class="food-list-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
           <div>
-            <h2 class="timeline-title">🍺 삿포로 엄선 맛집 리스트</h2>
+            <h2 class="timeline-title">🗺️ 삿포로 감성 스팟 가이드</h2>
           </div>
           <button class="btn btn-secondary editor-only" onclick="openFoodModal('sapporo')">
             <i class="ri-add-circle-fill"></i>
-            <span>삿포로 맛집 추가</span>
+            <span>삿포로 스팟 추가</span>
           </button>
         </div>
+        <div class="food-filter-container" id="sapporoFoodFilter"></div>
         <div class="food-grid" id="sapporoFoodGrid">
           <!-- Injected dynamically by JS -->
         </div>
@@ -267,7 +268,7 @@
   <div id="modalFood" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-content glass-card animate-slide-up">
       <div class="modal-header">
-        <h3 class="modal-title" id="foodModalTitle">대체 맛집 추가</h3>
+        <h3 class="modal-title" id="foodModalTitle">감성 스팟 추가</h3>
         <button id="btnFoodModalClose" class="btn-close-modal"><i class="ri-close-line"></i></button>
       </div>
       <form id="formFood">
@@ -277,15 +278,16 @@
         <input type="hidden" id="foodEditIndex" value="">
 
         <div class="form-group">
-          <label for="foodName" class="form-label">맛집 이름 *</label>
-          <input type="text" id="foodName" class="form-input" placeholder="예: 스스기노 스아게플러스, 오타루 마사즈시" required maxlength="50">
+          <label for="foodName" class="form-label">스팟 이름 *</label>
+          <input type="text" id="foodName" class="form-input" placeholder="예: 솔라리아 니시테츠 호텔, 오타루 오르골당, 스아게플러스" required maxlength="50">
         </div>
 
         <div class="form-row-2">
           <div class="form-group">
-            <label for="foodCategory" class="form-label">음식 종류 *</label>
+            <label for="foodCategory" class="form-label">스팟 카테고리 *</label>
             <select id="foodCategory" class="form-input">
-              <option value="meat" selected>🥩 고기 / 육류</option>
+              <option value="spot" selected>🏞️ 명소 / 관광지</option>
+              <option value="meat">🥩 고기 / 육류</option>
               <option value="seafood">🐟 해산물 / 스시</option>
               <option value="noodle">🍛 면 / 스프카레</option>
               <option value="dessert">🍰 디저트 / 카페</option>
@@ -304,14 +306,14 @@
         </div>
 
         <div class="form-group">
-          <label for="foodMenu" class="form-label">추천 메뉴 *</label>
-          <input type="text" id="foodMenu" class="form-input" placeholder="예: 닭꼬치 스프카레 (1,400엔)" required maxlength="50">
+          <label for="foodMenu" class="form-label">대표 메뉴 / 추천 즐길거리 *</label>
+          <input type="text" id="foodMenu" class="form-input" placeholder="예: 닭꼬치 스프카레, 오르골 감상, 클래식 정원" required maxlength="100">
         </div>
 
         <div class="form-group">
           <label for="foodAddress" class="form-label">구글맵 주소 또는 검색어 *</label>
           <div class="input-with-button">
-            <input type="text" id="foodAddress" class="form-input" placeholder="예: Suage+ Sapporo, 롯카테이 오타루" required maxlength="500">
+            <input type="text" id="foodAddress" class="form-input" placeholder="예: Solaria Nishitetsu Hotel Sapporo, 오타루 오르골당" required maxlength="500">
             <button type="button" class="btn-inline-action btn-inline-map" id="btnFoodAddressMap" title="구글 지도 열어 장소 검색"><i class="ri-map-2-line"></i> 지도 검색</button>
           </div>
           <span class="cost-helper-text" style="color: var(--text-sub); display: block; margin-top: 5px; font-size: 0.75rem;">
@@ -331,8 +333,8 @@
         </div>
 
         <div class="form-group">
-          <label for="foodTips" class="form-label">대체 및 웨이팅 꿀팁 (선택)</label>
-          <textarea id="foodTips" class="form-input text-area" placeholder="예: 가라쿠 대기가 너무 길 때의 1선 대체지! 꼬치식이라 먹기 엄청 편합니다." maxlength="250"></textarea>
+          <label for="foodTips" class="form-label">이용 꿀팁 및 상세 메모 (선택)</label>
+          <textarea id="foodTips" class="form-input text-area" placeholder="예: 솔라리아 호텔 투숙객이 아니어도 내부 정원 및 1층 라운지 카페는 이용 가능합니다!" maxlength="250"></textarea>
         </div>
 
         <div class="modal-footer">
