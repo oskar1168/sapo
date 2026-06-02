@@ -589,8 +589,7 @@ function renderFoodList(city, filterType = "all") {
       </div>
       <p class="food-tips">${escapeHTML(item.tips)}</p>
       <div class="food-card-footer">
-        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도</a>
-        <button class="btn-map-action btn-map-copy" style="flex: 1; text-align: center; justify-content: center;" onclick="copyAddressToClipboard('${escapeHTML(item.address || item.name)}')" title="맛집 주소 클립보드에 복사"><i class="ri-file-copy-line"></i> 복사</button>
+        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도 보기</a>
         <a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" style="flex: 1; text-align: center; justify-content: center;" title="내 위치에서 길찾기"><i class="ri-navigation-fill"></i> 길찾기</a>
       </div>
     `;
@@ -771,7 +770,6 @@ function renderTimeline(dayKey) {
         <!-- Google Maps Quick Actions -->
         <div class="card-map-actions">
           <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도 보기</a>
-          <button class="btn-map-action btn-map-copy" onclick="copyAddressToClipboard('${escapeHTML(mapQuery)}')" title="장소 주소 클립보드에 복사"><i class="ri-file-copy-line"></i> 주소 복사</button>
           ${directionBtnHtml}
         </div>
 
@@ -1165,27 +1163,19 @@ function setupEventListeners() {
   });
 
   // ==========================================
-  // Inline Google Maps Search & Paste for foodAddress
+  // Inline Google Maps Search for foodAddress
   // ==========================================
   const btnFoodAddressMap = document.getElementById("btnFoodAddressMap");
-  const btnFoodAddressPaste = document.getElementById("btnFoodAddressPaste");
   if (btnFoodAddressMap) {
     btnFoodAddressMap.addEventListener("click", () => openGoogleMapsForSearch("foodAddress"));
   }
-  if (btnFoodAddressPaste) {
-    btnFoodAddressPaste.addEventListener("click", () => pasteFromClipboard("foodAddress"));
-  }
 
   // ==========================================
-  // Inline Google Maps Search & Paste for placeMap
+  // Inline Google Maps Search for placeMap
   // ==========================================
   const btnPlaceMapMap = document.getElementById("btnPlaceMapMap");
-  const btnPlaceMapPaste = document.getElementById("btnPlaceMapPaste");
   if (btnPlaceMapMap) {
     btnPlaceMapMap.addEventListener("click", () => openGoogleMapsForSearch("placeMap"));
-  }
-  if (btnPlaceMapPaste) {
-    btnPlaceMapPaste.addEventListener("click", () => pasteFromClipboard("placeMap"));
   }
 }
 
@@ -1295,54 +1285,6 @@ function escapeHTML(str) {
 // ==========================================
 // 11. CLIPBOARD COPY & PASTE SYSTEM
 // ==========================================
-
-// Global address copy helper
-window.copyAddressToClipboard = async function(address) {
-  if (!address) {
-    showToast("복사할 주소 정보가 없습니다.", "error");
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(address);
-    showToast("주소가 클립보드에 복사되었습니다! 📋", "success");
-  } catch (err) {
-    console.error("클립보드 주소 복사 실패:", err);
-    // Fallback for older browsers or permission denied
-    const textarea = document.createElement("textarea");
-    textarea.value = address;
-    textarea.style.position = "fixed";  // Avoid scrolling to bottom
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-    try {
-      document.execCommand("copy");
-      showToast("주소가 복사되었습니다! (구형 방식) 📋", "success");
-    } catch (e) {
-      showToast("주소 복사에 실패했습니다. 직접 주소를 복사해주세요.", "error");
-    }
-    document.body.removeChild(textarea);
-  }
-};
-
-// Paste from Clipboard helper
-async function pasteFromClipboard(inputId) {
-  const inputEl = document.getElementById(inputId);
-  if (!inputEl) return;
-
-  try {
-    // Attempt to read from clipboard
-    const text = await navigator.clipboard.readText();
-    if (text) {
-      inputEl.value = text.trim();
-      showToast("클립보드 주소가 성공적으로 붙여넣어졌습니다! 📋", "success");
-    } else {
-      showToast("클립보드가 비어있거나 복사된 텍스트가 없습니다.", "info");
-    }
-  } catch (err) {
-    console.warn("Clipboard read text error:", err);
-    showToast("🔒 클립보드 읽기 권한이 차단되었거나 비보안(HTTP) 환경입니다. 입력창을 꾹 눌러 직접 붙여넣어주세요!", "info");
-  }
-}
 
 // Open Google Maps in a new tab for searching address
 function openGoogleMapsForSearch(inputId) {
