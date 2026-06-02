@@ -1599,11 +1599,6 @@ body {
     min-height: 70px !important;
   }
 
-  /* Time Input Form Column Optimization */
-  .form-row-time-cat {
-    grid-template-columns: 85px 1fr !important; /* 85px for Time, rest for Category */
-    gap: 12px !important;
-  }
 
   /* Compact Padding for Time Inputs to prevent layout collision in mobile */
   input[type="time"].form-input {
