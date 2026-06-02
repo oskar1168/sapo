@@ -230,7 +230,18 @@ const LOCATION_COORDINATES = {
   "4 Chome-4-10 Motomachi, Biei, Kamikawa District, Hokkaido": [43.5900, 142.4415],
   "1-chōme-4-20 Ironai, Otaru, Hokkaido 047-0031 일본": [43.2010, 141.0010],
   "1-chōme-4-20 Ironai, Otaru, Hokkaido 047-0031": [43.2010, 141.0010],
-  "1-chōme-4-20 Ironai, Otaru, Hokkaido": [43.2010, 141.0010]
+  "1-chōme-4-20 Ironai, Otaru, Hokkaido": [43.2010, 141.0010],
+  
+  // Solaria Nishitetsu Hotel Sapporo (5 Chome-1-2)
+  "솔라리아 니시테츠 호텔 삿포로": [43.0672, 141.3489],
+  "솔라리아 니시테츠 호텔": [43.0672, 141.3489],
+  "Solaria Nishitetsu Hotel Sapporo": [43.0672, 141.3489],
+  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004 일본": [43.0672, 141.3489],
+  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004": [43.0672, 141.3489],
+  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido": [43.0672, 141.3489],
+  "5 Chome-1-2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004 일본": [43.0672, 141.3489],
+  "5 Chome-1-2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004": [43.0672, 141.3489],
+  "5 Chome-1-2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido": [43.0672, 141.3489]
 };
 
 // Clean address string for OSM geocoding maximize success rate
