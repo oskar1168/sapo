@@ -233,6 +233,55 @@ const LOCATION_COORDINATES = {
   "르타오 본점": [43.1908, 141.0076],
   "르타오": [43.1908, 141.0076],
   
+  // Custom exact copy-paste Google Map English addresses
+  "4 Chome Kita 6 Jonishi, Kita Ward, Sapporo, Hokkaido 060-0806 일본": [43.0708, 141.3496],
+  "4 Chome Kita 6 Jonishi, Kita Ward, Sapporo, Hokkaido": [43.0708, 141.3496],
+  "4 Chome-4-10 Motomachi, Biei, Kamikawa District, Hokkaido 071-0208 일본": [43.5900, 142.4415],
+  "4 Chome-4-10 Motomachi, Biei, Kamikawa District, Hokkaido": [43.5900, 142.4415],
+  "1-chōme-4-20 Ironai, Otaru, Hokkaido 047-0031 일본": [43.2010, 141.0010],
+  "1-chōme-4-20 Ironai, Otaru, Hokkaido 047-0031": [43.2010, 141.0010],
+  "1-chōme-4-20 Ironai, Otaru, Hokkaido": [43.2010, 141.0010],
+  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004 일본": [43.0678, 141.3489],
+  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004": [43.0678, 141.3489],
+  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido": [43.0678, 141.3489]
+};
+
+// Clean address string for OSM geocoding maximize success rate
+function cleanAddress(addr) {
+  if (!addr) return "";
+  let cleaned = addr.trim();
+
+  // 1. Remove country and postal code prefixes/suffixes
+  cleaned = cleaned.replace(/일본\s*/gi, "");
+  cleaned = cleaned.replace(/japan\s*/gi, "");
+  cleaned = cleaned.replace(/〒\s*\d{3}-\d{4}\s*/g, "");
+  cleaned = cleaned.replace(/\d{3}-\d{4}\s*/g, ""); // 7-digit postal code format
+
+  // 1-2. Handle Japanese address kanji characters (番 ➡️ - , 号 ➡️ delete)
+  cleaned = cleaned.replace(/番\s*/gi, "-");
+  cleaned = cleaned.replace(/호\s*/gi, "");
+  cleaned = cleaned.replace(/号\s*/gi, "");
+
+  // 2. Convert Japanese full-width characters (numbers and hyphens) to half-width
+  const fullWidthMap = {
+    '０': '0', '１': '1', '２': '2', '３': '3', '４': '4',
+    '５': '5', '６': '6', '７': '7', '８': '8', '９': '9',
+    '－': '-', 'ー': '-', '−': '-', '－': '-'
+  };
+  cleaned = cleaned.replace(/[0-9－ー−]/g, m => fullWidthMap[m] || m);
+
+  // 2-2. Normalize multiple hyphens or redundant spaces
+  cleaned = cleaned.replace(/-+/g, "-");
+  cleaned = cleaned.replace(/-\s+/g, "-");
+  cleaned = cleaned.replace(/\s+-/g, "-");
+
+  // 3. Remove parentheses or brackets and contents within them (often contains store names that confuse OSM)
+  cleaned = cleaned.replace(/\([^)]*\)/g, "");
+  cleaned = cleaned.replace(/\[[^\]]*\]/g, "");
+
+  return cleaned.trim();
+}
+  
   // Biei & Furano Core Area
   "비에이": [43.5902, 142.4578],
   "비에이역": [43.5902, 142.4578],
