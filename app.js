@@ -658,6 +658,7 @@ function getDayDateString(dayIndex) {
 function updateDashboardStats() {
   let totalCostKRW = 0;
   let totalPlaces = 0;
+  const memberCount = parseInt(travelData.memberCount) || 2;
 
   // Calculate stats from all days
   Object.keys(travelData.days).forEach(dayKey => {
@@ -665,7 +666,8 @@ function updateDashboardStats() {
     totalPlaces += items.length;
     
     items.forEach(item => {
-      totalCostKRW += getCostInKRW(item.cost, item.currency);
+      const totalItemCost = (parseFloat(item.cost) || 0) * memberCount;
+      totalCostKRW += getCostInKRW(totalItemCost, item.currency);
     });
   });
 
@@ -712,12 +714,17 @@ function renderTimeline(dayKey) {
     const itemEl = document.createElement("div");
     itemEl.className = "timeline-item";
     
+    const memberCount = parseInt(travelData.memberCount) || 2;
+    const totalCost = (parseFloat(item.cost) || 0) * memberCount;
+
     const displayCost = item.cost > 0 
-      ? (item.currency === "JPY" ? `¥ ${formatNumber(item.cost)}` : `₩ ${formatNumber(item.cost)}`)
+      ? (item.currency === "JPY" 
+         ? `¥ ${formatNumber(item.cost)} (1인) ➡️ 총 ¥ ${formatNumber(totalCost)} (${memberCount}명)` 
+         : `₩ ${formatNumber(item.cost)} (1인) ➡️ 총 ₩ ${formatNumber(totalCost)} (${memberCount}명)`)
       : "무료 / 예산 없음";
       
     const krwCostSub = (item.cost > 0 && item.currency === "JPY")
-      ? `<span class="cost-converted">(약 ${formatNumber(getCostInKRW(item.cost, item.currency))}원)</span>`
+      ? `<span class="cost-converted">(총 약 ${formatNumber(getCostInKRW(totalCost, item.currency))}원)</span>`
       : "";
 
     const categoryLabels = {
@@ -795,12 +802,14 @@ function renderTimeline(dayKey) {
 function renderSettlementTab() {
   let totalCostKRW = 0;
   const catCosts = { flight: 0, meal: 0, cafe: 0, sightseeing: 0, shopping: 0, lodging: 0, transport: 0, etc: 0 };
+  const memberCount = parseInt(elements.inputMemberCount.value) || 1;
   
   // Calculate total costs & category breakdowns
   Object.keys(travelData.days).forEach(dayKey => {
     const items = travelData.days[dayKey] || [];
     items.forEach(item => {
-      const krwVal = getCostInKRW(item.cost, item.currency);
+      const totalItemCost = (parseFloat(item.cost) || 0) * memberCount;
+      const krwVal = getCostInKRW(totalItemCost, item.currency);
       totalCostKRW += krwVal;
       if (catCosts.hasOwnProperty(item.category)) {
         catCosts[item.category] += krwVal;
@@ -1171,13 +1180,17 @@ function setupEventListeners() {
 function updateCostConversionLabel() {
   const cost = parseFloat(elements.placeCost.value) || 0;
   const currency = elements.placeCurrency.value;
+  const memberCount = parseInt(travelData.memberCount) || 2;
+  const totalCost = cost * memberCount;
   
   if (currency === "JPY") {
-    const krw = Math.round(cost * CURRENCY_CONVERSION_RATE);
-    elements.lblCostConversion.innerText = `₩ ${formatNumber(krw)}원 (100엔 = 900원 대략적 환율 기준)`;
+    const krwPerPerson = Math.round(cost * CURRENCY_CONVERSION_RATE);
+    const krwTotal = Math.round(totalCost * CURRENCY_CONVERSION_RATE);
+    elements.lblCostConversion.innerText = `1인당 ₩ ${formatNumber(krwPerPerson)}원 (총 ${memberCount}명 약 ₩ ${formatNumber(krwTotal)}원, 100엔 = 900원 대략적 기준)`;
     elements.lblCostConversion.style.visibility = "visible";
   } else {
-    elements.lblCostConversion.style.visibility = "hidden";
+    elements.lblCostConversion.innerText = `총 ${memberCount}명 ₩ ${formatNumber(totalCost)}원`;
+    elements.lblCostConversion.style.visibility = "visible";
   }
 }
 
