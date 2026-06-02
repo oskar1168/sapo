@@ -174,116 +174,20 @@ const coordsCache = {};
 
 // Sapporo & Otaru Essential Coordinates Database (0-latency rendering)
 const LOCATION_COORDINATES = {
-  // Sapporo Core Area
   "신치토세 공항": [42.7874, 141.6811],
-  "신치토세공항": [42.7874, 141.6811],
-  "신치토세 공항 ✈️": [42.7874, 141.6811],
-  "신치토세공항 ✈️": [42.7874, 141.6811],
-  "CTS": [42.7874, 141.6811],
-  "치토세": [42.7874, 141.6811],
-  "치토세 공항": [42.7874, 141.6811],
-  "치토세공항": [42.7874, 141.6811],
   "삿포로역": [43.0686, 141.3508],
-  "삿포로 역": [43.0686, 141.3508],
-  "머큐어 호텔": [43.0560, 141.3556],
   "머큐어 호텔 삿포로": [43.0560, 141.3556],
-  "머큐어호텔 삿포로": [43.0560, 141.3556],
-  "스스기노": [43.0556, 141.3538],
   "스스키노": [43.0556, 141.3538],
-  "스스키노 다루마": [43.0545, 141.3532],
   "오도리 공원": [43.0601, 141.3491],
-  "오도리공원": [43.0601, 141.3491],
-  "스스키노 라멘 골목": [43.0549, 141.3547],
-  "삿포로 맥주 박물관": [43.0715, 141.3688],
-  "삿포로 맥주박물관": [43.0715, 141.3688],
-  "모이와야마 전망대": [43.0232, 141.3338],
-  "모이와산": [43.0232, 141.3338],
-  "모이와야마 로프웨이": [43.0232, 141.3338],
-  "시로이 코이비토 파크": [43.0886, 141.2709],
-  "시로이코이비토 파크": [43.0886, 141.2709],
-  "니조 시장": [43.0583, 141.3581],
-  "니조시장": [43.0583, 141.3581],
-  "나카지마 공원": [43.0454, 141.3541],
-  "나카지마공원": [43.0454, 141.3541],
-  "홋카이도 대학": [43.0725, 141.3435],
-  "홋카이도 대학교": [43.0725, 141.3435],
-  "스프카레 가라쿠": [43.0570, 141.3552],
-  "가라쿠": [43.0570, 141.3552],
-  "스프카레 스아게플러스": [43.0558, 141.3527],
-  "스아게플러스": [43.0558, 141.3527],
-  "다루마 4.4": [43.0545, 141.3533],
   "징기스칸 다루마": [43.0545, 141.3533],
-  
-  // Otaru Core Area
+  "스프카레 가라쿠": [43.0570, 141.3552],
+  "스프카레 스아게플러스": [43.0558, 141.3527],
   "오타루 운하": [43.2014, 141.0022],
-  "오타루운하": [43.2014, 141.0022],
   "오타루역": [43.1970, 140.9942],
-  "오타루 역": [43.1970, 140.9942],
   "오타루 마사즈시": [43.1931, 141.0006],
-  "오타루 마사즈시 운하점": [43.2001, 141.0025],
   "사카이마치 거리": [43.1918, 141.0076],
-  "사카이마치도리": [43.1918, 141.0076],
-  "오타루 이나호": [43.1970, 140.9942],
-  "오타루 이로나이": [43.2025, 141.0011],
-  "이나호": [43.1970, 140.9942],
-  "이로나이": [43.2025, 141.0011],
   "오타루 오르골당": [43.1903, 141.0078],
-  "오르골당": [43.1903, 141.0078],
   "오타루 르타오 본점": [43.1908, 141.0076],
-  "르타오 본점": [43.1908, 141.0076],
-  "르타오": [43.1908, 141.0076],
-  
-  // Custom exact copy-paste Google Map English addresses
-  "4 Chome Kita 6 Jonishi, Kita Ward, Sapporo, Hokkaido 060-0806 일본": [43.0708, 141.3496],
-  "4 Chome Kita 6 Jonishi, Kita Ward, Sapporo, Hokkaido": [43.0708, 141.3496],
-  "4 Chome-4-10 Motomachi, Biei, Kamikawa District, Hokkaido 071-0208 일본": [43.5900, 142.4415],
-  "4 Chome-4-10 Motomachi, Biei, Kamikawa District, Hokkaido": [43.5900, 142.4415],
-  "1-chōme-4-20 Ironai, Otaru, Hokkaido 047-0031 일본": [43.2010, 141.0010],
-  "1-chōme-4-20 Ironai, Otaru, Hokkaido 047-0031": [43.2010, 141.0010],
-  "1-chōme-4-20 Ironai, Otaru, Hokkaido": [43.2010, 141.0010],
-  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004 일본": [43.0678, 141.3489],
-  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido 060-0004": [43.0678, 141.3489],
-  "5 Chome-1番2 Kita 4 Jonishi, Chuo Ward, Sapporo, Hokkaido": [43.0678, 141.3489]
-};
-
-// Clean address string for OSM geocoding maximize success rate
-function cleanAddress(addr) {
-  if (!addr) return "";
-  let cleaned = addr.trim();
-
-  // 1. Remove country and postal code prefixes/suffixes
-  cleaned = cleaned.replace(/일본\s*/gi, "");
-  cleaned = cleaned.replace(/japan\s*/gi, "");
-  cleaned = cleaned.replace(/〒\s*\d{3}-\d{4}\s*/g, "");
-  cleaned = cleaned.replace(/\d{3}-\d{4}\s*/g, ""); // 7-digit postal code format
-
-  // 1-2. Handle Japanese address kanji characters (番 ➡️ - , 号 ➡️ delete)
-  cleaned = cleaned.replace(/番\s*/gi, "-");
-  cleaned = cleaned.replace(/호\s*/gi, "");
-  cleaned = cleaned.replace(/号\s*/gi, "");
-
-  // 2. Convert Japanese full-width characters (numbers and hyphens) to half-width
-  const fullWidthMap = {
-    '０': '0', '１': '1', '２': '2', '３': '3', '４': '4',
-    '５': '5', '６': '6', '７': '7', '８': '8', '９': '9',
-    '－': '-', 'ー': '-', '−': '-', '－': '-'
-  };
-  cleaned = cleaned.replace(/[0-9－ー−]/g, m => fullWidthMap[m] || m);
-
-  // 2-2. Normalize multiple hyphens or redundant spaces
-  cleaned = cleaned.replace(/-+/g, "-");
-  cleaned = cleaned.replace(/-\s+/g, "-");
-  cleaned = cleaned.replace(/\s+-/g, "-");
-
-  // 3. Remove parentheses or brackets and contents within them (often contains store names that confuse OSM)
-  cleaned = cleaned.replace(/\([^)]*\)/g, "");
-  cleaned = cleaned.replace(/\[[^\]]*\]/g, "");
-
-  return cleaned.trim();
-}
-  
-  // Biei & Furano Core Area
-  "비에이": [43.5902, 142.4578],
   "비에이역": [43.5902, 142.4578],
   "준페이": [43.5900, 142.4415],
   "비에이 준페이": [43.5900, 142.4415],
