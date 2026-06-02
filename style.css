@@ -1591,3 +1591,90 @@ body {
   50% { transform: scale(1.25); }
   100% { transform: scale(1.0); }
 }
+
+/* ==========================================
+   11. ADDRESS ACTION BUTTONS & UX IMPROVEMENTS
+   ========================================== */
+.input-with-button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.input-with-button .form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-inline-action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-family);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0 14px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+.btn-inline-paste {
+  background: rgba(74, 144, 226, 0.06);
+  color: var(--primary);
+  border-color: rgba(74, 144, 226, 0.12);
+}
+
+.btn-inline-paste:hover {
+  background: var(--primary);
+  color: var(--text-white);
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+}
+
+.btn-inline-copy {
+  background: rgba(108, 92, 231, 0.06);
+  color: var(--secondary);
+  border-color: rgba(108, 92, 231, 0.12);
+}
+
+.btn-inline-copy:hover {
+  background: var(--secondary);
+  color: var(--text-white);
+  border-color: var(--secondary);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2);
+}
+
+.btn-inline-action:active {
+  transform: scale(0.95);
+}
+
+.btn-map-copy {
+  background: rgba(46, 204, 113, 0.08);
+  color: var(--success);
+  border-color: rgba(46, 204, 113, 0.15);
+}
+
+.btn-map-copy:hover {
+  background: var(--success) !important;
+  color: var(--text-white) !important;
+  border-color: var(--success) !important;
+  box-shadow: 0 4px 10px rgba(46, 204, 113, 0.25);
+}
+
+@media (max-width: 480px) {
+  .btn-inline-action {
+    padding: 0 8px;
+    font-size: 0.75rem;
+    gap: 2px;
+  }
+}
+

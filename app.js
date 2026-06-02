@@ -589,7 +589,8 @@ function renderFoodList(city, filterType = "all") {
       </div>
       <p class="food-tips">${escapeHTML(item.tips)}</p>
       <div class="food-card-footer">
-        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도 보기</a>
+        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도</a>
+        <button class="btn-map-action btn-map-copy" style="flex: 1; text-align: center; justify-content: center;" onclick="copyAddressToClipboard('${escapeHTML(item.address || item.name)}')" title="맛집 주소 클립보드에 복사"><i class="ri-file-copy-line"></i> 복사</button>
         <a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" style="flex: 1; text-align: center; justify-content: center;" title="내 위치에서 길찾기"><i class="ri-navigation-fill"></i> 길찾기</a>
       </div>
     `;
@@ -741,20 +742,8 @@ function renderTimeline(dayKey) {
     // Generate Google Maps Links
     const mapQuery = item.mapAddress || item.name;
     const googleMapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
-    
-    let directionUrl = "";
-    let directionBtnHtml = "";
-    
-    if (index > 0) {
-      const prevItem = sortedItems[index - 1];
-      const prevQuery = prevItem.mapAddress || prevItem.name;
-      directionUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevQuery)}&destination=${encodeURIComponent(mapQuery)}`;
-      directionBtnHtml = `<a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" title="이전 일정 장소로부터 구글맵 길찾기 시작"><i class="ri-navigation-fill"></i> 이전 장소에서 길찾기</a>`;
-    } else {
-      // First item: Direction from current location
-      directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`;
-      directionBtnHtml = `<a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" title="현재 내 위치에서 구글맵 길찾기 시작"><i class="ri-navigation-fill"></i> 내 위치에서 길찾기</a>`;
-    }
+    const directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`;
+    const directionBtnHtml = `<a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" title="현재 내 위치에서 구글맵 길찾기 시작"><i class="ri-navigation-fill"></i> 내 위치에서 길찾기</a>`;
 
     itemEl.innerHTML = `
       <div class="timeline-marker"></div>
@@ -782,6 +771,7 @@ function renderTimeline(dayKey) {
         <!-- Google Maps Quick Actions -->
         <div class="card-map-actions">
           <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도 보기</a>
+          <button class="btn-map-action btn-map-copy" onclick="copyAddressToClipboard('${escapeHTML(mapQuery)}')" title="장소 주소 클립보드에 복사"><i class="ri-file-copy-line"></i> 주소 복사</button>
           ${directionBtnHtml}
         </div>
 
@@ -1173,6 +1163,30 @@ function setupEventListeners() {
     const currentFilter = city === "otaru" ? currentOtaruFilter : currentSapporoFilter;
     renderFoodList(city, currentFilter);
   });
+
+  // ==========================================
+  // Inline Clipboard actions for foodAddress
+  // ==========================================
+  const btnFoodAddressPaste = document.getElementById("btnFoodAddressPaste");
+  const btnFoodAddressCopy = document.getElementById("btnFoodAddressCopy");
+  if (btnFoodAddressPaste) {
+    btnFoodAddressPaste.addEventListener("click", () => pasteFromClipboard("foodAddress"));
+  }
+  if (btnFoodAddressCopy) {
+    btnFoodAddressCopy.addEventListener("click", () => copyInputValue("foodAddress"));
+  }
+
+  // ==========================================
+  // Inline Clipboard actions for placeMap
+  // ==========================================
+  const btnPlaceMapPaste = document.getElementById("btnPlaceMapPaste");
+  const btnPlaceMapCopy = document.getElementById("btnPlaceMapCopy");
+  if (btnPlaceMapPaste) {
+    btnPlaceMapPaste.addEventListener("click", () => pasteFromClipboard("placeMap"));
+  }
+  if (btnPlaceMapCopy) {
+    btnPlaceMapCopy.addEventListener("click", () => copyInputValue("placeMap"));
+  }
 }
 
 // Update Cost Label (JPY to KRW)
@@ -1277,3 +1291,69 @@ function escapeHTML(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// ==========================================
+// 11. CLIPBOARD COPY & PASTE SYSTEM
+// ==========================================
+
+// Global address copy helper
+window.copyAddressToClipboard = async function(address) {
+  if (!address) {
+    showToast("복사할 주소 정보가 없습니다.", "error");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(address);
+    showToast("주소가 클립보드에 복사되었습니다! 📋", "success");
+  } catch (err) {
+    console.error("클립보드 주소 복사 실패:", err);
+    // Fallback for older browsers or permission denied
+    const textarea = document.createElement("textarea");
+    textarea.value = address;
+    textarea.style.position = "fixed";  // Avoid scrolling to bottom
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      showToast("주소가 복사되었습니다! (구형 방식) 📋", "success");
+    } catch (e) {
+      showToast("주소 복사에 실패했습니다. 직접 주소를 복사해주세요.", "error");
+    }
+    document.body.removeChild(textarea);
+  }
+};
+
+// Paste from Clipboard helper
+async function pasteFromClipboard(inputId) {
+  const inputEl = document.getElementById(inputId);
+  if (!inputEl) return;
+
+  try {
+    // Attempt to read from clipboard
+    const text = await navigator.clipboard.readText();
+    if (text) {
+      inputEl.value = text.trim();
+      showToast("클립보드 주소가 성공적으로 붙여넣어졌습니다! 📋", "success");
+    } else {
+      showToast("클립보드가 비어있거나 복사된 텍스트가 없습니다.", "info");
+    }
+  } catch (err) {
+    console.warn("Clipboard read text error:", err);
+    showToast("🔒 클립보드 읽기 권한이 차단되었거나 비보안(HTTP) 환경입니다. 입력창을 꾹 눌러 직접 붙여넣어주세요!", "info");
+  }
+}
+
+// Copy input value helper
+function copyInputValue(inputId) {
+  const inputEl = document.getElementById(inputId);
+  if (!inputEl) return;
+  
+  const text = inputEl.value.trim();
+  if (text) {
+    window.copyAddressToClipboard(text);
+  } else {
+    showToast("복사할 내용이 입력창에 존재하지 않습니다.", "error");
+  }
+}
+
