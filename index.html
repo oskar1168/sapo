@@ -323,22 +323,22 @@
 
         <div class="form-row-2">
           <div class="form-group">
-            <label for="foodOpenTime" class="form-label">영업 시작 시간</label>
+            <label for="foodOpenTime" class="form-label">오픈</label>
             <input type="time" id="foodOpenTime" class="form-input" value="11:00">
           </div>
           <div class="form-group">
-            <label for="foodCloseTime" class="form-label">영업 종료 시간</label>
+            <label for="foodCloseTime" class="form-label">마감</label>
             <input type="time" id="foodCloseTime" class="form-input" value="21:00">
           </div>
         </div>
 
         <div class="form-row-2">
           <div class="form-group">
-            <label for="foodBreakStart" class="form-label">쉬는 시간 시작 (선택)</label>
+            <label for="foodBreakStart" class="form-label">브레이크 시작</label>
             <input type="time" id="foodBreakStart" class="form-input">
           </div>
           <div class="form-group">
-            <label for="foodBreakEnd" class="form-label">쉬는 시간 종료 (선택)</label>
+            <label for="foodBreakEnd" class="form-label">브레이크 종료</label>
             <input type="time" id="foodBreakEnd" class="form-input">
           </div>
         </div>
@@ -372,13 +372,13 @@
           <input type="text" id="placeName" class="form-input" placeholder="예: 스스키노 라멘 골목, 오타루 운하" required maxlength="50">
         </div>
 
-        <div class="form-row-2">
+        <div class="form-row-2 form-row-time-cat">
           <div class="form-group">
-            <label for="placeTime" class="form-label">방문 시간</label>
+            <label for="placeTime" class="form-label">시간</label>
             <input type="time" id="placeTime" class="form-input" value="12:00">
           </div>
           <div class="form-group">
-            <label for="placeCategory" class="form-label">카테고리</label>
+            <label for="placeCategory" class="form-label">분류</label>
             <select id="placeCategory" class="form-input">
               <option value="flight">✈️ 항공</option>
               <option value="meal">🍴 식당 / 맛집</option>
