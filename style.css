@@ -1640,17 +1640,17 @@ body {
   box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
 }
 
-.btn-inline-copy {
-  background: rgba(108, 92, 231, 0.06);
-  color: var(--secondary);
-  border-color: rgba(108, 92, 231, 0.12);
+.btn-inline-map {
+  background: rgba(26, 115, 232, 0.06);
+  color: #1a73e8;
+  border-color: rgba(26, 115, 232, 0.12);
 }
 
-.btn-inline-copy:hover {
-  background: var(--secondary);
+.btn-inline-map:hover {
+  background: #1a73e8;
   color: var(--text-white);
-  border-color: var(--secondary);
-  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2);
+  border-color: #1a73e8;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
 }
 
 .btn-inline-action:active {

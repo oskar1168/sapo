@@ -1165,27 +1165,27 @@ function setupEventListeners() {
   });
 
   // ==========================================
-  // Inline Clipboard actions for foodAddress
+  // Inline Google Maps Search & Paste for foodAddress
   // ==========================================
+  const btnFoodAddressMap = document.getElementById("btnFoodAddressMap");
   const btnFoodAddressPaste = document.getElementById("btnFoodAddressPaste");
-  const btnFoodAddressCopy = document.getElementById("btnFoodAddressCopy");
+  if (btnFoodAddressMap) {
+    btnFoodAddressMap.addEventListener("click", () => openGoogleMapsForSearch("foodAddress"));
+  }
   if (btnFoodAddressPaste) {
     btnFoodAddressPaste.addEventListener("click", () => pasteFromClipboard("foodAddress"));
   }
-  if (btnFoodAddressCopy) {
-    btnFoodAddressCopy.addEventListener("click", () => copyInputValue("foodAddress"));
-  }
 
   // ==========================================
-  // Inline Clipboard actions for placeMap
+  // Inline Google Maps Search & Paste for placeMap
   // ==========================================
+  const btnPlaceMapMap = document.getElementById("btnPlaceMapMap");
   const btnPlaceMapPaste = document.getElementById("btnPlaceMapPaste");
-  const btnPlaceMapCopy = document.getElementById("btnPlaceMapCopy");
+  if (btnPlaceMapMap) {
+    btnPlaceMapMap.addEventListener("click", () => openGoogleMapsForSearch("placeMap"));
+  }
   if (btnPlaceMapPaste) {
     btnPlaceMapPaste.addEventListener("click", () => pasteFromClipboard("placeMap"));
-  }
-  if (btnPlaceMapCopy) {
-    btnPlaceMapCopy.addEventListener("click", () => copyInputValue("placeMap"));
   }
 }
 
@@ -1344,16 +1344,24 @@ async function pasteFromClipboard(inputId) {
   }
 }
 
-// Copy input value helper
-function copyInputValue(inputId) {
+// Open Google Maps in a new tab for searching address
+function openGoogleMapsForSearch(inputId) {
   const inputEl = document.getElementById(inputId);
   if (!inputEl) return;
   
   const text = inputEl.value.trim();
+  let targetUrl = "https://www.google.com";
+  
   if (text) {
-    window.copyAddressToClipboard(text);
+    targetUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
+    showToast(`🔍 '${text}' 검색어로 구글 지도를 엽니다...`, "info");
   } else {
-    showToast("복사할 내용이 입력창에 존재하지 않습니다.", "error");
+    // Default to Sapporo center
+    targetUrl = "https://www.google.com/maps/search/?api=1&query=Sapporo";
+    showToast("🔍 구글 지도를 엽니다. 장소를 검색해 주소를 복사해 오세요!", "info");
   }
+  
+  window.open(targetUrl, "_blank");
 }
+
 
