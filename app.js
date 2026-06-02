@@ -179,6 +179,10 @@ const LOCATION_COORDINATES = {
   "신치토세공항": [42.7874, 141.6811],
   "신치토세 공항 ✈️": [42.7874, 141.6811],
   "신치토세공항 ✈️": [42.7874, 141.6811],
+  "CTS": [42.7874, 141.6811],
+  "치토세": [42.7874, 141.6811],
+  "치토세 공항": [42.7874, 141.6811],
+  "치토세공항": [42.7874, 141.6811],
   "삿포로역": [43.0686, 141.3508],
   "삿포로 역": [43.0686, 141.3508],
   "머큐어 호텔": [43.0560, 141.3556],
@@ -190,6 +194,25 @@ const LOCATION_COORDINATES = {
   "오도리 공원": [43.0601, 141.3491],
   "오도리공원": [43.0601, 141.3491],
   "스스키노 라멘 골목": [43.0549, 141.3547],
+  "삿포로 맥주 박물관": [43.0715, 141.3688],
+  "삿포로 맥주박물관": [43.0715, 141.3688],
+  "모이와야마 전망대": [43.0232, 141.3338],
+  "모이와산": [43.0232, 141.3338],
+  "모이와야마 로프웨이": [43.0232, 141.3338],
+  "시로이 코이비토 파크": [43.0886, 141.2709],
+  "시로이코이비토 파크": [43.0886, 141.2709],
+  "니조 시장": [43.0583, 141.3581],
+  "니조시장": [43.0583, 141.3581],
+  "나카지마 공원": [43.0454, 141.3541],
+  "나카지마공원": [43.0454, 141.3541],
+  "홋카이도 대학": [43.0725, 141.3435],
+  "홋카이도 대학교": [43.0725, 141.3435],
+  "스프카레 가라쿠": [43.0570, 141.3552],
+  "가라쿠": [43.0570, 141.3552],
+  "스프카레 스아게플러스": [43.0558, 141.3527],
+  "스아게플러스": [43.0558, 141.3527],
+  "다루마 4.4": [43.0545, 141.3533],
+  "징기스칸 다루마": [43.0545, 141.3533],
   
   // Otaru Core Area
   "오타루 운하": [43.2014, 141.0022],
@@ -202,16 +225,44 @@ const LOCATION_COORDINATES = {
   "사카이마치도리": [43.1918, 141.0076],
   "오타루 이나호": [43.1970, 140.9942],
   "오타루 이로나이": [43.2025, 141.0011],
+  "이나호": [43.1970, 140.9942],
+  "이로나이": [43.2025, 141.0011],
+  "오타루 오르골당": [43.1903, 141.0078],
+  "오르골당": [43.1903, 141.0078],
+  "오타루 르타오 본점": [43.1908, 141.0076],
+  "르타오 본점": [43.1908, 141.0076],
+  "르타오": [43.1908, 141.0076],
   
   // Biei & Furano Core Area
   "비에이": [43.5902, 142.4578],
   "비에이역": [43.5902, 142.4578],
+  "준페이": [43.5900, 142.4415],
+  "비에이 준페이": [43.5900, 142.4415],
+  "준페이 덮밥": [43.5900, 142.4415],
   "청의 호수": [43.4936, 142.6144],
   "청의호수": [43.4936, 142.6144],
   "흰수염 폭포": [43.4735, 142.6393],
   "흰수염폭포": [43.4735, 142.6393],
   "후라노": [43.3421, 142.3831],
   "팜 도미타": [43.4181, 142.4278],
+  "탁신관": [43.5322, 142.4839],
+  "자작나무 숲": [43.5322, 142.4839],
+  "사계채의 언덕": [43.5284, 142.4646],
+  "사계채의언덕": [43.5284, 142.4646],
+  "시키사이노오카": [43.5284, 142.4646],
+  "켄과 메리의 나무": [43.6065, 142.4497],
+  "켄과 메리 나무": [43.6065, 142.4497],
+  "패치워크의 길": [43.6000, 142.4400],
+  "패치워크 로드": [43.6000, 142.4400],
+  "마일드세븐 언덕": [43.5937, 142.4042],
+  "마일드세븐의 언덕": [43.5937, 142.4042],
+  "세븐스타의 나무": [43.6268, 142.4347],
+  "세븐스타 나무": [43.6268, 142.4347],
+  "크리스마스 트리": [43.5654, 142.4428],
+  "비에이 크리스마스 트리": [43.5654, 142.4428],
+  "크리스마스트리": [43.5654, 142.4428],
+  "닝글테라스": [43.3232, 142.3582],
+  "닝글 테라스": [43.3232, 142.3582],
   
   // Incheon / Korea (Prevents breaking in case of Korea tests)
   "인천공항": [37.4602, 126.4407],
@@ -220,27 +271,81 @@ const LOCATION_COORDINATES = {
   "노벨파킹센터": [37.4475, 126.3762]
 };
 
-// Async geocoding helper using 100% Free OpenStreetMap API
+// Async geocoding helper using 100% Free OpenStreetMap API & Google Maps Redirect Resolver
 async function getCoordinates(name, mapAddress) {
   const query = (mapAddress || name || "").trim();
   if (!query) return null;
 
-  // 1. Search local coordinate database first (0-latency match)
-  if (LOCATION_COORDINATES[query]) return LOCATION_COORDINATES[query];
+  // Check local memory cache first to protect API limits
+  if (coordsCache[query]) return coordsCache[query];
+
+  let targetQuery = query;
+
+  // 0. Resolve short Google Maps URLs (e.g., maps.app.goo.gl or goo.gl/maps)
+  if (query.includes("maps.app.goo.gl") || query.includes("goo.gl/maps")) {
+    try {
+      // Use AllOrigins CORS Proxy to fetch the actual redirect page
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(query)}`;
+      const response = await fetch(proxyUrl);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.contents) {
+          // The Google Maps redirection page contains meta refresh link
+          const metaMatch = data.contents.match(/url=([^"'>\s]+)/i);
+          if (metaMatch && metaMatch[1]) {
+            targetQuery = decodeURIComponent(metaMatch[1]);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to unshorten using allorigins proxy: " + query, e);
+    }
+  }
+
+  // 1. Core Rule: Multi-pattern Regex parser to extract raw Lat/Lng from Google Maps link/text!
+  // Pattern A: Standard Lat, Lng pair (e.g. 43.0560, 141.3533 or @43.0560,141.3533)
+  let coordsMatch = targetQuery.match(/@?(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
   
-  // Fuzzy match DB
+  // Pattern B: Google Maps iframe/embedded url coordinate parameters (!3d43.0560065!4d141.3533802)
+  if (!coordsMatch) {
+    coordsMatch = targetQuery.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  }
+  
+  // Pattern C: Query parameter coordinates (query=43.0560065,141.3533802 or q=43.0560,141.3533)
+  if (!coordsMatch) {
+    coordsMatch = targetQuery.match(/[?&](?:query|q)=(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+  }
+
+  if (coordsMatch) {
+    const lat = parseFloat(coordsMatch[1]);
+    const lon = parseFloat(coordsMatch[2]);
+    // Safety check bounds for Japan/Hokkaido & Korea
+    if (lat > 30 && lat < 50 && lon > 120 && lon < 150) {
+      const coords = [lat, lon];
+      coordsCache[query] = coords;
+      return coords;
+    }
+  }
+
+  // 2. Search local coordinate database first (0-latency match)
+  if (LOCATION_COORDINATES[targetQuery]) {
+    coordsCache[query] = LOCATION_COORDINATES[targetQuery];
+    return LOCATION_COORDINATES[targetQuery];
+  }
+  
+  // Fuzzy match local DB
   for (const key of Object.keys(LOCATION_COORDINATES)) {
-    if (query.includes(key) || key.includes(query)) {
+    if (targetQuery.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(targetQuery.toLowerCase())) {
+      coordsCache[query] = LOCATION_COORDINATES[key];
       return LOCATION_COORDINATES[key];
     }
   }
 
-  // 2. Check local memory cache
-  if (coordsCache[query]) return coordsCache[query];
-
-  // 3. Fallback to OpenStreetMap Nominatim API (Hokkaido target)
+  // 3. Fallback to OpenStreetMap Nominatim API (Hokkaido target) with custom User-Agent
   try {
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query + ", Hokkaido")}`);
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(targetQuery + ", Hokkaido")}`, {
+      headers: { "User-Agent": "SapoTravelPlanner/1.0" }
+    });
     if (response.ok) {
       const data = await response.json();
       if (data && data.length > 0) {
@@ -250,7 +355,7 @@ async function getCoordinates(name, mapAddress) {
       }
     }
   } catch (error) {
-    console.warn("Geocoding failed for: " + query, error);
+    console.warn("Geocoding failed for: " + targetQuery, error);
   }
 
   return null;
