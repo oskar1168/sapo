@@ -1791,5 +1791,35 @@ body {
   }
 }
 
+/* ==========================================
+   14. CARD NUMBER & TRANSPORTATION BADGES
+   ========================================== */
+.timeline-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-family: var(--font-family);
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.timeline-badge-number {
+  background: linear-gradient(135deg, var(--secondary), #8e44ad);
+  color: var(--text-white);
+  box-shadow: 0 2px 6px rgba(108, 92, 231, 0.25);
+}
+
+.timeline-badge-icon {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-main);
+  font-size: 0.85rem;
+}
+
+
 
 

@@ -820,6 +820,8 @@ function renderTimeline(dayKey) {
     }
   }
 
+  let placeNumber = 0;
+
   sortedItems.forEach((item, index) => {
     const itemEl = document.createElement("div");
     itemEl.className = "timeline-item";
@@ -848,6 +850,17 @@ function renderTimeline(dayKey) {
       etc: "✨ 기타"
     };
 
+    // Calculate Triple-style sequential badge (Excluding flight & transport)
+    let badgeHtml = "";
+    if (item.category === "flight") {
+      badgeHtml = `<span class="timeline-badge timeline-badge-icon" title="항공편">✈️</span>`;
+    } else if (item.category === "transport") {
+      badgeHtml = `<span class="timeline-badge timeline-badge-icon" title="교통이동">🚌</span>`;
+    } else {
+      placeNumber++;
+      badgeHtml = `<span class="timeline-badge timeline-badge-number" title="방문 순서">${placeNumber}</span>`;
+    }
+
     // Generate Google Maps Links
     const mapQuery = item.mapAddress || item.name;
     const googleMapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
@@ -860,10 +873,11 @@ function renderTimeline(dayKey) {
         <div class="card-top">
           <div class="place-time-title">
             <span class="place-time"><i class="ri-time-line"></i> ${item.time}</span>
-            <div style="display: flex; align-items: center; gap: 4px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
               <button class="btn-complete-toggle ${item.completed ? "completed" : ""}" onclick="toggleTimelineItemCompleted('${dayKey}', ${index})" title="${item.completed ? "미완료로 표시" : "완료로 표시"}">
                 <i class="${item.completed ? "ri-checkbox-circle-fill" : "ri-checkbox-blank-circle-line"}"></i>
               </button>
+              ${badgeHtml}
               <h3 class="place-title">${escapeHTML(item.name)}</h3>
             </div>
             <span class="badge badge-${item.category}">${categoryLabels[item.category] || "기타"}</span>
@@ -1481,14 +1495,17 @@ async function updateInAppMap(dayKey) {
     leafletPolyline = null;
   }
 
-  if (items.length === 0) {
-    // Zoom back to general Sapporo view if no items
+  // Filter out flight & transport items from map display to avoid cross-sea errors
+  const mappableItems = items.filter(item => item.category !== 'flight' && item.category !== 'transport');
+
+  if (mappableItems.length === 0) {
+    // Zoom back to general Sapporo view if no mappable items
     leafletMap.setView([43.0686, 141.3508], 10);
     return;
   }
 
   // 3. Resolve all coordinates asynchronously in parallel (0.05-sec ultra speed)
-  const coordsPromises = items.map(item => getCoordinates(item.name, item.mapAddress));
+  const coordsPromises = mappableItems.map(item => getCoordinates(item.name, item.mapAddress));
   const resolvedCoords = await Promise.all(coordsPromises);
 
   const latlngs = [];
@@ -1498,7 +1515,7 @@ async function updateInAppMap(dayKey) {
     if (coords) {
       latlngs.push(coords);
       validItems.push({
-        item: items[idx],
+        item: mappableItems[idx],
         coords: coords,
         index: idx
       });
