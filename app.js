@@ -271,6 +271,85 @@ const LOCATION_COORDINATES = {
   "노벨파킹센터": [37.4475, 126.3762]
 };
 
+// Clean address string for OSM geocoding maximize success rate
+function cleanAddress(addr) {
+  if (!addr) return "";
+  let cleaned = addr.trim();
+
+  // 1. Remove country and postal code prefixes/suffixes
+  cleaned = cleaned.replace(/일본\s*/gi, "");
+  cleaned = cleaned.replace(/japan\s*/gi, "");
+  cleaned = cleaned.replace(/〒\s*\d{3}-\d{4}\s*/g, "");
+  cleaned = cleaned.replace(/\d{3}-\d{4}\s*/g, ""); // 7-digit postal code format
+
+  // 2. Convert Japanese full-width characters (numbers and hyphens) to half-width
+  const fullWidthMap = {
+    '０': '0', '１': '1', '２': '2', '３': '3', '４': '4',
+    '５': '5', '６': '6', '７': '7', '８': '8', '９': '9',
+    '－': '-', 'ー': '-', '−': '-', '－': '-'
+  };
+  cleaned = cleaned.replace(/[０-９－ー−]/g, m => fullWidthMap[m] || m);
+
+  // 3. Remove parentheses or brackets and contents within them (often contains store names that confuse OSM)
+  cleaned = cleaned.replace(/\([^)]*\)/g, "");
+  cleaned = cleaned.replace(/\[[^\]]*\]/g, "");
+
+  return cleaned.trim();
+}
+
+// Low-level OSM Nominatim fetch helper
+async function callNominatim(q) {
+  if (!q || q.length < 3) return null;
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q + ", Hokkaido")}`, {
+      headers: { "User-Agent": "SapoTravelPlanner/1.0" }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      }
+    }
+  } catch (error) {
+    console.warn("OSM single fetch failed for: " + q, error);
+  }
+  return null;
+}
+
+// Progressive backoff geocoder to guarantee nearest district match
+async function geocodeWithProgressiveBackoff(cleanedQuery) {
+  if (!cleanedQuery) return null;
+
+  // 1. Try whole cleaned query first
+  let coords = await callNominatim(cleanedQuery);
+  if (coords) return coords;
+
+  // 2. Split query into parts and progressively truncate from the right
+  let parts = cleanedQuery.split(/[\s,]+/);
+
+  // Chop off detail from right one by one
+  while (parts.length > 1) {
+    parts.pop(); // chop last element (e.g. detailed building number, chome)
+    const subQuery = parts.join(" ").trim();
+    if (subQuery.length < 4) break; // Don't search too generic terms
+
+    coords = await callNominatim(subQuery);
+    if (coords) return coords;
+  }
+
+  // 3. Fuzzy fallback: search regional centers if specific words exist
+  if (cleanedQuery.toLowerCase().includes("biei")) {
+    coords = await callNominatim("Biei");
+    if (coords) return coords;
+  }
+  if (cleanedQuery.toLowerCase().includes("otaru")) {
+    coords = await callNominatim("Otaru");
+    if (coords) return coords;
+  }
+
+  return null;
+}
+
 // Async geocoding helper using 100% Free OpenStreetMap API & Google Maps Redirect Resolver
 async function getCoordinates(name, mapAddress) {
   const query = (mapAddress || name || "").trim();
@@ -341,21 +420,12 @@ async function getCoordinates(name, mapAddress) {
     }
   }
 
-  // 3. Fallback to OpenStreetMap Nominatim API (Hokkaido target) with custom User-Agent
-  try {
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(targetQuery + ", Hokkaido")}`, {
-      headers: { "User-Agent": "SapoTravelPlanner/1.0" }
-    });
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data.length > 0) {
-        const coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-        coordsCache[query] = coords; // Save cache
-        return coords;
-      }
-    }
-  } catch (error) {
-    console.warn("Geocoding failed for: " + targetQuery, error);
+  // 3. Fallback to OpenStreetMap Nominatim with clean & progressive backoff
+  const cleanedAddress = cleanAddress(targetQuery);
+  const coords = await geocodeWithProgressiveBackoff(cleanedAddress);
+  if (coords) {
+    coordsCache[query] = coords;
+    return coords;
   }
 
   return null;
