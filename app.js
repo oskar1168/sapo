@@ -1324,7 +1324,7 @@ function openGoogleMapsForSearch(inputId) {
   window.open(targetUrl, "_blank");
 }
 
-// Generate complete routing path URL for Google Maps (Time sorted waypoints)
+// Generate complete routing path URL for Google Maps (Slash-separated waypoints for 100% pin visibility)
 function generateDayRouteUrl(dayKey) {
   const items = travelData.days[dayKey] || [];
   if (items.length < 2) return null;
@@ -1333,15 +1333,13 @@ function generateDayRouteUrl(dayKey) {
   const sortedItems = [...items].sort((a, b) => a.time.localeCompare(b.time));
   const locations = sortedItems.map(item => item.mapAddress || item.name);
   
-  const origin = locations[0];
-  const destination = locations[locations.length - 1];
+  // Clean empty or invalid strings to prevent map breaks
+  const validLocations = locations.filter(loc => loc && loc.trim() !== "");
+  if (validLocations.length < 2) return null;
   
-  if (locations.length === 2) {
-    return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
-  }
-  
-  const waypoints = locations.slice(1, -1);
-  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${waypoints.map(encodeURIComponent).join('|')}`;
+  // Build traditional google maps slash directory format
+  const path = validLocations.map(loc => encodeURIComponent(loc.trim())).join("/");
+  return `https://www.google.com/maps/dir/${path}`;
 }
 
 
