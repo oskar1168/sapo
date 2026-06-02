@@ -202,6 +202,7 @@ const elements = {
   formFood: document.getElementById("formFood"),
   foodModalTitle: document.getElementById("foodModalTitle"),
   foodCityType: document.getElementById("foodCityType"),
+  foodEditIndex: document.getElementById("foodEditIndex"),
   foodName: document.getElementById("foodName"),
   foodCategory: document.getElementById("foodCategory"),
   foodRating: document.getElementById("foodRating"),
@@ -565,11 +566,14 @@ function renderFoodList(city, filterType = "all") {
 
     card.innerHTML = `
       ${isEditor ? `
+        <button class="btn-card-action btn-edit" style="position: absolute; top: 18px; right: 48px; font-size: 1.25rem;" onclick="openFoodEditModal('${city}', ${originalIndex})" title="맛집 수정">
+          <i class="ri-edit-box-line"></i>
+        </button>
         <button class="btn-card-action btn-delete" style="position: absolute; top: 18px; right: 18px; font-size: 1.25rem;" onclick="deleteFoodItem('${city}', ${originalIndex})" title="맛집 삭제">
           <i class="ri-delete-bin-line"></i>
         </button>
       ` : ""}
-      <div class="food-card-header" style="${isEditor ? "padding-right: 32px;" : ""}">
+      <div class="food-card-header" style="${isEditor ? "padding-right: 72px;" : ""}">
         <div class="food-title-group">
           <h3 class="food-name">${escapeHTML(item.name)}</h3>
           <div class="food-meta">
@@ -610,10 +614,36 @@ window.deleteFoodItem = function(city, originalIndex) {
 window.openFoodModal = function(city) {
   elements.foodModalTitle.innerText = city === "otaru" ? "🍣 오타루 대체 맛집 추가" : "🍺 삿포로 대체 맛집 추가";
   elements.foodCityType.value = city;
+  elements.foodEditIndex.value = ""; // Clear edit index
   elements.formFood.reset();
   
   // Smart default rating
   elements.foodRating.value = "4.5";
+  
+  // Clear time defaults
+  elements.foodOpenTime.value = "11:00";
+  elements.foodCloseTime.value = "21:00";
+  
+  elements.modalFood.classList.remove("hidden");
+};
+
+window.openFoodEditModal = function(city, originalIndex) {
+  const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
+  const item = list[originalIndex];
+  
+  elements.foodModalTitle.innerText = city === "otaru" ? "🍣 오타루 대체 맛집 수정" : "🍺 삿포로 대체 맛집 수정";
+  elements.foodCityType.value = city;
+  elements.foodEditIndex.value = `${city}:${originalIndex}`;
+  
+  // Fill in inputs
+  elements.foodName.value = item.name;
+  elements.foodCategory.value = item.category;
+  elements.foodRating.value = item.rating;
+  elements.foodMenu.value = item.menu;
+  elements.foodAddress.value = item.address;
+  elements.foodOpenTime.value = item.openTime || "11:00";
+  elements.foodCloseTime.value = item.closeTime || "21:00";
+  elements.foodTips.value = item.tips || "";
   
   elements.modalFood.classList.remove("hidden");
 };
@@ -1088,17 +1118,34 @@ function setupEventListeners() {
     const tips = elements.foodTips.value.trim();
 
     const newFoodItem = { name, category, rating, menu, address, openTime, closeTime, tips };
+    const editVal = elements.foodEditIndex.value;
 
-    if (city === "otaru") {
-      travelData.otaruFoodList.push(newFoodItem);
+    if (editVal) {
+      // EDIT MODE
+      const [editCity, indexStr] = editVal.split(":");
+      const index = parseInt(indexStr);
+      if (editCity === "otaru") {
+        travelData.otaruFoodList[index] = newFoodItem;
+      } else {
+        travelData.sapporoFoodList[index] = newFoodItem;
+      }
+      showToast("대체 맛집 정보가 성공적으로 수정되었습니다!", "success");
     } else {
-      travelData.sapporoFoodList.push(newFoodItem);
+      // ADD MODE
+      if (city === "otaru") {
+        travelData.otaruFoodList.push(newFoodItem);
+      } else {
+        travelData.sapporoFoodList.push(newFoodItem);
+      }
+      showToast("새로운 대체 맛집이 리스트에 추가되었습니다!", "success");
     }
 
     saveToLocalStorage();
     closeFoodModal();
-    renderFoodList(city);
-    showToast("새로운 대체 맛집이 리스트에 추가되었습니다!", "success");
+    
+    // Re-render with the current filter state
+    const currentFilter = city === "otaru" ? currentOtaruFilter : currentSapporoFilter;
+    renderFoodList(city, currentFilter);
   });
 }
 
