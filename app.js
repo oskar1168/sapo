@@ -268,7 +268,13 @@ const LOCATION_COORDINATES = {
   "인천공항": [37.4602, 126.4407],
   "인천국제공항": [37.4602, 126.4407],
   "인천국제공항 제1여객터미널": [37.4602, 126.4407],
-  "노벨파킹센터": [37.4475, 126.3762]
+  "노벨파킹센터": [37.4475, 126.3762],
+  
+  // Custom exact copy-paste Google Map English addresses
+  "4 Chome Kita 6 Jonishi, Kita Ward, Sapporo, Hokkaido 060-0806 일본": [43.0708, 141.3496],
+  "4 Chome Kita 6 Jonishi, Kita Ward, Sapporo, Hokkaido": [43.0708, 141.3496],
+  "4 Chome-4-10 Motomachi, Biei, Kamikawa District, Hokkaido 071-0208 일본": [43.5900, 142.4415],
+  "4 Chome-4-10 Motomachi, Biei, Kamikawa District, Hokkaido": [43.5900, 142.4415]
 };
 
 // Clean address string for OSM geocoding maximize success rate
@@ -1343,7 +1349,7 @@ function setupEventListeners() {
   elements.btnModalClose.addEventListener("click", closeModal);
   
   // Submit Form (Save Place)
-  elements.formPlace.addEventListener("submit", (e) => {
+  elements.formPlace.addEventListener("submit", async (e) => {
     e.preventDefault();
     
     const name = elements.placeName.value.trim();
@@ -1354,7 +1360,24 @@ function setupEventListeners() {
     const mapAddress = elements.placeMap.value.trim();
     const memo = elements.placeMemo.value.trim();
     
-    const itemData = { name, time, category, cost, currency, mapAddress, memo };
+    // 백그라운드 위경도 즉시 동기화
+    showToast("🔄 지도의 정확한 위치를 동기화하고 있습니다...", "info");
+    let lat = null;
+    let lng = null;
+    
+    if (category !== 'flight' && category !== 'transport') {
+      try {
+        const coords = await getCoordinates(name, mapAddress);
+        if (coords) {
+          lat = coords[0];
+          lng = coords[1];
+        }
+      } catch (err) {
+        console.warn("Failed to get coordinates during save", err);
+      }
+    }
+    
+    const itemData = { name, time, category, cost, currency, mapAddress, memo, lat, lng };
     const editVal = elements.editItemIndex.value;
     
     if (editVal) {
@@ -1708,8 +1731,13 @@ async function updateInAppMap(dayKey) {
     return;
   }
 
-  // 3. Resolve all coordinates asynchronously in parallel (0.05-sec ultra speed)
-  const coordsPromises = mappableItems.map(item => getCoordinates(item.name, item.mapAddress));
+  // 3. Resolve all coordinates asynchronously in parallel (Uses stored lat/lng first to bypass API completely!)
+  const coordsPromises = mappableItems.map(async (item) => {
+    if (item.lat && item.lng) {
+      return [item.lat, item.lng];
+    }
+    return await getCoordinates(item.name, item.mapAddress);
+  });
   const resolvedCoords = await Promise.all(coordsPromises);
 
   const latlngs = [];
