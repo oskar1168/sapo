@@ -44,6 +44,11 @@ const SAPPORO_TEMPLATE = {
     { id: 7, text: "110V 돼지코 플러그", checked: false },
     { id: 8, text: "얇은 가디건 또는 바람막이 (밤 기온 낮음)", checked: false },
     { id: 9, text: "우산/양산 겸용 소형 우산", checked: false }
+  ],
+  shoppingList: [
+    { id: 1, name: "시로이 코이비토 18개입", category: "dessert", qty: 2, cost: 1520, currency: "JPY", memo: "신치토세 공항 면세점 추천", checked: false },
+    { id: 2, name: "돈키호테 동전패치", category: "drug", qty: 3, cost: 800, currency: "JPY", memo: "사츠도라 또는 돈키호테 스스키노점", checked: false },
+    { id: 3, name: "삿포로 클래식 맥주 6캔", category: "alcohol", qty: 1, cost: 1300, currency: "JPY", memo: "편의점 또는 동네 마트", checked: false }
   ]
 };
 
@@ -201,8 +206,8 @@ let travelData = {};
 let roomId = ""; // Room code for Firestore sync
 let activeTab = "day1"; // Default tab
 let isEditor = true; // Editor permission state
-let currentOtaruFilter = "all"; // Otaru foodie filter state
-let currentSapporoFilter = "all"; // Sapporo foodie filter state
+let currentCityFilter = "all"; // 'all', 'sapporo', 'otaru'
+let currentSpotsFilter = "all"; // spots filter state (spot, meat, etc.)
 const CURRENCY_CONVERSION_RATE = 9.0; // 100 JPY = 900 KRW
 
 // ==========================================
@@ -527,13 +532,29 @@ const elements = {
   settlePerMember: document.getElementById("settlePerMember"),
   categoryBreakdownList: document.getElementById("categoryBreakdownList"),
   
-  // Foodie List Elements
-  tabContentFoodOtaru: document.getElementById("tabContentFoodOtaru"),
-  tabContentFoodSapporo: document.getElementById("tabContentFoodSapporo"),
-  otaruFoodFilter: document.getElementById("otaruFoodFilter"),
-  sapporoFoodFilter: document.getElementById("sapporoFoodFilter"),
-  otaruFoodGrid: document.getElementById("otaruFoodGrid"),
-  sapporoFoodGrid: document.getElementById("sapporoFoodGrid"),
+  // Recommended Spots List Elements
+  tabContentRecommendedSpots: document.getElementById("tabContentRecommendedSpots"),
+  recommendedSpotsFilter: document.getElementById("recommendedSpotsFilter"),
+  recommendedSpotsGrid: document.getElementById("recommendedSpotsGrid"),
+  spotsTitle: document.getElementById("spotsTitle"),
+  btnAddSpot: document.getElementById("btnAddSpot"),
+  
+  // Shopping List Elements
+  tabContentShoppingList: document.getElementById("tabContentShoppingList"),
+  formShopping: document.getElementById("formShopping"),
+  shoppingFormTitle: document.getElementById("shoppingFormTitle"),
+  shoppingEditIndex: document.getElementById("shoppingEditIndex"),
+  shoppingName: document.getElementById("shoppingName"),
+  shoppingCategory: document.getElementById("shoppingCategory"),
+  shoppingQty: document.getElementById("shoppingQty"),
+  shoppingCost: document.getElementById("shoppingCost"),
+  shoppingCurrency: document.getElementById("shoppingCurrency"),
+  shoppingMemo: document.getElementById("shoppingMemo"),
+  btnShoppingSubmit: document.getElementById("btnShoppingSubmit"),
+  btnShoppingCancel: document.getElementById("btnShoppingCancel"),
+  shoppingStatsBadge: document.getElementById("shoppingStatsBadge"),
+  shoppingTotalCost: document.getElementById("shoppingTotalCost"),
+  shoppingListContainer: document.getElementById("shoppingListContainer"),
 
   // Food Add Modal Elements
   modalFood: document.getElementById("modalFood"),
@@ -732,6 +753,9 @@ function ensureFoodListsExist() {
   if (!travelData.sapporoFoodList) {
     travelData.sapporoFoodList = JSON.parse(JSON.stringify(SAPPORO_FOOD_LIST));
   }
+  if (!travelData.shoppingList) {
+    travelData.shoppingList = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE.shoppingList || []));
+  }
 }
 
 function applyEditorRights() {
@@ -798,11 +822,11 @@ function renderApp() {
   elements.tabContentExtra.classList.add("hidden");
   elements.tabContentExtra.classList.remove("active");
   
-  elements.tabContentFoodOtaru.classList.add("hidden");
-  elements.tabContentFoodOtaru.classList.remove("active");
+  elements.tabContentRecommendedSpots.classList.add("hidden");
+  elements.tabContentRecommendedSpots.classList.remove("active");
   
-  elements.tabContentFoodSapporo.classList.add("hidden");
-  elements.tabContentFoodSapporo.classList.remove("active");
+  elements.tabContentShoppingList.classList.add("hidden");
+  elements.tabContentShoppingList.classList.remove("active");
   
   // 2. Open and render the selected tab precisely
   if (activeTab === "extra") {
@@ -810,16 +834,15 @@ function renderApp() {
     elements.tabContentExtra.classList.add("active");
     renderSettlementTab();
     renderChecklistTab();
-  } else if (activeTab === "foodOtaru") {
-    elements.tabContentFoodOtaru.classList.remove("hidden");
-    elements.tabContentFoodOtaru.classList.add("active");
-    renderFoodFilters("otaru");
-    renderFoodList("otaru", currentOtaruFilter);
-  } else if (activeTab === "foodSapporo") {
-    elements.tabContentFoodSapporo.classList.remove("hidden");
-    elements.tabContentFoodSapporo.classList.add("active");
-    renderFoodFilters("sapporo");
-    renderFoodList("sapporo", currentSapporoFilter);
+  } else if (activeTab === "recommendedSpots") {
+    elements.tabContentRecommendedSpots.classList.remove("hidden");
+    elements.tabContentRecommendedSpots.classList.add("active");
+    renderSpotsFilters();
+    renderSpotsList();
+  } else if (activeTab === "shoppingList") {
+    elements.tabContentShoppingList.classList.remove("hidden");
+    elements.tabContentShoppingList.classList.add("active");
+    renderShoppingList();
   } else {
     // Day Tabs (day1 ~ day4)
     elements.tabContentDays.classList.remove("hidden");
@@ -836,16 +859,33 @@ function renderApp() {
   applyEditorRights(); // Ensure permissions are applied strictly after all renders!
 }
 
-// Render Category Filter Chips for Food lists
-function renderFoodFilters(city) {
-  const container = city === "otaru" ? elements.otaruFoodFilter : elements.sapporoFoodFilter;
-  const currentFilter = city === "otaru" ? currentOtaruFilter : currentSapporoFilter;
+// Spot list navigation city filter chip toggle
+window.setCityFilter = function(city) {
+  currentCityFilter = city;
   
+  // Update active class on selector chips
+  const container = document.getElementById("citySelectorContainer");
+  if (container) {
+    const chips = container.querySelectorAll(".filter-chip");
+    chips.forEach(chip => chip.classList.remove("active"));
+    
+    if (city === "all") document.getElementById("btnCityAll").classList.add("active");
+    else if (city === "sapporo") document.getElementById("btnCitySapporo").classList.add("active");
+    else if (city === "otaru") document.getElementById("btnCityOtaru").classList.add("active");
+  }
+  
+  renderSpotsFilters();
+  renderSpotsList();
+};
+
+// Render Category Filter Chips for Spots lists
+function renderSpotsFilters() {
+  const container = elements.recommendedSpotsFilter;
   container.innerHTML = "";
   
   // Filter Options list
   const filters = [
-    { value: "all", label: "🌟 전체보기" },
+    { value: "all", label: "🌟 전체분류" },
     { value: "spot", label: "🏞️ 명소 / 관광지" },
     { value: "meat", label: "🥩 고기 / 육류" },
     { value: "seafood", label: "🐟 해산물 / 스시" },
@@ -856,43 +896,58 @@ function renderFoodFilters(city) {
   filters.forEach(f => {
     const chip = document.createElement("button");
     chip.type = "button";
-    chip.className = `filter-chip ${currentFilter === f.value ? "active" : ""}`;
+    chip.className = `filter-chip ${currentSpotsFilter === f.value ? "active" : ""}`;
     chip.innerHTML = f.label;
     
     chip.addEventListener("click", () => {
-      if (city === "otaru") {
-        currentOtaruFilter = f.value;
-      } else {
-        currentSapporoFilter = f.value;
-      }
-      renderFoodFilters(city); // Redraw chips active state
-      renderFoodList(city, f.value); // Re-render grid with filter
+      currentSpotsFilter = f.value;
+      renderSpotsFilters(); // Redraw chips active state
+      renderSpotsList(); // Re-render grid with filter
     });
     
     container.appendChild(chip);
   });
 }
 
-// Render Spot List dynamically (Otaru or Sapporo) with Filter support
-function renderFoodList(city, filterType = "all") {
-  let list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
-  const gridEl = city === "otaru" ? elements.otaruFoodGrid : elements.sapporoFoodGrid;
-  
+// Render Spot List dynamically (Otaru & Sapporo merged) with Filter support
+function renderSpotsList() {
+  const gridEl = elements.recommendedSpotsGrid;
   gridEl.innerHTML = "";
   
-  // Filter items by category if not 'all'
-  if (filterType !== "all") {
-    list = list.filter(item => item.category === filterType);
+  let mergedList = [];
+  
+  // Extract and tag Sapporo places
+  if (travelData.sapporoFoodList) {
+    travelData.sapporoFoodList.forEach((item, index) => {
+      mergedList.push({ ...item, city: "sapporo", originalIndex: index });
+    });
   }
   
-  if (!list || list.length === 0) {
-    gridEl.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 600;">등록된 카테고리의 감성 스팟이 없습니다.</p>`;
+  // Extract and tag Otaru places
+  if (travelData.otaruFoodList) {
+    travelData.otaruFoodList.forEach((item, index) => {
+      mergedList.push({ ...item, city: "otaru", originalIndex: index });
+    });
+  }
+  
+  // 1. City Filter
+  if (currentCityFilter !== "all") {
+    mergedList = mergedList.filter(item => item.city === currentCityFilter);
+  }
+  
+  // 2. Category Filter
+  if (currentSpotsFilter !== "all") {
+    mergedList = mergedList.filter(item => item.category === currentSpotsFilter);
+  }
+  
+  if (mergedList.length === 0) {
+    gridEl.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 600;">등록된 카테고리의 추천 스팟이 없습니다.</p>`;
     return;
   }
   
-  list.forEach((item, index) => {
-    // Map internal key to beautiful display badge
+  mergedList.forEach((item) => {
     const catInfo = FOOD_CATEGORIES[item.category] || { label: item.category, icon: "ri-restaurant-fill" };
+    const cityLabel = item.city === "otaru" ? "🌊 오타루" : "🧭 삿포로";
     
     const card = document.createElement("div");
     card.className = "card glass-card food-card";
@@ -901,16 +956,12 @@ function renderFoodList(city, filterType = "all") {
     const googleMapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address || item.name)}`;
     const directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.address || item.name)}`;
  
-    // Need to find original index of the item for correct deletion when filtered
-    const originalList = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
-    const originalIndex = originalList.indexOf(item);
- 
     card.innerHTML = `
       ${isEditor ? `
-        <button class="btn-card-action btn-edit" style="position: absolute; top: 18px; right: 48px; font-size: 1.25rem;" onclick="openFoodEditModal('${city}', ${originalIndex})" title="스팟 수정">
+        <button class="btn-card-action btn-edit" style="position: absolute; top: 18px; right: 48px; font-size: 1.25rem;" onclick="openFoodEditModal('${item.city}', ${item.originalIndex})" title="스팟 수정">
           <i class="ri-edit-box-line"></i>
         </button>
-        <button class="btn-card-action btn-delete" style="position: absolute; top: 18px; right: 18px; font-size: 1.25rem;" onclick="deleteFoodItem('${city}', ${originalIndex})" title="스팟 삭제">
+        <button class="btn-card-action btn-delete" style="position: absolute; top: 18px; right: 18px; font-size: 1.25rem;" onclick="deleteFoodItem('${item.city}', ${item.originalIndex})" title="스팟 삭제">
           <i class="ri-delete-bin-line"></i>
         </button>
       ` : ""}
@@ -918,8 +969,9 @@ function renderFoodList(city, filterType = "all") {
         <div class="food-title-group">
           <h3 class="food-name">${escapeHTML(item.name)}</h3>
           <div class="food-meta" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin-top: 6px;">
-            <!-- 1층: 스팟 기본 정보 -->
+            <!-- 1층: 스팟 기본 정보 및 도시 태그 -->
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span class="badge" style="font-size: 0.72rem; padding: 3px 6px; background-color: ${item.city === 'otaru' ? 'var(--secondary)' : 'var(--primary)'}">${cityLabel}</span>
               <span class="badge badge-meal" style="font-size: 0.72rem; padding: 3px 6px;">${escapeHTML(catInfo.label)}</span>
               <span class="food-rating" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 2px;"><i class="ri-star-fill"></i> ${item.rating}</span>
             </div>
@@ -949,21 +1001,24 @@ function renderFoodList(city, filterType = "all") {
  
 // Spot list CRUD actions (Delete & Add Modal)
 window.deleteFoodItem = function(city, originalIndex) {
-  if (confirm("정말 이 감성 스팟을 리스트에서 삭제하시겠습니까?")) {
+  if (confirm("정말 이 추천 스팟을 리스트에서 삭제하시겠습니까?")) {
     const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
     list.splice(originalIndex, 1);
     saveToLocalStorage();
     
-    // Re-render with the current filter state
-    const currentFilter = city === "otaru" ? currentOtaruFilter : currentSapporoFilter;
-    renderFoodList(city, currentFilter);
-    showToast("감성 스팟이 리스트에서 삭제되었습니다.", "success");
+    renderSpotsList();
+    showToast("추천 스팟이 리스트에서 삭제되었습니다.", "success");
   }
 };
  
 window.openFoodModal = function(city) {
-  elements.foodModalTitle.innerText = city === "otaru" ? "🗺️ 오타루 감성 스팟 추가" : "🧭 삿포로 감성 스팟 추가";
-  elements.foodCityType.value = city;
+  let targetCity = city;
+  if (city === 'current') {
+    targetCity = currentCityFilter === 'all' ? 'sapporo' : currentCityFilter;
+  }
+  
+  elements.foodModalTitle.innerText = targetCity === "otaru" ? "🗺️ 오타루 추천 스팟 추가" : "🧭 삿포로 추천 스팟 추가";
+  elements.foodCityType.value = targetCity;
   elements.foodEditIndex.value = ""; // Clear edit index
   elements.formFood.reset();
   
@@ -983,7 +1038,7 @@ window.openFoodEditModal = function(city, originalIndex) {
   const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
   const item = list[originalIndex];
   
-  elements.foodModalTitle.innerText = city === "otaru" ? "🗺️ 오타루 감성 스팟 수정" : "🧭 삿포로 감성 스팟 수정";
+  elements.foodModalTitle.innerText = city === "otaru" ? "🗺️ 오타루 추천 스팟 수정" : "🧭 삿포로 추천 스팟 수정";
   elements.foodCityType.value = city;
   elements.foodEditIndex.value = `${city}:${originalIndex}`;
   
@@ -1001,6 +1056,143 @@ window.openFoodEditModal = function(city, originalIndex) {
   
   elements.modalFood.classList.remove("hidden");
 };
+
+// Render Shopping List Tab
+function renderShoppingList() {
+  const container = elements.shoppingListContainer;
+  container.innerHTML = "";
+  
+  const list = travelData.shoppingList || [];
+  
+  // Calculate stats
+  let totalCostKRW = 0;
+  let checkedCount = 0;
+  
+  list.forEach(item => {
+    if (item.checked) checkedCount++;
+    const itemTotal = (parseFloat(item.cost) || 0) * (parseInt(item.qty) || 1);
+    totalCostKRW += getCostInKRW(itemTotal, item.currency);
+  });
+  
+  elements.shoppingStatsBadge.innerText = `${checkedCount} / ${list.length} 구매`;
+  elements.shoppingTotalCost.innerText = formatNumber(totalCostKRW) + "원";
+  
+  if (list.length === 0) {
+    container.innerHTML = `<p class="empty-text" style="color:var(--text-sub); text-align:center; padding: 40px; font-weight:600;">쇼핑 리스트가 비어있습니다.</p>`;
+    return;
+  }
+  
+  const categoryBadges = {
+    dessert: "🍰 디저트/과자",
+    drug: "💊 의약품/화장품",
+    alcohol: "🍶 주류 (맥주/위스키)",
+    souvenir: "🧸 기념품/소품",
+    etc: "✨ 기타"
+  };
+  
+  const categoryColors = {
+    dessert: "var(--cat-cafe)",
+    drug: "var(--cat-meal)",
+    alcohol: "var(--cat-lodging)",
+    souvenir: "var(--cat-flight)",
+    etc: "var(--cat-etc)"
+  };
+  
+  list.forEach((item, index) => {
+    const itemEl = document.createElement("div");
+    itemEl.className = `shopping-item-card ${item.checked ? "checked" : ""}`;
+    
+    const totalCost = (parseFloat(item.cost) || 0) * (parseInt(item.qty) || 1);
+    const displayCost = item.cost > 0
+      ? (item.currency === "JPY"
+         ? `¥ ${formatNumber(item.cost)} x ${item.qty}개 ➡️ 총 ¥ ${formatNumber(totalCost)}`
+         : `₩ ${formatNumber(item.cost)} x ${item.qty}개 ➡️ 총 ₩ ${formatNumber(totalCost)}`)
+      : "가격 미정 / 미기입";
+      
+    const krwSub = (item.cost > 0 && item.currency === "JPY")
+      ? `<span class="cost-converted" style="font-size: 0.78rem; color: var(--text-sub); margin-left: 4px;">(총 약 ${formatNumber(getCostInKRW(totalCost, "JPY"))}원)</span>`
+      : "";
+      
+    itemEl.innerHTML = `
+      <div style="display: flex; align-items: flex-start; gap: 10px; width: 100%;">
+        <input type="checkbox" class="checklist-checkbox" style="margin-top: 4px;" ${item.checked ? "checked" : ""} ${isEditor ? "" : "disabled"} onchange="toggleShoppingItem(${index})">
+        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span class="shopping-item-name" style="font-weight: 700; font-size: 0.98rem; ${item.checked ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${escapeHTML(item.name)}</span>
+            <span class="badge" style="font-size: 0.68rem; padding: 2px 6px; background-color: ${categoryColors[item.category] || 'var(--cat-etc)'}; color: white;">${categoryBadges[item.category] || "기타"}</span>
+          </div>
+          
+          <div style="font-size: 0.82rem; font-weight: 600; color: var(--success); display: flex; align-items: center; gap: 4px;">
+            <i class="ri-wallet-3-line"></i>
+            <span>${displayCost}</span>
+            ${krwSub}
+          </div>
+          
+          ${item.memo ? `
+          <div class="shopping-item-memo" style="font-size: 0.78rem; color: var(--text-sub); background: rgba(0,0,0,0.02); padding: 4px 8px; border-radius: 6px; border-left: 2px solid var(--secondary); margin-top: 2px; white-space: pre-line;">
+            ${escapeHTML(item.memo)}
+          </div>
+          ` : ""}
+        </div>
+        
+        ${isEditor ? `
+        <div class="shopping-item-actions" style="display: flex; gap: 2px; opacity: 0.4; transition: opacity 0.2s;">
+          <button class="btn-card-action btn-edit" onclick="startEditShoppingItem(${index})" title="수정" style="padding: 2px; font-size: 1.05rem;"><i class="ri-edit-line"></i></button>
+          <button class="btn-card-action btn-delete" onclick="deleteShoppingItem(${index})" title="삭제" style="padding: 2px; font-size: 1.05rem;"><i class="ri-delete-bin-line"></i></button>
+        </div>
+        ` : ""}
+      </div>
+    `;
+    
+    // Add hover behavior for action buttons in JS
+    if (isEditor) {
+      itemEl.addEventListener("mouseenter", () => {
+        const actions = itemEl.querySelector(".shopping-item-actions");
+        if (actions) actions.style.opacity = "1";
+      });
+      itemEl.addEventListener("mouseleave", () => {
+        const actions = itemEl.querySelector(".shopping-item-actions");
+        if (actions) actions.style.opacity = "0.4";
+      });
+    }
+
+    container.appendChild(itemEl);
+  });
+}
+
+window.toggleShoppingItem = function(index) {
+  travelData.shoppingList[index].checked = !travelData.shoppingList[index].checked;
+  saveToLocalStorage();
+  renderShoppingList();
+};
+
+window.deleteShoppingItem = function(index) {
+  if (confirm("이 쇼핑 아이템을 리스트에서 삭제하시겠습니까?")) {
+    travelData.shoppingList.splice(index, 1);
+    saveToLocalStorage();
+    renderShoppingList();
+    showToast("쇼핑 아이템이 삭제되었습니다.", "success");
+  }
+};
+
+window.startEditShoppingItem = function(index) {
+  const item = travelData.shoppingList[index];
+  
+  elements.shoppingFormTitle.innerText = "🛒 쇼핑 아이템 수정";
+  elements.shoppingEditIndex.value = index;
+  elements.shoppingName.value = item.name;
+  elements.shoppingCategory.value = item.category;
+  elements.shoppingQty.value = item.qty || 1;
+  elements.shoppingCost.value = item.cost || "";
+  elements.shoppingCurrency.value = item.currency || "JPY";
+  elements.shoppingMemo.value = item.memo || "";
+  
+  elements.btnShoppingSubmit.innerText = "💾 저장하기";
+  elements.btnShoppingCancel.classList.remove("hidden");
+  
+  elements.formShopping.scrollIntoView({ behavior: 'smooth' });
+};
+
 
 // Helper to get formatted date string for tab
 function getDayDateString(dayIndex) {
@@ -1522,7 +1714,6 @@ function setupEventListeners() {
   elements.btnFoodModalCancel.addEventListener("click", closeFoodModal);
   elements.btnFoodModalClose.addEventListener("click", closeFoodModal);
 
-  // Food Add Form Submit
   elements.formFood.addEventListener("submit", (e) => {
     e.preventDefault();
     const city = elements.foodCityType.value;
@@ -1549,7 +1740,7 @@ function setupEventListeners() {
       } else {
         travelData.sapporoFoodList[index] = newFoodItem;
       }
-      showToast("감성 스팟 정보가 성공적으로 수정되었습니다!", "success");
+      showToast("추천 스팟 정보가 성공적으로 수정되었습니다!", "success");
     } else {
       // ADD MODE
       if (city === "otaru") {
@@ -1557,15 +1748,12 @@ function setupEventListeners() {
       } else {
         travelData.sapporoFoodList.push(newFoodItem);
       }
-      showToast("새로운 감성 스팟이 리스트에 추가되었습니다!", "success");
+      showToast("새로운 추천 스팟이 리스트에 추가되었습니다!", "success");
     }
 
     saveToLocalStorage();
     closeFoodModal();
-    
-    // Re-render with the current filter state
-    const currentFilter = city === "otaru" ? currentOtaruFilter : currentSapporoFilter;
-    renderFoodList(city, currentFilter);
+    renderSpotsList();
   });
 
   // ==========================================
@@ -1582,6 +1770,54 @@ function setupEventListeners() {
   const btnPlaceMapMap = document.getElementById("btnPlaceMapMap");
   if (btnPlaceMapMap) {
     btnPlaceMapMap.addEventListener("click", () => openGoogleMapsForSearch("placeMap"));
+  }
+
+  // ==========================================
+  // Shopping List Form Events
+  // ==========================================
+  if (elements.formShopping) {
+    elements.formShopping.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const name = elements.shoppingName.value.trim();
+      const category = elements.shoppingCategory.value;
+      const qty = parseInt(elements.shoppingQty.value) || 1;
+      const cost = parseFloat(elements.shoppingCost.value) || 0;
+      const currency = elements.shoppingCurrency.value;
+      const memo = elements.shoppingMemo.value.trim();
+      
+      const editIndexVal = elements.shoppingEditIndex.value;
+      const itemData = { name, category, qty, cost, currency, memo, checked: false };
+      
+      if (editIndexVal) {
+        const index = parseInt(editIndexVal);
+        itemData.checked = travelData.shoppingList[index].checked || false;
+        travelData.shoppingList[index] = itemData;
+        showToast("쇼핑 아이템이 수정되었습니다.", "success");
+      } else {
+        if (!travelData.shoppingList) {
+          travelData.shoppingList = [];
+        }
+        travelData.shoppingList.push(itemData);
+        showToast("새로운 쇼핑 아이템이 추가되었습니다.", "success");
+      }
+      
+      saveToLocalStorage();
+      resetShoppingForm();
+      renderShoppingList();
+    });
+  }
+
+  if (elements.btnShoppingCancel) {
+    elements.btnShoppingCancel.addEventListener("click", resetShoppingForm);
+  }
+
+  function resetShoppingForm() {
+    elements.formShopping.reset();
+    elements.shoppingEditIndex.value = "";
+    elements.shoppingFormTitle.innerText = "쇼핑 아이템 추가";
+    elements.btnShoppingSubmit.innerText = "🛒 추가하기";
+    elements.btnShoppingCancel.classList.add("hidden");
   }
 }
 

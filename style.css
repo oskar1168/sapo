@@ -1955,6 +1955,59 @@ body {
   font-size: 0.85rem;
 }
 
+/* ==========================================
+   15. SHOPPING TAB LAYOUT & STYLES
+   ========================================== */
+.shopping-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .shopping-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.shopping-item-card {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  transition: all 0.25s ease;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.01);
+}
+
+.shopping-item-card:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(31, 38, 135, 0.04);
+  border-color: rgba(var(--primary-rgb), 0.25);
+}
+
+.shopping-item-card.checked {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+}
+
+.shopping-item-name {
+  color: var(--text-main);
+  transition: all 0.2s;
+}
+
+.shopping-item-card.checked .shopping-item-name {
+  color: var(--text-sub);
+}
+
+.shopping-item-memo {
+  font-family: var(--font-family);
+}
+
 
 
 

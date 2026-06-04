@@ -115,13 +115,13 @@
             <i class="ri-suitcase-line"></i>
             <span>체크리스트 & 정산</span>
           </button>
-          <button class="nav-tab tab-special" data-tab="foodOtaru" role="tab" aria-selected="false" id="tabOtaruFood">
-            <i class="ri-map-pin-5-line"></i>
-            <span>오타루 스팟</span>
-          </button>
-          <button class="nav-tab tab-special" data-tab="foodSapporo" role="tab" aria-selected="false" id="tabSapporoFood">
+          <button class="nav-tab tab-special" data-tab="recommendedSpots" role="tab" aria-selected="false" id="tabRecommendedSpots">
             <i class="ri-compass-3-line"></i>
-            <span>삿포로 스팟</span>
+            <span>추천 스팟</span>
+          </button>
+          <button class="nav-tab tab-special" data-tab="shoppingList" role="tab" aria-selected="false" id="tabShoppingList">
+            <i class="ri-shopping-cart-2-line"></i>
+            <span>쇼핑 리스트</span>
           </button>
         </div>
       </div>
@@ -222,37 +222,125 @@
         </div>
       </div>
 
-      <!-- Otaru Spot List Content -->
-      <div id="tabContentFoodOtaru" class="tab-content hidden">
+      <!-- Recommended Spots List Content -->
+      <div id="tabContentRecommendedSpots" class="tab-content hidden">
         <div class="food-list-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
           <div>
-            <h2 class="timeline-title">🗺️ 오타루 감성 스팟 가이드</h2>
+            <h2 class="timeline-title" id="spotsTitle">🗺️ 삿포로 & 오타루 추천 스팟</h2>
           </div>
-          <button class="btn btn-secondary editor-only" onclick="openFoodModal('otaru')">
+          <button class="btn btn-secondary editor-only" id="btnAddSpot" onclick="openFoodModal('current')">
             <i class="ri-add-circle-fill"></i>
-            <span>오타루 스팟 추가</span>
+            <span>추천 스팟 추가</span>
           </button>
         </div>
-        <div class="food-filter-container" id="otaruFoodFilter"></div>
-        <div class="food-grid" id="otaruFoodGrid">
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+          <!-- City Selector Chips -->
+          <div class="city-selector-container" id="citySelectorContainer" style="display: flex; gap: 8px;">
+            <button type="button" class="filter-chip active" id="btnCityAll" onclick="setCityFilter('all')">🗺️ 전체보기</button>
+            <button type="button" class="filter-chip" id="btnCitySapporo" onclick="setCityFilter('sapporo')">🧭 삿포로 스팟</button>
+            <button type="button" class="filter-chip" id="btnCityOtaru" onclick="setCityFilter('otaru')">🌊 오타루 스팟</button>
+          </div>
+          
+          <!-- Category Filter -->
+          <div class="food-filter-container" id="recommendedSpotsFilter"></div>
+        </div>
+
+        <div class="food-grid" id="recommendedSpotsGrid">
           <!-- Injected dynamically by JS -->
         </div>
       </div>
 
-      <!-- Sapporo Spot List Content -->
-      <div id="tabContentFoodSapporo" class="tab-content hidden">
-        <div class="food-list-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-          <div>
-            <h2 class="timeline-title">🗺️ 삿포로 감성 스팟 가이드</h2>
+      <!-- Shopping List Content -->
+      <div id="tabContentShoppingList" class="tab-content hidden">
+        <div class="shopping-layout">
+          <!-- 1. Add Shopping Item Card -->
+          <div class="card glass-card shopping-add-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <i class="ri-add-box-line card-header-icon"></i>
+                <h3 class="card-title" id="shoppingFormTitle">쇼핑 아이템 추가</h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <form id="formShopping" class="editor-only" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="shoppingEditIndex" value="">
+                
+                <div class="form-group">
+                  <label for="shoppingName" class="form-label">아이템 이름 *</label>
+                  <input type="text" id="shoppingName" class="form-input" placeholder="예: 시로이 코이비토 18개입, 아네사 선크림" required maxlength="50">
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label for="shoppingCategory" class="form-label">카테고리 *</label>
+                    <select id="shoppingCategory" class="form-input">
+                      <option value="dessert" selected>🍰 디저트 / 과자</option>
+                      <option value="drug">💊 의약품 / 화장품</option>
+                      <option value="alcohol">🍶 주류 (맥주/위스키)</option>
+                      <option value="souvenir">🧸 기념품 / 소품</option>
+                      <option value="etc">✨ 기타</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="shoppingQty" class="form-label">수량 *</label>
+                    <input type="number" id="shoppingQty" class="form-input" value="1" min="1" max="99" required>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="shoppingCost" class="form-label">예상 가격 (1개당)</label>
+                  <div class="cost-input-wrapper" style="display: flex; gap: 8px;">
+                    <input type="number" id="shoppingCost" class="form-input" placeholder="예: 1500" min="0" max="99999999" style="flex: 1;">
+                    <select id="shoppingCurrency" class="currency-select" style="padding: 10px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: var(--bg-glass); color: var(--text-main); font-weight: 600;">
+                      <option value="JPY" selected>¥ 엔</option>
+                      <option value="KRW">₩ 원</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="shoppingMemo" class="form-label">메모 (선택)</label>
+                  <textarea id="shoppingMemo" class="form-input text-area" placeholder="예: 돈키호테 메가스토어 스스키노점 2층, 공항 면세점" maxlength="150" style="height: 80px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                  <button type="submit" id="btnShoppingSubmit" class="btn btn-primary" style="flex: 1;">🛒 추가하기</button>
+                  <button type="button" id="btnShoppingCancel" class="btn btn-secondary-outline hidden" style="flex: 0.5;">취소</button>
+                </div>
+              </form>
+              <div class="viewer-only hidden" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 200px; color: var(--text-sub); text-align: center;">
+                <i class="ri-lock-line" style="font-size: 2.2rem; margin-bottom: 12px;"></i>
+                <p style="font-weight: 600;">편집 권한이 없습니다.</p>
+                <p style="font-size: 0.85rem; margin-top: 4px;">관리자 모드로 접속 시 추가할 수 있습니다.</p>
+              </div>
+            </div>
           </div>
-          <button class="btn btn-secondary editor-only" onclick="openFoodModal('sapporo')">
-            <i class="ri-add-circle-fill"></i>
-            <span>삿포로 스팟 추가</span>
-          </button>
-        </div>
-        <div class="food-filter-container" id="sapporoFoodFilter"></div>
-        <div class="food-grid" id="sapporoFoodGrid">
-          <!-- Injected dynamically by JS -->
+
+          <!-- 2. Shopping List Card -->
+          <div class="card glass-card shopping-list-card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="card-title-group">
+                <i class="ri-shopping-cart-2-fill card-header-icon" style="color: var(--secondary);"></i>
+                <h3 class="card-title">나의 쇼핑 리스트</h3>
+              </div>
+              <div class="badge badge-lodging" id="shoppingStatsBadge" style="font-size: 0.75rem; padding: 4px 8px;">0 / 0 구매</div>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Shopping Total Cost Summary -->
+              <div class="budget-summary-box" style="padding: 16px; background: rgba(255,255,255,0.4);">
+                <div class="budget-item">
+                  <span class="label" style="font-size: 0.9rem;">총 예상 지출 (쇼핑)</span>
+                  <span class="value text-primary" id="shoppingTotalCost" style="font-size: 1.25rem;">0원</span>
+                </div>
+              </div>
+
+              <!-- List Container -->
+              <div class="shopping-items-container" id="shoppingListContainer" style="display: flex; flex-direction: column; gap: 10px; max-height: 480px; overflow-y: auto; padding-right: 4px;">
+                <!-- Injected dynamically via JS -->
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
