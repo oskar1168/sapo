@@ -160,9 +160,39 @@
 
       <!-- Extra (Checklist & Settlement) Tab Content -->
       <div id="tabContentExtra" class="tab-content hidden">
-        <div class="extra-grid">
-          <!-- 1. Budget & Settlement Card -->
-          <div class="card glass-card settlement-card">
+        <!-- 서브 탭 스위칭 컨트롤러 -->
+        <div class="sub-tabs-container" id="extraSubTabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+          <button type="button" class="filter-chip active" id="btnSubChecklist" onclick="setExtraSubTab('checklist')">📋 준비물 체크리스트</button>
+          <button type="button" class="filter-chip" id="btnSubSettlement" onclick="setExtraSubTab('settlement')">🪙 예산 및 정산</button>
+        </div>
+
+        <!-- 1. 준비물 체크리스트 섹션 -->
+        <div id="wrapperChecklist" class="extra-section-wrapper">
+          <div class="card glass-card checklist-card" style="width: 100%; max-width: 100%;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <i class="ri-checkbox-multiple-line card-header-icon"></i>
+                <h3 class="card-title">여행 준비물 체크리스트</h3>
+              </div>
+              <button id="btnResetChecklist" class="btn btn-icon-only editor-only" title="체크리스트 초기화"><i class="ri-restart-line"></i></button>
+            </div>
+            <div class="card-body">
+              <form id="formAddChecklist" class="checklist-add-form editor-only">
+                <input type="text" id="inputChecklistText" placeholder="준비물 직접 추가..." required maxlength="30">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="ri-add-line"></i></button>
+              </form>
+
+              <div class="checklist-container" id="checklistContainer">
+                <!-- Checklist items injected here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 예산 및 정산 섹션 -->
+        <div id="wrapperSettlement" class="extra-section-wrapper hidden">
+          <!-- 기존 예산 및 정산 카드 -->
+          <div class="card glass-card settlement-card" style="width: 100%; max-width: 100%;">
             <div class="card-header">
               <div class="card-title-group">
                 <i class="ri-money-dollar-box-line card-header-icon"></i>
@@ -199,24 +229,18 @@
             </div>
           </div>
 
-          <!-- 2. Travel Checklist Card -->
-          <div class="card glass-card checklist-card">
-            <div class="card-header">
-              <div class="card-title-group">
-                <i class="ri-checkbox-multiple-line card-header-icon"></i>
-                <h3 class="card-title">여행 준비물 체크리스트</h3>
+          <!-- 나의 총 쇼핑 금액 요약 카드 -->
+          <div class="card glass-card shopping-summary-card" id="cardShoppingSummary" style="margin-top: 16px; width: 100%; max-width: 100%;">
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 12px; padding: 20px;">
+              <div class="budget-summary-box" style="padding: 16px; background: rgba(255,255,255,0.4);">
+                <div class="budget-item" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span class="label" style="font-size: 0.9rem;">나의 총 쇼핑 금액 (실지출)</span>
+                  <span class="value text-success" id="extraShoppingTotalCost" style="font-size: 1.35rem; font-weight: 800;">0원</span>
+                </div>
               </div>
-              <button id="btnResetChecklist" class="btn btn-icon-only editor-only" title="체크리스트 초기화"><i class="ri-restart-line"></i></button>
-            </div>
-            <div class="card-body">
-              <form id="formAddChecklist" class="checklist-add-form editor-only">
-                <input type="text" id="inputChecklistText" placeholder="준비물 직접 추가..." required maxlength="30">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="ri-add-line"></i></button>
-              </form>
-
-              <div class="checklist-container" id="checklistContainer">
-                <!-- Checklist items injected here -->
-              </div>
+              <p style="font-size: 0.72rem; color: var(--text-sub); margin-top: 4px; text-align: right; font-weight: 600;">
+                💡 쇼핑 리스트 탭에서 체크(구매완료)한 항목들의 총합계입니다.
+              </p>
             </div>
           </div>
         </div>

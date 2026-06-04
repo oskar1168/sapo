@@ -205,6 +205,7 @@ const OTARU_FOOD_LIST = [
 let travelData = {};
 let roomId = ""; // Room code for Firestore sync
 let activeTab = "day1"; // Default tab
+let activeExtraSubTab = "checklist"; // Sub-tab within extra tab: 'checklist', 'settlement'
 let isEditor = true; // Editor permission state
 let currentCityFilter = "all"; // 'all', 'sapporo', 'otaru'
 let currentSpotsFilter = "all"; // spots filter state (spot, meat, etc.)
@@ -835,8 +836,7 @@ function renderApp() {
   if (activeTab === "extra") {
     elements.tabContentExtra.classList.remove("hidden");
     elements.tabContentExtra.classList.add("active");
-    renderSettlementTab();
-    renderChecklistTab();
+    setExtraSubTab(activeExtraSubTab);
   } else if (activeTab === "recommendedSpots") {
     elements.tabContentRecommendedSpots.classList.remove("hidden");
     elements.tabContentRecommendedSpots.classList.add("active");
@@ -861,6 +861,29 @@ function renderApp() {
   
   applyEditorRights(); // Ensure permissions are applied strictly after all renders!
 }
+
+window.setExtraSubTab = function(subTab) {
+  activeExtraSubTab = subTab;
+  
+  const btnChecklist = document.getElementById("btnSubChecklist");
+  const btnSettlement = document.getElementById("btnSubSettlement");
+  const wrapperChecklist = document.getElementById("wrapperChecklist");
+  const wrapperSettlement = document.getElementById("wrapperSettlement");
+  
+  if (subTab === "checklist") {
+    if (btnChecklist) btnChecklist.classList.add("active");
+    if (btnSettlement) btnSettlement.classList.remove("active");
+    if (wrapperChecklist) wrapperChecklist.classList.remove("hidden");
+    if (wrapperSettlement) wrapperSettlement.classList.add("hidden");
+    renderChecklistTab();
+  } else {
+    if (btnChecklist) btnChecklist.classList.remove("active");
+    if (btnSettlement) btnSettlement.classList.add("active");
+    if (wrapperChecklist) wrapperChecklist.classList.add("hidden");
+    if (wrapperSettlement) wrapperSettlement.classList.remove("hidden");
+    renderSettlementTab();
+  }
+};
 
 // Spot list navigation city filter chip toggle
 window.setCityFilter = function(city) {
@@ -1497,6 +1520,19 @@ function renderSettlementTab() {
       elements.categoryBreakdownList.appendChild(row);
     }
   });
+
+  // 나의 총 쇼핑 금액 (실지출) 계산 및 UI 반영
+  let totalShoppingKRW = 0;
+  (travelData.shoppingList || []).forEach(item => {
+    if (item.checked) {
+      const itemTotal = (parseFloat(item.cost) || 0) * (parseInt(item.qty) || 1);
+      totalShoppingKRW += getCostInKRW(itemTotal, item.currency);
+    }
+  });
+  const extraShoppingCostEl = document.getElementById("extraShoppingTotalCost");
+  if (extraShoppingCostEl) {
+    extraShoppingCostEl.innerText = formatNumber(totalShoppingKRW) + "원";
+  }
 }
 
 // Render Checklist Tab
