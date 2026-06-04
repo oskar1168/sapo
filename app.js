@@ -2260,40 +2260,51 @@ window.exportTimelineToPDF = function() {
     el.style.opacity = "1";
   });
   
-  // 3. 레이아웃이 찌그러지지 않도록 원본 너비를 그대로 고정하고 본문 구석에 임시 추가
-  clone.style.position = "absolute";
-  clone.style.left = "-9999px";
-  clone.style.top = "-9999px";
+  // 3. 모바일 브라우저 렌더링 최적화:
+  // 오프스크린(-9999px)으로 보내면 모바일 브라우저가 리소스를 아끼기 위해 그리기(Paint)를 생략하여 백지가 발생합니다.
+  // fixed와 opacity: 0.01을 주어 화면 내에 실제로 렌더링되게 만듭니다.
+  clone.style.position = "fixed";
+  clone.style.left = "0";
+  clone.style.top = "0";
+  clone.style.zIndex = "-9999";
+  clone.style.opacity = "0.01";
   clone.style.width = timelineEl.offsetWidth + "px";
+  clone.style.background = "#ffffff";
+  clone.style.padding = "20px";
+  clone.style.boxSizing = "border-box";
+  
   document.body.appendChild(clone);
   
-  const dayNum = activeTab.replace("day", "");
-  const fileName = `sapo_travel_day${dayNum}_schedule.pdf`;
-  
-  const options = {
-    margin: [10, 10, 10, 10],
-    filename: fileName,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { 
-      scale: 2, 
-      useCORS: true,
-      backgroundColor: '#ffffff'
-    },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  
-  // 4. 복제본 엘리먼트로 PDF 캡처 생성
-  html2pdf().from(clone).set(options).save().then(() => {
-    // 5. 사용 후 삭제
-    document.body.removeChild(clone);
-    showToast("🎉 PDF 저장이 완료되었습니다!", "success");
-  }).catch(err => {
-    console.error("PDF 생성 실패:", err);
-    if (document.body.contains(clone)) {
+  // 4. 모바일 기기의 렌더링 성능을 고려하여 200ms 대기 후 PDF 생성 트리거
+  setTimeout(() => {
+    const dayNum = activeTab.replace("day", "");
+    const fileName = `sapo_travel_day${dayNum}_schedule.pdf`;
+    
+    const options = {
+      margin: [10, 10, 10, 10],
+      filename: fileName,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // 5. 복제본 엘리먼트로 PDF 캡처 생성
+    html2pdf().from(clone).set(options).save().then(() => {
+      // 6. 사용 후 삭제
       document.body.removeChild(clone);
-    }
-    showToast("PDF 생성 중 오류가 발생했습니다.", "error");
-  });
+      showToast("🎉 PDF 저장이 완료되었습니다!", "success");
+    }).catch(err => {
+      console.error("PDF 생성 실패:", err);
+      if (document.body.contains(clone)) {
+        document.body.removeChild(clone);
+      }
+      showToast("PDF 생성 중 오류가 발생했습니다.", "error");
+    });
+  }, 200);
 };
 
 
