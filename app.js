@@ -906,7 +906,7 @@ function renderApp() {
   // 버전 표시 반영 (캐시 및 배포 여부 확인용)
   const footerTip = document.querySelector(".footer-tip");
   if (footerTip) {
-    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.4)`;
+    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.5)`;
   }
   
   // 1. Hide all tab contents first to prevent overlapping or rendering conflicts
@@ -973,11 +973,11 @@ window.setExtraSubTab = function(subTab) {
   if (wrapperEtc) wrapperEtc.classList.add("hidden");
   
   if (subTab === "checklist") {
-    if (btnChecklist) btnChecklist.add("active");
+    if (btnChecklist) btnChecklist.classList.add("active");
     if (wrapperChecklist) wrapperChecklist.classList.remove("hidden");
     renderChecklistTab();
   } else if (subTab === "settlement") {
-    if (btnSettlement) btnSettlement.add("active");
+    if (btnSettlement) btnSettlement.classList.add("active");
     if (wrapperSettlement) wrapperSettlement.classList.remove("hidden");
     renderSettlementTab();
   } else if (subTab === "etc") {
