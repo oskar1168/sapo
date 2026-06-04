@@ -2338,25 +2338,30 @@ window.exportTimelineToPDF = function() {
   
   showToast("📄 전 일정 통합 PDF를 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
   
-  // 2. 가상 PDF 문서 컨테이너 생성
+  // 2. 가상 PDF 문서용 보이지 않는 고정(fixed) 래퍼 컨테이너 생성
+  // position: fixed로 화면 스크롤 위치에 상관없이 항상 뷰포트 (0,0)에 일치시켜
+  // html2canvas 캡처 시 스크롤 오프셋으로 인한 백지 현상을 완벽히 차단합니다.
+  const wrapper = document.createElement("div");
+  wrapper.id = "pdf-export-wrapper";
+  wrapper.style.position = "fixed";
+  wrapper.style.left = "0";
+  wrapper.style.top = "0";
+  wrapper.style.width = "0";
+  wrapper.style.height = "0";
+  wrapper.style.overflow = "hidden";
+  wrapper.style.zIndex = "-99999";
+  
   const pdfContainer = document.createElement("div");
   pdfContainer.className = "pdf-export-container";
   
   // 3. 인쇄용 깔끔한 스타일 정의
-  pdfContainer.style.fontFamily = "var(--font-family)";
+  pdfContainer.style.fontFamily = "'Outfit', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif";
   pdfContainer.style.color = "#2c3e50";
   pdfContainer.style.background = "#ffffff";
-  pdfContainer.style.width = "720px"; // A4 가로폭 비율 매핑
-  pdfContainer.style.padding = "30px 40px";
+  pdfContainer.style.width = "790px"; // A4 가로폭 해상도 최적화
+  pdfContainer.style.padding = "40px";
   pdfContainer.style.boxSizing = "border-box";
-  
-  // 캡처는 선명하게 되면서 사용자 화면에는 보이지 않도록 뷰포트 내 레이어 뒤로 배치
-  pdfContainer.style.position = "absolute";
-  pdfContainer.style.left = "0";
-  pdfContainer.style.top = "0";
-  pdfContainer.style.zIndex = "-9999";
-  pdfContainer.style.opacity = "1"; // 1로 설정하여 선명하게 나오게 함 (백지 현상 해결!)
-  pdfContainer.style.pointerEvents = "none"; // 클릭이나 터치 차단
+  pdfContainer.style.display = "block";
   
   // 4. 리포트 헤더 추가 (여행 제목 & 기본 정보)
   const tripTitle = travelData.title || "삿포로 & 오타루 초여름 여행 ✈️";
@@ -2423,7 +2428,7 @@ window.exportTimelineToPDF = function() {
           <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
               <h3 style="font-size: 1rem; font-weight: 700; color: #2c3e50; margin: 0;">${escapeHTML(item.name)}</h3>
-              <span style="font-size: 0.78rem; color: #2ecc71; font-weight: 700; display: inline-flex; align-items: center; gap: 2px;"><i class="ri-money-dollar-circle-line"></i> ${costText}</span>
+              <span style="font-size: 0.78rem; color: #2ecc71; font-weight: 700; display: inline-flex; align-items: center; gap: 2px;"> ${costText}</span>
             </div>
             ${item.memo ? `
               <p style="font-size: 0.8rem; color: #7f8c8d; margin: 4px 0 0 0; white-space: pre-line; background: rgba(0,0,0,0.01); padding: 6px 10px; border-radius: 6px; border-left: 3px solid rgba(108, 92, 231, 0.4); line-height: 1.4;">${escapeHTML(item.memo)}</p>
@@ -2436,14 +2441,21 @@ window.exportTimelineToPDF = function() {
   });
 
   // 6. 가상 노드를 body에 임시 삽입
-  document.body.appendChild(pdfContainer);
+  wrapper.appendChild(pdfContainer);
+  document.body.appendChild(wrapper);
   
-  // 7. 모바일 렌더링 성능 고려 200ms 대기 후 PDF 생성 트리거
+  // 7. 모바일 렌더링 성능 고려 300ms 대기 후 PDF 생성 트리거
   setTimeout(() => {
+    if (typeof html2pdf === 'undefined') {
+      showToast("PDF 생성 라이브러리가 로드되지 않았습니다. 잠시 후 다시 시도해 주세요.", "error");
+      document.body.removeChild(wrapper);
+      return;
+    }
+
     const fileName = "sapo_travel_full_schedule.pdf";
     
     const options = {
-      margin: [15, 15, 15, 15],
+      margin: [10, 10, 10, 10],
       filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
@@ -2459,16 +2471,16 @@ window.exportTimelineToPDF = function() {
     // 8. PDF 생성 및 저장
     html2pdf().from(pdfContainer).set(options).save().then(() => {
       // 9. 완료 후 가상 요소 안전하게 제거
-      document.body.removeChild(pdfContainer);
+      document.body.removeChild(wrapper);
       showToast("🎉 전 일정 PDF 저장이 완료되었습니다!", "success");
     }).catch(err => {
       console.error("PDF 생성 실패:", err);
-      if (document.body.contains(pdfContainer)) {
-        document.body.removeChild(pdfContainer);
+      if (document.body.contains(wrapper)) {
+        document.body.removeChild(wrapper);
       }
       showToast("PDF 생성 중 오류가 발생했습니다.", "error");
     });
-  }, 200);
+  }, 300);
 };
 
 
