@@ -259,9 +259,9 @@
               <i class="ri-shopping-cart-2-fill card-header-icon" style="color: var(--secondary);"></i>
               <h3 class="card-title">나의 쇼핑 리스트</h3>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div class="badge badge-lodging" id="shoppingStatsBadge" style="font-size: 0.75rem; padding: 4px 8px;">0 / 0 구매</div>
-              <button class="btn btn-secondary btn-sm editor-only" id="btnAddShoppingItem" onclick="openShoppingModal()">
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: nowrap;">
+              <div class="badge badge-lodging" id="shoppingStatsBadge" style="font-size: 0.75rem; padding: 4px 8px; white-space: nowrap;">0 / 0 구매</div>
+              <button class="btn btn-secondary btn-sm editor-only" id="btnAddShoppingItem" onclick="openShoppingModal()" style="white-space: nowrap;">
                 <i class="ri-add-circle-fill"></i>
                 <span>아이템 추가</span>
               </button>
@@ -270,9 +270,9 @@
           <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
             <!-- Shopping Total Cost Summary -->
             <div class="budget-summary-box" style="padding: 16px; background: rgba(255,255,255,0.4);">
-              <div class="budget-item" style="flex-direction: column; align-items: flex-start; gap: 6px;">
-                <span class="label" style="font-size: 0.9rem;">총 예상 지출 (쇼핑)</span>
-                <span class="value text-primary" id="shoppingTotalCost" style="font-size: 1.35rem; font-weight: 800;">0원</span>
+              <div class="budget-item" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span class="label" style="font-size: 0.9rem;">총 지출 금액 (쇼핑)</span>
+                <span class="value text-primary" id="shoppingTotalCost" style="font-size: 1.35rem; font-weight: 800; text-align: right;">0원</span>
               </div>
             </div>
 
@@ -326,9 +326,9 @@
 
         <div class="form-group">
           <label for="shoppingCost" class="form-label">예상 가격 (1개당)</label>
-          <div class="cost-input-wrapper" style="display: flex; gap: 8px;">
-            <input type="number" id="shoppingCost" class="form-input" placeholder="예: 1500" min="0" max="99999999" style="flex: 1;">
-            <select id="shoppingCurrency" class="currency-select" style="padding: 10px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: var(--bg-glass); color: var(--text-main); font-weight: 600;">
+          <div class="cost-input-wrapper">
+            <input type="number" id="shoppingCost" class="form-input" placeholder="예: 1500" min="0" max="99999999">
+            <select id="shoppingCurrency" class="currency-select">
               <option value="JPY" selected>¥ 엔</option>
               <option value="KRW">₩ 원</option>
             </select>

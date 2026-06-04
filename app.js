@@ -1071,9 +1071,11 @@ function renderShoppingList() {
   let checkedCount = 0;
   
   list.forEach(item => {
-    if (item.checked) checkedCount++;
-    const itemTotal = (parseFloat(item.cost) || 0) * (parseInt(item.qty) || 1);
-    totalCostKRW += getCostInKRW(itemTotal, item.currency);
+    if (item.checked) {
+      checkedCount++;
+      const itemTotal = (parseFloat(item.cost) || 0) * (parseInt(item.qty) || 1);
+      totalCostKRW += getCostInKRW(itemTotal, item.currency);
+    }
   });
   
   elements.shoppingStatsBadge.innerText = `${checkedCount} / ${list.length} 구매`;
@@ -1105,14 +1107,21 @@ function renderShoppingList() {
     itemEl.className = `shopping-item-card ${item.checked ? "checked" : ""}`;
     
     const totalCost = (parseFloat(item.cost) || 0) * (parseInt(item.qty) || 1);
-    const displayCost = item.cost > 0
+    
+    const displayCostPerUnit = item.cost > 0
       ? (item.currency === "JPY"
-         ? `¥ ${formatNumber(item.cost)} x ${item.qty}개 ➡️ 총 ¥ ${formatNumber(totalCost)}`
-         : `₩ ${formatNumber(item.cost)} x ${item.qty}개 ➡️ 총 ₩ ${formatNumber(totalCost)}`)
+         ? `¥ ${formatNumber(item.cost)} x ${item.qty}개`
+         : `₩ ${formatNumber(item.cost)} x ${item.qty}개`)
       : "가격 미정 / 미기입";
       
+    const displayCostTotal = item.cost > 0
+      ? (item.currency === "JPY"
+         ? `총 ¥ ${formatNumber(totalCost)}`
+         : `총 ₩ ${formatNumber(totalCost)}`)
+      : "";
+      
     const krwSub = (item.cost > 0 && item.currency === "JPY")
-      ? `<span class="cost-converted" style="font-size: 0.78rem; color: var(--text-sub); margin-left: 4px;">(총 약 ${formatNumber(getCostInKRW(totalCost, "JPY"))}원)</span>`
+      ? `<span class="cost-converted" style="font-size: 0.75rem; color: var(--text-sub); margin-left: 2px;">(약 ${formatNumber(getCostInKRW(totalCost, "JPY"))}원)</span>`
       : "";
       
     itemEl.innerHTML = `
@@ -1124,10 +1133,17 @@ function renderShoppingList() {
             <span class="badge" style="font-size: 0.68rem; padding: 2px 6px; background-color: ${categoryColors[item.category] || 'var(--cat-etc)'}; color: white;">${categoryBadges[item.category] || "기타"}</span>
           </div>
           
-          <div style="font-size: 0.82rem; font-weight: 600; color: var(--success); display: flex; align-items: center; gap: 4px;">
-            <i class="ri-wallet-3-line"></i>
-            <span>${displayCost}</span>
-            ${krwSub}
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 4px;">
+              <i class="ri-price-tag-3-line"></i>
+              <span>${displayCostPerUnit}</span>
+            </div>
+            ${item.cost > 0 ? `
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 4px; padding-left: 14px;">
+              <i class="ri-corner-down-right-line" style="opacity: 0.6;"></i>
+              <span>${displayCostTotal} ${krwSub}</span>
+            </div>
+            ` : ""}
           </div>
           
           ${item.memo ? `<div class="shopping-item-memo" style="font-size: 0.78rem; color: var(--text-sub); background: rgba(0,0,0,0.02); padding: 4px 8px; border-radius: 6px; border-left: 2px solid var(--secondary); margin-top: 2px; white-space: pre-line;">${escapeHTML(item.memo)}</div>` : ""}
