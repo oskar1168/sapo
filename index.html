@@ -253,20 +253,18 @@
 
       <!-- Shopping List Content -->
       <div id="tabContentShoppingList" class="tab-content hidden">
-        <div class="card glass-card shopping-list-card" style="width: 100%; max-width: 100%;">
-          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div class="card-title-group">
-              <i class="ri-shopping-cart-2-fill card-header-icon" style="color: var(--secondary);"></i>
-              <h3 class="card-title">나의 쇼핑 리스트</h3>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: nowrap;">
-              <div class="badge badge-lodging" id="shoppingStatsBadge" style="font-size: 0.75rem; padding: 4px 8px; white-space: nowrap;">0 / 0 구매</div>
-              <button class="btn btn-secondary btn-sm editor-only" id="btnAddShoppingItem" onclick="openShoppingModal()" style="white-space: nowrap;">
-                <i class="ri-add-circle-fill"></i>
-                <span>아이템 추가</span>
-              </button>
-            </div>
+        <div class="timeline-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <h2 class="timeline-title">🛒 나의 쇼핑 리스트</h2>
+            <div class="badge badge-lodging" id="shoppingStatsBadge" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">0 / 0 구매</div>
           </div>
+          <button class="btn btn-secondary editor-only" id="btnAddShoppingItem" onclick="openShoppingModal()">
+            <i class="ri-add-circle-fill"></i>
+            <span>아이템 추가</span>
+          </button>
+        </div>
+
+        <div class="card glass-card shopping-list-card" style="width: 100%; max-width: 100%;">
           <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
             <!-- Shopping Total Cost Summary -->
             <div class="budget-summary-box" style="padding: 16px; background: rgba(255,255,255,0.4);">
