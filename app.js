@@ -903,6 +903,12 @@ function calculateDday() {
 function renderApp() {
   updateDashboardStats();
   
+  // 버전 표시 반영 (캐시 및 배포 여부 확인용)
+  const footerTip = document.querySelector(".footer-tip");
+  if (footerTip) {
+    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.1)`;
+  }
+  
   // 1. Hide all tab contents first to prevent overlapping or rendering conflicts
   elements.tabContentDays.classList.add("hidden");
   elements.tabContentDays.classList.remove("active");
