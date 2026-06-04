@@ -541,8 +541,10 @@ const elements = {
   
   // Shopping List Elements
   tabContentShoppingList: document.getElementById("tabContentShoppingList"),
+  modalShopping: document.getElementById("modalShopping"),
+  shoppingModalTitle: document.getElementById("shoppingModalTitle"),
+  btnShoppingModalClose: document.getElementById("btnShoppingModalClose"),
   formShopping: document.getElementById("formShopping"),
-  shoppingFormTitle: document.getElementById("shoppingFormTitle"),
   shoppingEditIndex: document.getElementById("shoppingEditIndex"),
   shoppingName: document.getElementById("shoppingName"),
   shoppingCategory: document.getElementById("shoppingCategory"),
@@ -1128,11 +1130,7 @@ function renderShoppingList() {
             ${krwSub}
           </div>
           
-          ${item.memo ? `
-          <div class="shopping-item-memo" style="font-size: 0.78rem; color: var(--text-sub); background: rgba(0,0,0,0.02); padding: 4px 8px; border-radius: 6px; border-left: 2px solid var(--secondary); margin-top: 2px; white-space: pre-line;">
-            ${escapeHTML(item.memo)}
-          </div>
-          ` : ""}
+          ${item.memo ? `<div class="shopping-item-memo" style="font-size: 0.78rem; color: var(--text-sub); background: rgba(0,0,0,0.02); padding: 4px 8px; border-radius: 6px; border-left: 2px solid var(--secondary); margin-top: 2px; white-space: pre-line;">${escapeHTML(item.memo)}</div>` : ""}
         </div>
         
         ${isEditor ? `
@@ -1178,7 +1176,7 @@ window.deleteShoppingItem = function(index) {
 window.startEditShoppingItem = function(index) {
   const item = travelData.shoppingList[index];
   
-  elements.shoppingFormTitle.innerText = "🛒 쇼핑 아이템 수정";
+  elements.shoppingModalTitle.innerText = "🛒 쇼핑 아이템 수정";
   elements.shoppingEditIndex.value = index;
   elements.shoppingName.value = item.name;
   elements.shoppingCategory.value = item.category;
@@ -1187,10 +1185,17 @@ window.startEditShoppingItem = function(index) {
   elements.shoppingCurrency.value = item.currency || "JPY";
   elements.shoppingMemo.value = item.memo || "";
   
-  elements.btnShoppingSubmit.innerText = "💾 저장하기";
-  elements.btnShoppingCancel.classList.remove("hidden");
+  elements.btnShoppingSubmit.innerText = "저장하기";
+  elements.modalShopping.classList.remove("hidden");
+};
+
+window.openShoppingModal = function() {
+  elements.shoppingModalTitle.innerText = "🛒 쇼핑 아이템 추가";
+  elements.shoppingEditIndex.value = "";
+  elements.formShopping.reset();
   
-  elements.formShopping.scrollIntoView({ behavior: 'smooth' });
+  elements.btnShoppingSubmit.innerText = "추가하기";
+  elements.modalShopping.classList.remove("hidden");
 };
 
 
@@ -1812,12 +1817,16 @@ function setupEventListeners() {
     elements.btnShoppingCancel.addEventListener("click", resetShoppingForm);
   }
 
+  if (elements.btnShoppingModalClose) {
+    elements.btnShoppingModalClose.addEventListener("click", resetShoppingForm);
+  }
+
   function resetShoppingForm() {
     elements.formShopping.reset();
     elements.shoppingEditIndex.value = "";
-    elements.shoppingFormTitle.innerText = "쇼핑 아이템 추가";
-    elements.btnShoppingSubmit.innerText = "🛒 추가하기";
-    elements.btnShoppingCancel.classList.add("hidden");
+    elements.shoppingModalTitle.innerText = "🛒 쇼핑 아이템 추가";
+    elements.btnShoppingSubmit.innerText = "추가하기";
+    elements.modalShopping.classList.add("hidden");
   }
 }
 
