@@ -2364,18 +2364,33 @@ window.exportTimelineToPDF = function() {
   pdfContainer.style.boxSizing = "border-box";
   pdfContainer.style.display = "block";
   
-  // 4. 리포트 헤더 추가 (여행 제목 & 기본 정보)
+  // 4. 인쇄용 스타일 재정의 및 헤더 추가 (여행 제목 & 기본 정보)
   const tripTitle = travelData.title || "삿포로 & 오타루 초여름 여행 ✈️";
   const tripDates = `${travelData.startDate} ~ ${travelData.endDate}`;
   const memberText = `${travelData.memberCount || 2}명`;
   
+  let styleHtml = `
+    <style>
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        width: 790px !important;
+      }
+      .pdf-export-container {
+        margin: 0 auto !important;
+        width: 790px !important;
+      }
+    </style>
+  `;
+  
   let headerHtml = `
-    <div style="border-bottom: 3px solid #6c5ce7; padding-bottom: 16px; margin-bottom: 24px; text-align: center;">
-      <h1 style="font-size: 1.8rem; font-weight: 800; color: #2c3e50; margin: 0 0 8px 0; letter-spacing: -0.5px;">✈️ ${escapeHTML(tripTitle)}</h1>
-      <p style="font-size: 0.95rem; color: #7f8c8d; font-weight: 600; margin: 0;">여행 기간: ${tripDates} | 여행 인원: ${memberText}</p>
+    <div style="border-bottom: 3px solid #6c5ce7; padding-bottom: 16px; margin-bottom: 24px; text-align: center; width: 100%;">
+      <h1 style="font-size: 1.8rem; font-weight: 800; color: #2c3e50; margin: 0 0 8px 0; letter-spacing: -0.5px; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">✈️ ${escapeHTML(tripTitle)}</h1>
+      <p style="font-size: 0.95rem; color: #7f8c8d; font-weight: 600; margin: 0; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">여행 기간: ${tripDates} | 여행 인원: ${memberText}</p>
     </div>
   `;
-  pdfContainer.innerHTML = headerHtml;
+  pdfContainer.innerHTML = styleHtml + headerHtml;
   
   // 5. 일차별 루프 (Day 1 ~ Day 4)
   const categoryLabels = {
@@ -2400,8 +2415,8 @@ window.exportTimelineToPDF = function() {
     
     // 일차별 타이틀 헤더 추가
     let dayHeaderHtml = `
-      <div style="margin-top: 28px; margin-bottom: 14px; border-bottom: 1.5px solid rgba(108, 92, 231, 0.25); padding-bottom: 6px;">
-        <h2 style="font-size: 1.25rem; font-weight: 800; color: #6c5ce7; margin: 0;">Day ${dayIndex} <span style="font-size: 0.9rem; font-weight: 600; color: #7f8c8d; margin-left: 6px;">(${dateStr})</span></h2>
+      <div style="margin-top: 28px; margin-bottom: 14px; border-bottom: 1.5px solid rgba(108, 92, 231, 0.25); padding-bottom: 6px; text-align: left; width: 100%;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #6c5ce7; margin: 0; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">Day ${dayIndex} <span style="font-size: 0.9rem; font-weight: 600; color: #7f8c8d; margin-left: 6px;">(${dateStr})</span></h2>
       </div>
     `;
     pdfContainer.innerHTML += dayHeaderHtml;
@@ -2409,7 +2424,7 @@ window.exportTimelineToPDF = function() {
     // 시간 순으로 정렬
     const sortedItems = [...items].sort((a, b) => a.time.localeCompare(b.time));
     
-    // 일정 카드 루프 추가
+    // 일정 카드 루프 추가 (html2canvas Flexbox collapse 버그를 방지하기 위해 100% 호환되는 Table 레이아웃 사용)
     sortedItems.forEach((item, index) => {
       const catLabel = categoryLabels[item.category] || "기타";
       
@@ -2418,24 +2433,38 @@ window.exportTimelineToPDF = function() {
         : "비용 없음/무료";
         
       let itemHtml = `
-        <div style="display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; padding: 12px 16px; background: #fdfdfd; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); page-break-inside: avoid;">
-          <!-- 시간 & 분류 버블 -->
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 62px; background: rgba(108, 92, 231, 0.08); border-radius: 8px; padding: 6px 4px; flex-shrink: 0; text-align: center;">
-            <span style="font-size: 0.75rem; font-weight: 800; color: #6c5ce7; line-height: 1.2;">${item.time}</span>
-            <span style="font-size: 0.62rem; color: #7f8c8d; font-weight: 700; margin-top: 2px;">${catLabel}</span>
-          </div>
-          
-          <!-- 상세 내용 -->
-          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding-right: 6px;">
-              <h3 style="font-size: 1rem; font-weight: 700; color: #2c3e50; margin: 0;">${escapeHTML(item.name)}</h3>
-              <span style="font-size: 0.78rem; color: #2ecc71; font-weight: 700; display: inline-flex; align-items: center; gap: 2px; margin-right: 4px;"> ${costText}</span>
-            </div>
-            ${item.memo ? `
-              <p style="font-size: 0.8rem; color: #7f8c8d; margin: 4px 0 0 0; white-space: pre-line; background: rgba(0,0,0,0.01); padding: 6px 10px; border-radius: 6px; border-left: 3px solid rgba(108, 92, 231, 0.4); line-height: 1.4;">${escapeHTML(item.memo)}</p>
-            ` : ""}
-          </div>
-        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; background: #fdfdfd; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); page-break-inside: avoid; box-sizing: border-box;">
+          <tr>
+            <!-- 시간 & 분류 버블 (고정폭) -->
+            <td style="width: 62px; padding: 12px; vertical-align: top;">
+              <div style="width: 62px; background: rgba(108, 92, 231, 0.08); border-radius: 8px; padding: 6px 4px; text-align: center; box-sizing: border-box;">
+                <span style="font-size: 0.75rem; font-weight: 800; color: #6c5ce7; line-height: 1.2; display: block; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${item.time}</span>
+                <span style="font-size: 0.62rem; color: #7f8c8d; font-weight: 700; margin-top: 2px; display: block; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${catLabel}</span>
+              </div>
+            </td>
+            
+            <!-- 상세 내용 (남은 공간 모두 차지) -->
+            <td style="padding: 12px 16px 12px 6px; vertical-align: top; text-align: left;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: left; vertical-align: top;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: #2c3e50; margin: 0; padding: 0; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${escapeHTML(item.name)}</h3>
+                  </td>
+                  <td style="text-align: right; vertical-align: top; width: 140px; padding-left: 10px;">
+                    <span style="font-size: 0.78rem; color: #2ecc71; font-weight: 700; white-space: nowrap; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${costText}</span>
+                  </td>
+                </tr>
+                ${item.memo ? `
+                <tr>
+                  <td colspan="2" style="padding-top: 6px;">
+                    <p style="font-size: 0.8rem; color: #7f8c8d; margin: 0; white-space: pre-line; background: rgba(0,0,0,0.01); padding: 6px 10px; border-radius: 6px; border-left: 3px solid rgba(108, 92, 231, 0.4); line-height: 1.4; text-align: left; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${escapeHTML(item.memo)}</p>
+                  </td>
+                </tr>
+                ` : ""}
+              </table>
+            </td>
+          </tr>
+        </table>
       `;
       pdfContainer.innerHTML += itemHtml;
     });
