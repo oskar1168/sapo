@@ -306,19 +306,37 @@
             <div class="card-header">
               <div class="card-title-group">
                 <i class="ri-settings-4-line card-header-icon"></i>
-                <h3 class="card-title">여행 부가 기능</h3>
+                <h3 class="card-title">여행 부가 기능 (PDF 내보내기)</h3>
               </div>
             </div>
-            <div class="card-body" style="display: flex; flex-direction: column; gap: 16px; padding: 24px;">
-              <div style="text-align: center; padding: 20px 10px;">
-                <div style="font-size: 3rem; margin-bottom: 12px;">📄</div>
-                <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin: 0 0 8px 0;">전체 일정 통합 PDF 저장</h4>
-                <p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; margin: 0 0 20px 0; max-width: 320px; margin-left: auto; margin-right: auto;">
-                  Day 1부터 Day 4까지 등록된 모든 방문지 정보(시간, 장소명, 메모, 꿀팁, 비용 등)를 하나로 묶어 A4 인쇄용 레이아웃의 PDF 파일로 저장합니다.
-                </p>
-                <button type="button" id="btnExportPDF" class="btn btn-primary btn-glow" onclick="exportTimelineToPDF()" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; font-size: 0.95rem; margin-left: auto; margin-right: auto;">
-                  <i class="ri-file-pdf-2-line" style="font-size: 1.2rem;"></i>
+            <div class="card-body" style="display: flex; gap: 20px; padding: 24px; flex-wrap: wrap;">
+              <!-- 구역 1: 일정 PDF 다운로드 -->
+              <div style="flex: 1; min-width: 250px; text-align: center; padding: 20px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; justify-content: space-between; align-items: center; box-sizing: border-box;">
+                <div style="width: 100%;">
+                  <div style="font-size: 2.8rem; margin-bottom: 12px;">🗺️</div>
+                  <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 8px 0;">전체 일정 통합 PDF</h4>
+                  <p style="font-size: 0.78rem; color: var(--text-sub); line-height: 1.5; margin: 0 0 20px 0; max-width: 260px; margin-left: auto; margin-right: auto;">
+                    Day 1~4까지 등록된 모든 방문지 정보(시간, 장소명, 메모, 꿀팁, 비용 등)를 하나로 묶어 A4 인쇄용 레이아웃의 PDF 파일로 저장합니다.
+                  </p>
+                </div>
+                <button type="button" id="btnExportPDF" class="btn btn-primary btn-glow" onclick="exportTimelineToPDF()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 0.85rem; width: 100%; justify-content: center; box-sizing: border-box;">
+                  <i class="ri-file-pdf-2-line" style="font-size: 1.1rem;"></i>
                   <span>통합 일정 PDF 다운로드</span>
+                </button>
+              </div>
+
+              <!-- 구역 2: 예산 & 정산 PDF 다운로드 -->
+              <div style="flex: 1; min-width: 250px; text-align: center; padding: 20px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; justify-content: space-between; align-items: center; box-sizing: border-box;">
+                <div style="width: 100%;">
+                  <div style="font-size: 2.8rem; margin-bottom: 12px;">🪙</div>
+                  <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 8px 0;">예산 & 정산 보고서 PDF</h4>
+                  <p style="font-size: 0.78rem; color: var(--text-sub); line-height: 1.5; margin: 0 0 20px 0; max-width: 260px; margin-left: auto; margin-right: auto;">
+                    총 공동 경비 지출액, N분의 1 정산 금액, 지출 분포 및 공동/개인 쇼핑 지출 상세 내역서가 담긴 보고서를 PDF 파일로 저장합니다.
+                  </p>
+                </div>
+                <button type="button" id="btnExportBudgetPDF" class="btn btn-secondary btn-glow" onclick="exportBudgetToPDF()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 0.85rem; width: 100%; justify-content: center; box-sizing: border-box; background: var(--success); border-color: var(--success);">
+                  <i class="ri-file-pdf-fill" style="font-size: 1.1rem;"></i>
+                  <span>정산 보고서 PDF 다운로드</span>
                 </button>
               </div>
             </div>
@@ -627,6 +645,6 @@
   <!-- Toast Notification System -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script type="module" src="app.js?v=4.6"></script>
+  <script type="module" src="app.js?v=4.7"></script>
 </body>
 </html>
