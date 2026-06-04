@@ -2338,11 +2338,13 @@ window.exportTimelineToPDF = function() {
   
   showToast("📄 전 일정 통합 PDF를 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
   
-  // 2. 가상 PDF 문서용 보이지 않는 고정(fixed) 래퍼 컨테이너 생성
-  // 가로폭을 790px로 명시적으로 지정하여 모바일 기기에서도 A4 가로폭 해상도(790px) 기준으로 렌더링되게 합니다.
+  // 2. 가상 PDF 문서용 보이지 않는 절대위치(absolute) 래퍼 컨테이너 생성
+  // position: absolute; left: 0; top: 0; height: 0; overflow: hidden; 스타일을 적용하여
+  // 사용자 화면에는 전혀 노출되지 않으면서, html2canvas가 문서 기준 절대 좌표(0, 0)에서
+  // 스크롤이나 화면 크기(PC/모바일)에 따른 위치 왜곡(Shift) 없이 정확하게 캡처하도록 합니다.
   const wrapper = document.createElement("div");
   wrapper.id = "pdf-export-wrapper";
-  wrapper.style.position = "fixed";
+  wrapper.style.position = "absolute";
   wrapper.style.left = "0";
   wrapper.style.top = "0";
   wrapper.style.width = "790px";
@@ -2353,12 +2355,11 @@ window.exportTimelineToPDF = function() {
   const pdfContainer = document.createElement("div");
   pdfContainer.className = "pdf-export-container";
   
-  // 3. 인쇄용 깔끔한 스타일 정의 (가운데 정렬 마진 적용)
+  // 3. 인쇄용 깔끔한 스타일 정의
   pdfContainer.style.fontFamily = "'Outfit', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif";
   pdfContainer.style.color = "#2c3e50";
   pdfContainer.style.background = "#ffffff";
   pdfContainer.style.width = "790px"; // A4 가로폭 해상도 최적화
-  pdfContainer.style.margin = "0 auto"; // 가운데 정렬
   pdfContainer.style.padding = "40px";
   pdfContainer.style.boxSizing = "border-box";
   pdfContainer.style.display = "block";
