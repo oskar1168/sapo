@@ -588,6 +588,7 @@ const elements = {
   formPlace: document.getElementById("formPlace"),
   modalTitle: document.getElementById("modalTitle"),
   editItemIndex: document.getElementById("editItemIndex"),
+  placeDay: document.getElementById("placeDay"),
   placeName: document.getElementById("placeName"),
   placeTime: document.getElementById("placeTime"),
   placeCategory: document.getElementById("placeCategory"),
@@ -1222,24 +1223,12 @@ window.addSpotToTimeline = function(city, originalIndex) {
   const item = list[originalIndex];
   if (!item) return;
 
-  // 1. 일정 탭이 아닐 경우 Day 1 탭 강제 선택 (중요: activeTab 상태 안전 보장)
-  if (!activeTab.startsWith("day")) {
-    const tabBtn = document.getElementById("tabDay1");
-    if (tabBtn) {
-      elements.tabButtons.forEach(b => {
-        b.classList.remove("active");
-        b.setAttribute("aria-selected", "false");
-      });
-      tabBtn.classList.add("active");
-      tabBtn.setAttribute("aria-selected", "true");
-      activeTab = "day1";
-      renderApp(); // 화면 갱신
-    }
-  }
-
-  // 2. 모달 상태 및 정보 바인딩
+  // 1. 모달 상태 및 정보 바인딩
   elements.modalTitle.innerText = "추천 스팟을 일정에 추가";
   elements.editItemIndex.value = ""; // 신규 추가 모드
+
+  // 방문 일차 기본값 설정
+  elements.placeDay.value = activeTab.startsWith("day") ? activeTab : "day1";
 
   elements.placeName.value = item.name;
   elements.placeTime.value = "12:00"; // 기본값
@@ -1566,6 +1555,7 @@ window.openEditModal = function(dayKey, index) {
   
   elements.modalTitle.innerText = "방문 장소 수정";
   elements.editItemIndex.value = `${dayKey}:${index}`;
+  elements.placeDay.value = dayKey;
   elements.placeName.value = item.name;
   elements.placeTime.value = item.time;
   elements.placeCategory.value = item.category;
@@ -1645,6 +1635,7 @@ function setupEventListeners() {
     elements.formPlace.reset();
     
     // Set smart defaults
+    elements.placeDay.value = activeTab.startsWith("day") ? activeTab : "day1";
     elements.placeTime.value = "12:00";
     elements.placeCategory.value = "flight";
     elements.placeCurrency.value = "JPY"; // Sapporo uses JPY mostly!
@@ -1674,6 +1665,7 @@ function setupEventListeners() {
     const currency = elements.placeCurrency.value;
     const mapAddress = elements.placeMap.value.trim();
     const memo = elements.placeMemo.value.trim();
+    const selectedDay = elements.placeDay.value;
     
     // 백그라운드 위경도 즉시 동기화
     showToast("🔄 지도의 정확한 위치를 동기화하고 있습니다...", "info");
@@ -1697,17 +1689,41 @@ function setupEventListeners() {
     
     if (editVal) {
       // EDIT MODE
-      const [dayKey, index] = editVal.split(":");
-      travelData.days[dayKey][parseInt(index)] = itemData;
+      const [dayKey, indexStr] = editVal.split(":");
+      const index = parseInt(indexStr);
+      
+      if (dayKey === selectedDay) {
+        // 일차가 바뀌지 않은 경우: 덮어쓰기
+        travelData.days[dayKey][index] = itemData;
+      } else {
+        // 일차가 바뀐 경우: 기존 일차에서 삭제 후 새 일차에 추가
+        travelData.days[dayKey].splice(index, 1);
+        if (!travelData.days[selectedDay]) {
+          travelData.days[selectedDay] = [];
+        }
+        travelData.days[selectedDay].push(itemData);
+      }
       showToast("일정이 성공적으로 수정되었습니다.", "success");
     } else {
       // ADD MODE
-      if (!travelData.days[activeTab]) {
-        travelData.days[activeTab] = [];
+      if (!travelData.days[selectedDay]) {
+        travelData.days[selectedDay] = [];
       }
-      travelData.days[activeTab].push(itemData);
+      travelData.days[selectedDay].push(itemData);
       showToast("새로운 일정이 추가되었습니다.", "success");
     }
+    
+    // 저장 후 해당 일차 탭으로 자동 이동 처리
+    activeTab = selectedDay;
+    elements.tabButtons.forEach(b => {
+      if (b.getAttribute("data-tab") === selectedDay) {
+        b.classList.add("active");
+        b.setAttribute("aria-selected", "true");
+      } else {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      }
+    });
     
     saveToLocalStorage();
     closeModal();
