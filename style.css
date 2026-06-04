@@ -518,6 +518,7 @@ body {
   align-items: flex-start;
   gap: 8px;
   width: 100%;
+  flex: 1;
 }
 
 .place-time-row {
