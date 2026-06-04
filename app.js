@@ -2231,5 +2231,40 @@ async function updateInAppMap(dayKey) {
   }, 100);
 }
 
+// ==========================================
+// 13. PDF IMAGE EXPORT SYSTEM
+// ==========================================
+window.exportTimelineToPDF = function() {
+  const timelineEl = document.getElementById("timelineList");
+  if (!timelineEl || timelineEl.children.length === 0) {
+    showToast("캡처할 일정이 없습니다! 장소를 먼저 추가해 주세요.", "error");
+    return;
+  }
+  
+  showToast("📄 PDF 일정을 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
+  
+  const dayNum = activeTab.replace("day", "");
+  const fileName = `sapo_travel_day${dayNum}_schedule.pdf`;
+  
+  const options = {
+    margin: [10, 10, 10, 10],
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2, 
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  html2pdf().from(timelineEl).set(options).save().then(() => {
+    showToast("🎉 PDF 저장이 완료되었습니다!", "success");
+  }).catch(err => {
+    console.error("PDF 생성 실패:", err);
+    showToast("PDF 생성 중 오류가 발생했습니다.", "error");
+  });
+};
+
 
 
