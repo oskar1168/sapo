@@ -2262,12 +2262,12 @@ window.exportTimelineToPDF = function() {
   pdfContainer.style.padding = "30px 40px";
   pdfContainer.style.boxSizing = "border-box";
   
-  // 모바일 뷰포트 렌더링 활성화용 fixed 처리
-  pdfContainer.style.position = "fixed";
-  pdfContainer.style.left = "0";
+  // 캡처는 선명하게 되면서 사용자 화면에는 보이지 않도록 absolute 오프스크린 처리
+  pdfContainer.style.position = "absolute";
+  pdfContainer.style.left = "-9999px";
   pdfContainer.style.top = "0";
   pdfContainer.style.zIndex = "-9999";
-  pdfContainer.style.opacity = "0.01";
+  pdfContainer.style.opacity = "1"; // 1로 설정하여 선명하게 나오게 함 (백지 현상 해결!)
   
   // 4. 리포트 헤더 추가 (여행 제목 & 기본 정보)
   const tripTitle = travelData.title || "삿포로 & 오타루 초여름 여행 ✈️";
