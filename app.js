@@ -2339,14 +2339,13 @@ window.exportTimelineToPDF = function() {
   showToast("📄 전 일정 통합 PDF를 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
   
   // 2. 가상 PDF 문서용 보이지 않는 고정(fixed) 래퍼 컨테이너 생성
-  // position: fixed로 화면 스크롤 위치에 상관없이 항상 뷰포트 (0,0)에 일치시켜
-  // html2canvas 캡처 시 스크롤 오프셋으로 인한 백지 현상을 완벽히 차단합니다.
+  // 가로폭을 790px로 명시적으로 지정하여 모바일 기기에서도 A4 가로폭 해상도(790px) 기준으로 렌더링되게 합니다.
   const wrapper = document.createElement("div");
   wrapper.id = "pdf-export-wrapper";
   wrapper.style.position = "fixed";
   wrapper.style.left = "0";
   wrapper.style.top = "0";
-  wrapper.style.width = "0";
+  wrapper.style.width = "790px";
   wrapper.style.height = "0";
   wrapper.style.overflow = "hidden";
   wrapper.style.zIndex = "-99999";
@@ -2354,11 +2353,12 @@ window.exportTimelineToPDF = function() {
   const pdfContainer = document.createElement("div");
   pdfContainer.className = "pdf-export-container";
   
-  // 3. 인쇄용 깔끔한 스타일 정의
+  // 3. 인쇄용 깔끔한 스타일 정의 (가운데 정렬 마진 적용)
   pdfContainer.style.fontFamily = "'Outfit', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif";
   pdfContainer.style.color = "#2c3e50";
   pdfContainer.style.background = "#ffffff";
   pdfContainer.style.width = "790px"; // A4 가로폭 해상도 최적화
+  pdfContainer.style.margin = "0 auto"; // 가운데 정렬
   pdfContainer.style.padding = "40px";
   pdfContainer.style.boxSizing = "border-box";
   pdfContainer.style.display = "block";
@@ -2426,9 +2426,9 @@ window.exportTimelineToPDF = function() {
           
           <!-- 상세 내용 -->
           <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding-right: 6px;">
               <h3 style="font-size: 1rem; font-weight: 700; color: #2c3e50; margin: 0;">${escapeHTML(item.name)}</h3>
-              <span style="font-size: 0.78rem; color: #2ecc71; font-weight: 700; display: inline-flex; align-items: center; gap: 2px;"> ${costText}</span>
+              <span style="font-size: 0.78rem; color: #2ecc71; font-weight: 700; display: inline-flex; align-items: center; gap: 2px; margin-right: 4px;"> ${costText}</span>
             </div>
             ${item.memo ? `
               <p style="font-size: 0.8rem; color: #7f8c8d; margin: 4px 0 0 0; white-space: pre-line; background: rgba(0,0,0,0.01); padding: 6px 10px; border-radius: 6px; border-left: 3px solid rgba(108, 92, 231, 0.4); line-height: 1.4;">${escapeHTML(item.memo)}</p>
@@ -2463,7 +2463,9 @@ window.exportTimelineToPDF = function() {
         useCORS: true,
         backgroundColor: '#ffffff',
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        width: 790,        // html2canvas가 렌더링할 가상 가로폭 강제 지정 (모바일 뷰포트 잘림 해결)
+        windowWidth: 790  // 모바일 기기 너비가 아닌 790px를 브라우저 너비로 인식하여 렌더링하게 함
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
