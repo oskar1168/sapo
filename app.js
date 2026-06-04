@@ -217,6 +217,7 @@ const CURRENCY_CONVERSION_RATE = 9.0; // 100 JPY = 900 KRW
 let leafletMap = null;
 let leafletMarkers = [];
 let leafletPolyline = null;
+let isMapVisible = localStorage.getItem("sapo_map_visible") !== "false";
 const coordsCache = {};
 
 // Sapporo & Otaru Essential Coordinates Database (0-latency rendering)
@@ -524,6 +525,8 @@ const elements = {
   btnAddPlace: document.getElementById("btnAddPlace"),
   btnEmptyAdd: document.getElementById("btnEmptyAdd"),
   btnShare: document.getElementById("btnShare"),
+  btnToggleMap: document.getElementById("btnToggleMap"),
+  iconToggleMap: document.getElementById("iconToggleMap"),
   
   // Settlement Tab Elements
   settleTotalBudget: document.getElementById("settleTotalBudget"),
@@ -900,6 +903,23 @@ function calculateDday() {
 // ==========================================
 // 5. RENDERING ENGINE
 // ==========================================
+function applyMapVisibilityState() {
+  const mapEl = document.getElementById("map");
+  const iconEl = elements.iconToggleMap;
+  
+  if (!mapEl || !iconEl) return;
+  
+  if (!isMapVisible) {
+    mapEl.classList.add("collapsed");
+    elements.tabContentDays.classList.add("map-hidden");
+    iconEl.className = "ri-arrow-down-s-line";
+  } else {
+    mapEl.classList.remove("collapsed");
+    elements.tabContentDays.classList.remove("map-hidden");
+    iconEl.className = "ri-arrow-up-s-line";
+  }
+}
+
 function renderApp() {
   updateDashboardStats();
   
@@ -947,6 +967,7 @@ function renderApp() {
     elements.timelineDayTitle.innerText = `Day ${dayIndex} 일정 (${dateStr})`;
     
     renderTimeline(activeTab);
+    applyMapVisibilityState();
   }
   
   applyEditorRights(); // Ensure permissions are applied strictly after all renders!
@@ -1783,6 +1804,28 @@ function setupEventListeners() {
 
   elements.btnAddPlace.addEventListener("click", handleOpenAddModal);
   elements.btnEmptyAdd.addEventListener("click", handleOpenAddModal);
+
+  // Toggle Map Accordion via Arrow Icon
+  if (elements.btnToggleMap) {
+    elements.btnToggleMap.addEventListener("click", () => {
+      isMapVisible = !isMapVisible;
+      localStorage.setItem("sapo_map_visible", isMapVisible ? "true" : "false");
+      applyMapVisibilityState();
+      
+      if (isMapVisible) {
+        // Wait for CSS transition height to finish, then invalidate leaflet map size
+        setTimeout(() => {
+          if (leafletMap) {
+            leafletMap.invalidateSize();
+            // Re-render map path sequentially based on active day
+            if (activeTab.startsWith("day")) {
+              updateInAppMap(activeTab);
+            }
+          }
+        }, 300); // 300ms matches style.css animation time
+      }
+    });
+  }
 
   // Close Modal
   const closeModal = () => {
