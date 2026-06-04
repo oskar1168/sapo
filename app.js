@@ -632,10 +632,39 @@ function initAppState() {
     ownedRooms = [];
   }
 
+  // Set up immediate local data fallback to render instantly before server connects
+  let localBackup = null;
+  if (roomParam) {
+    try {
+      localBackup = JSON.parse(localStorage.getItem(`sapo_travel_data_${roomParam}`));
+    } catch (e) {}
+  }
+  if (!localBackup) {
+    try {
+      localBackup = JSON.parse(localStorage.getItem("sapo_travel_data"));
+    } catch (e) {}
+  }
+
+  // Pre-load travelData to prevent blank page while waiting for Firestore
+  travelData = localBackup || JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
+  ensureFoodListsExist();
+  
+  // Set default edit permission status first
+  if (roomParam) {
+    roomId = roomParam;
+    isEditor = ownedRooms.includes(roomId) || forceEdit;
+  } else {
+    isEditor = true;
+  }
+
+  // Render immediately for instant startup!
+  renderApp();
+  calculateDday();
+
   // 1. Backward Compatibility Bridge: Old link with compressed '?p=...'
   if (compressedData && !roomParam) {
     try {
-      const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
+      const decompressed = (typeof LZString !== 'undefined') ? LZString.decompressFromEncodedURIComponent(compressedData) : null;
       if (decompressed) {
         const importedData = JSON.parse(decompressed);
         
@@ -649,11 +678,18 @@ function initAppState() {
         travelData = importedData;
         ensureFoodListsExist();
         
+        // Update URL immediately so user sees new state
+        const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+        window.history.replaceState({}, document.title, newUrl);
+        renderApp();
+        calculateDday();
+        
         // Save imported data to the newly created room and start sync
         setDoc(doc(db, "rooms", roomId), travelData).then(() => {
           showToast("✈️ 구버전 일정을 실시간 연동 클라우드 방으로 이전했습니다!", "success");
-          const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
-          window.history.replaceState({}, document.title, newUrl);
+          startFirestoreSync();
+        }).catch(err => {
+          console.error("Migration setDoc failed:", err);
           startFirestoreSync();
         });
         return;
@@ -687,10 +723,17 @@ function initAppState() {
     isEditor = true;
     ensureFoodListsExist();
     
+    // Re-render local content
+    renderApp();
+    calculateDday();
+    
     const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
     window.history.replaceState({}, document.title, newUrl);
 
     setDoc(doc(db, "rooms", roomId), travelData).then(() => {
+      startFirestoreSync();
+    }).catch(err => {
+      console.error("First-time room creation setDoc failed:", err);
       startFirestoreSync();
     });
   } else {
@@ -703,6 +746,10 @@ function initAppState() {
     } else {
       isEditor = false;
     }
+    
+    // Re-render local content before syncing with database
+    renderApp();
+    calculateDday();
     
     startFirestoreSync();
   }
@@ -741,24 +788,61 @@ function startFirestoreSync() {
           travelData = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
           ensureFoodListsExist();
         }
-        setDoc(roomDocRef, travelData);
+        setDoc(roomDocRef, travelData).catch(err => console.error("setDoc failed for non-existent room:", err));
       } else {
         showToast("존재하지 않는 여행 계획 방 코드입니다. 주소를 다시 확인해주세요.", "error");
       }
     }
+  }, (error) => {
+    console.error("Firestore sync failed:", error);
+    showToast("⚠️ 실시간 서버 연결을 할 수 없습니다. (오프라인 모드 작동 중)", "info");
   });
 }
 
 // Utility to verify and migrate food list structures to travelData
 function ensureFoodListsExist() {
+  if (!travelData) {
+    travelData = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
+  }
+  if (!travelData.days) {
+    travelData.days = {
+      day1: [],
+      day2: [],
+      day3: [],
+      day4: []
+    };
+  }
+  // Ensure individual days are defined
+  const daysKeys = ["day1", "day2", "day3", "day4"];
+  daysKeys.forEach(k => {
+    if (!travelData.days[k]) {
+      travelData.days[k] = [];
+    }
+  });
+  
+  if (!travelData.checklist) {
+    travelData.checklist = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE.checklist));
+  }
+  if (!travelData.shoppingList) {
+    travelData.shoppingList = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE.shoppingList || []));
+  }
   if (!travelData.otaruFoodList) {
     travelData.otaruFoodList = JSON.parse(JSON.stringify(OTARU_FOOD_LIST));
   }
   if (!travelData.sapporoFoodList) {
     travelData.sapporoFoodList = JSON.parse(JSON.stringify(SAPPORO_FOOD_LIST));
   }
-  if (!travelData.shoppingList) {
-    travelData.shoppingList = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE.shoppingList || []));
+  if (!travelData.startDate) {
+    travelData.startDate = SAPPORO_TEMPLATE.startDate;
+  }
+  if (!travelData.endDate) {
+    travelData.endDate = SAPPORO_TEMPLATE.endDate;
+  }
+  if (!travelData.title) {
+    travelData.title = SAPPORO_TEMPLATE.title;
+  }
+  if (travelData.memberCount === undefined) {
+    travelData.memberCount = SAPPORO_TEMPLATE.memberCount;
   }
 }
 
@@ -2100,6 +2184,10 @@ function generateDayRouteUrl(dayKey) {
 // ==========================================
 
 async function updateInAppMap(dayKey) {
+  if (typeof L === 'undefined') {
+    console.warn("Leaflet Map library is not loaded. Skipping map update.");
+    return;
+  }
   const mapEl = document.getElementById("map");
   if (!mapEl) return;
 
@@ -2262,12 +2350,13 @@ window.exportTimelineToPDF = function() {
   pdfContainer.style.padding = "30px 40px";
   pdfContainer.style.boxSizing = "border-box";
   
-  // 캡처는 선명하게 되면서 사용자 화면에는 보이지 않도록 absolute 오프스크린 처리
+  // 캡처는 선명하게 되면서 사용자 화면에는 보이지 않도록 뷰포트 내 레이어 뒤로 배치
   pdfContainer.style.position = "absolute";
-  pdfContainer.style.left = "-9999px";
+  pdfContainer.style.left = "0";
   pdfContainer.style.top = "0";
   pdfContainer.style.zIndex = "-9999";
   pdfContainer.style.opacity = "1"; // 1로 설정하여 선명하게 나오게 함 (백지 현상 해결!)
+  pdfContainer.style.pointerEvents = "none"; // 클릭이나 터치 차단
   
   // 4. 리포트 헤더 추가 (여행 제목 & 기본 정보)
   const tripTitle = travelData.title || "삿포로 & 오타루 초여름 여행 ✈️";
@@ -2360,7 +2449,9 @@ window.exportTimelineToPDF = function() {
       html2canvas: { 
         scale: 2, 
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
