@@ -992,9 +992,12 @@ function renderSpotsList() {
         <span>추천메뉴 / 즐길거리: <strong>${escapeHTML(item.menu)}</strong></span>
       </div>
       <p class="food-tips">${escapeHTML(item.tips)}</p>
-      <div class="food-card-footer">
-        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도</a>
-        <a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" style="flex: 1; text-align: center; justify-content: center;" title="내 위치에서 길찾기"><i class="ri-navigation-fill"></i> 길찾기</a>
+      <div class="food-card-footer" style="flex-wrap: wrap;">
+        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center; min-width: 80px;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도</a>
+        <a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" style="flex: 1; text-align: center; justify-content: center; min-width: 80px;" title="내 위치에서 길찾기"><i class="ri-navigation-fill"></i> 길찾기</a>
+        ${isEditor ? `
+          <button type="button" class="btn-map-action btn-map-dir" style="flex: 1.2; text-align: center; justify-content: center; min-width: 100px; background: rgba(46, 204, 113, 0.08); color: var(--success); border-color: rgba(46, 204, 113, 0.15);" onclick="addSpotToTimeline('${item.city}', ${item.originalIndex})" title="이 장소를 내 여행 일정에 추가"><i class="ri-calendar-todo-line"></i> 일정 추가</button>
+        ` : ""}
       </div>
     `;
     gridEl.appendChild(card);
@@ -1212,6 +1215,55 @@ window.openShoppingModal = function() {
   
   elements.btnShoppingSubmit.innerText = "추가하기";
   elements.modalShopping.classList.remove("hidden");
+};
+
+window.addSpotToTimeline = function(city, originalIndex) {
+  const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
+  const item = list[originalIndex];
+  if (!item) return;
+
+  // 1. 일정 탭이 아닐 경우 Day 1 탭 강제 선택 (중요: activeTab 상태 안전 보장)
+  if (!activeTab.startsWith("day")) {
+    const tabBtn = document.getElementById("tabDay1");
+    if (tabBtn) {
+      elements.tabButtons.forEach(b => {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
+      tabBtn.classList.add("active");
+      tabBtn.setAttribute("aria-selected", "true");
+      activeTab = "day1";
+      renderApp(); // 화면 갱신
+    }
+  }
+
+  // 2. 모달 상태 및 정보 바인딩
+  elements.modalTitle.innerText = "추천 스팟을 일정에 추가";
+  elements.editItemIndex.value = ""; // 신규 추가 모드
+
+  elements.placeName.value = item.name;
+  elements.placeTime.value = "12:00"; // 기본값
+
+  // 카테고리 매핑
+  let placeCat = "etc";
+  if (item.category === "spot") placeCat = "sightseeing";
+  else if (item.category === "dessert") placeCat = "cafe";
+  else if (["meat", "seafood", "noodle"].includes(item.category)) placeCat = "meal";
+  elements.placeCategory.value = placeCat;
+
+  elements.placeCost.value = "";
+  elements.placeCurrency.value = "JPY";
+  elements.placeMap.value = item.address || item.name;
+
+  // 메모에 꿀팁 정보 결합
+  let memoText = `✨ 추천메뉴: ${item.menu}`;
+  if (item.tips) {
+    memoText += `\n💡 꿀팁: ${item.tips}`;
+  }
+  elements.placeMemo.value = memoText;
+
+  updateCostConversionLabel();
+  elements.modalPlace.classList.remove("hidden");
 };
 
 
