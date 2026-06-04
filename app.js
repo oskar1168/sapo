@@ -2243,6 +2243,30 @@ window.exportTimelineToPDF = function() {
   
   showToast("📄 PDF 일정을 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
   
+  // 1. 임시 복제본(clone) 생성
+  const clone = timelineEl.cloneNode(true);
+  
+  // 2. 복제본 및 내부 모든 요소들의 애니메이션, 트랜지션, 투명도 강제 무력화 (백지 버그 원천 해결)
+  clone.style.animation = "none !important";
+  clone.style.transform = "none !important";
+  clone.style.transition = "none !important";
+  clone.style.opacity = "1 !important";
+  
+  const items = clone.querySelectorAll(".timeline-item, .card, .timeline-card, .btn-complete-toggle, .place-title, .place-time");
+  items.forEach(el => {
+    el.style.animation = "none";
+    el.style.transform = "none";
+    el.style.transition = "none";
+    el.style.opacity = "1";
+  });
+  
+  // 3. 레이아웃이 찌그러지지 않도록 원본 너비를 그대로 고정하고 본문 구석에 임시 추가
+  clone.style.position = "absolute";
+  clone.style.left = "-9999px";
+  clone.style.top = "-9999px";
+  clone.style.width = timelineEl.offsetWidth + "px";
+  document.body.appendChild(clone);
+  
   const dayNum = activeTab.replace("day", "");
   const fileName = `sapo_travel_day${dayNum}_schedule.pdf`;
   
@@ -2258,10 +2282,16 @@ window.exportTimelineToPDF = function() {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   
-  html2pdf().from(timelineEl).set(options).save().then(() => {
+  // 4. 복제본 엘리먼트로 PDF 캡처 생성
+  html2pdf().from(clone).set(options).save().then(() => {
+    // 5. 사용 후 삭제
+    document.body.removeChild(clone);
     showToast("🎉 PDF 저장이 완료되었습니다!", "success");
   }).catch(err => {
     console.error("PDF 생성 실패:", err);
+    if (document.body.contains(clone)) {
+      document.body.removeChild(clone);
+    }
     showToast("PDF 생성 중 오류가 발생했습니다.", "error");
   });
 };
