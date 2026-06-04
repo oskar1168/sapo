@@ -2008,6 +2008,7 @@ body {
   border: none !important;
   box-shadow: none !important;
   padding: 4px !important;
+  width: 32px !important;
   min-width: 32px !important;
   height: 32px !important;
   color: var(--text-sub) !important;
