@@ -906,7 +906,7 @@ function renderApp() {
   // 버전 표시 반영 (캐시 및 배포 여부 확인용)
   const footerTip = document.querySelector(".footer-tip");
   if (footerTip) {
-    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.1)`;
+    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.3)`;
   }
   
   // 1. Hide all tab contents first to prevent overlapping or rendering conflicts
@@ -2384,6 +2384,12 @@ window.exportTimelineToPDF = function() {
       .pdf-export-container {
         margin: 0 auto !important;
         width: 720px !important;
+        box-sizing: border-box !important;
+        background: #ffffff !important;
+      }
+      * {
+        box-shadow: none !important;
+        text-shadow: none !important;
       }
     </style>
   `;
@@ -2498,6 +2504,8 @@ window.exportTimelineToPDF = function() {
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
+        x: 0,
+        y: 0,
         width: 720,        // html2canvas가 렌더링할 가상 가로폭 강제 지정 (모바일 뷰포트 잘림 해결)
         windowWidth: 720  // 모바일 기기 너비가 아닌 720px를 브라우저 너비로 인식하여 렌더링하게 함
       },
