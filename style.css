@@ -1116,7 +1116,7 @@ body {
   color: var(--text-main);
 }
 
-#formPlace {
+#formPlace, #formFood, #formShopping {
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -1580,46 +1580,38 @@ body {
     gap: 12px;
   }
 
-  /* Premium Bottom Sheet Modal for Mobile */
+  /* Center Popup Modal for Mobile */
   .modal-overlay {
-    align-items: flex-end !important; /* Bottom Alignment */
-    padding: 0 !important;
+    align-items: center !important; /* Center Alignment */
+    padding: 16px !important;
   }
 
   .modal-content {
-    border-radius: 24px 24px 0 0 !important;
-    max-height: 88vh !important; /* Avoid screen suffocation */
+    border-radius: 24px !important; /* Round all corners */
+    max-height: 90vh !important;
     width: 100% !important;
-    margin: 0 !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
     position: relative;
-    padding-top: 15px !important; /* Leaving space for drag handle */
-    animation: mobileSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    padding-top: 0 !important;
+    animation: fadeIn 0.2s ease-out !important;
   }
 
-  /* Smooth Drag Indicator Handle Bar */
+  /* Hide Mobile Drag Handle since it is center popup now */
   .modal-content::before {
-    content: '';
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 5px;
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 3px;
-    z-index: 10;
+    display: none !important;
   }
 
   .modal-header {
-    padding: 12px 20px 10px !important;
+    padding: 20px 24px !important;
   }
 
-  #formPlace, #formFood {
-    padding: 16px 20px 30px !important; /* Soft breathing margin for touch scroll */
-    max-height: calc(88vh - 60px) !important;
+  #formPlace, #formFood, #formShopping {
+    padding: 24px !important;
+    max-height: calc(90vh - 80px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    gap: 18px !important;
+    gap: 16px !important;
     display: flex;
     flex-direction: column;
   }
