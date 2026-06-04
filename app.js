@@ -2506,7 +2506,7 @@ window.exportTimelineToPDF = function() {
     const fileName = "sapo_travel_full_schedule.pdf";
     
     const options = {
-      margin: [10, 10, 10, 10],
+      margin: [10, 10, 20, 10],
       filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
@@ -2520,7 +2520,8 @@ window.exportTimelineToPDF = function() {
         width: 720,        // html2canvas가 렌더링할 가상 가로폭 강제 지정 (모바일 뷰포트 잘림 해결)
         windowWidth: 720  // 모바일 기기 너비가 아닌 720px를 브라우저 너비로 인식하여 렌더링하게 함
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css'] }
     };
     
     // 8. PDF 생성 및 저장
@@ -2780,7 +2781,7 @@ window.exportBudgetToPDF = function() {
       <tbody>`;
 
   jointDetailedList.forEach((exp, idx) => {
-    budgetHtml += `<tr style="border-bottom: 1px solid rgba(0,0,0,0.04); background-color: ${idx % 2 === 1 ? "rgba(0,0,0,0.01)" : "#ffffff"};">
+    budgetHtml += `<tr style="border-bottom: 1px solid rgba(0,0,0,0.04); background-color: ${idx % 2 === 1 ? "rgba(0,0,0,0.01)" : "#ffffff"}; page-break-inside: avoid; break-inside: avoid;">
         <td style="padding: 10px; font-size: 0.8rem; color: #2c3e50; font-weight: 600;">${escapeHTML(exp.name)}</td>
         <td style="padding: 10px; font-size: 0.78rem; color: #7f8c8d; font-weight: 600;">${exp.categoryName}</td>
         <td style="padding: 10px; font-size: 0.8rem; color: #2c3e50; font-weight: 700; text-align: right;">${exp.costPerUnit}</td>
@@ -2810,7 +2811,7 @@ window.exportBudgetToPDF = function() {
       <tbody>`;
 
   personalShoppingList.forEach((exp, idx) => {
-    budgetHtml += `<tr style="border-bottom: 1px solid rgba(0,0,0,0.04); background-color: ${idx % 2 === 1 ? "rgba(0,0,0,0.01)" : "#ffffff"};">
+    budgetHtml += `<tr style="border-bottom: 1px solid rgba(0,0,0,0.04); background-color: ${idx % 2 === 1 ? "rgba(0,0,0,0.01)" : "#ffffff"}; page-break-inside: avoid; break-inside: avoid;">
         <td style="padding: 10px; font-size: 0.8rem; color: #2c3e50; font-weight: 600;">🛒 ${escapeHTML(exp.name)}</td>
         <td style="padding: 10px; font-size: 0.78rem; color: #7f8c8d; font-weight: 600;">${exp.categoryName}</td>
         <td style="padding: 10px; font-size: 0.8rem; color: #2c3e50; font-weight: 700; text-align: right;">${exp.costPerUnit}</td>
@@ -2841,7 +2842,7 @@ window.exportBudgetToPDF = function() {
 
     const fileName = "sapo_travel_budget_report.pdf";
     const options = {
-      margin: [10, 10, 10, 10],
+      margin: [10, 10, 20, 10],
       filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
@@ -2855,7 +2856,8 @@ window.exportBudgetToPDF = function() {
         width: 720,
         windowWidth: 720
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css'] }
     };
 
     html2pdf().from(pdfContainer).set(options).save().then(() => {
