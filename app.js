@@ -1132,9 +1132,9 @@ function renderShoppingList() {
       <div style="display: flex; align-items: flex-start; gap: 10px; width: 100%;">
         <input type="checkbox" class="checklist-checkbox" style="margin-top: 4px;" ${item.checked ? "checked" : ""} ${isEditor ? "" : "disabled"} onchange="toggleShoppingItem(${index})">
         <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+            <span class="badge" style="font-size: 0.68rem; padding: 2px 6px; background-color: ${categoryColors[item.category] || 'var(--cat-etc)'}; color: white; display: inline-block;">${categoryBadges[item.category] || "기타"}</span>
             <span class="shopping-item-name" style="font-weight: 700; font-size: 0.98rem; ${item.checked ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${escapeHTML(item.name)}</span>
-            <span class="badge" style="font-size: 0.68rem; padding: 2px 6px; background-color: ${categoryColors[item.category] || 'var(--cat-etc)'}; color: white;">${categoryBadges[item.category] || "기타"}</span>
           </div>
           
           <div style="display: flex; flex-direction: column; gap: 2px;">
