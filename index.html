@@ -187,10 +187,6 @@
             <h2 class="timeline-title" id="timelineDayTitle">Day 1 일정</h2>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <button id="btnExportPDF" class="btn btn-secondary-outline" onclick="exportTimelineToPDF()" title="이 날의 일정을 PDF로 저장" style="display: inline-flex; align-items: center; gap: 6px;">
-              <i class="ri-file-pdf-2-line" style="color: var(--danger); font-size: 1.1rem;"></i>
-              <span>PDF 저장</span>
-            </button>
             <button id="btnAddPlace" class="btn btn-secondary editor-only">
               <i class="ri-add-circle-fill"></i>
               <span>새 장소 추가</span>
@@ -221,6 +217,7 @@
         <div class="sub-tabs-container" id="extraSubTabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
           <button type="button" class="filter-chip active" id="btnSubChecklist" onclick="setExtraSubTab('checklist')">📋 준비물 체크리스트</button>
           <button type="button" class="filter-chip" id="btnSubSettlement" onclick="setExtraSubTab('settlement')">🪙 예산 및 정산</button>
+          <button type="button" class="filter-chip" id="btnSubEtc" onclick="setExtraSubTab('etc')">⚙️ 기타</button>
         </div>
 
         <!-- 1. 준비물 체크리스트 섹션 -->
@@ -298,6 +295,31 @@
               <p style="font-size: 0.72rem; color: var(--text-sub); margin-top: 4px; text-align: right; font-weight: 600;">
                 💡 쇼핑 리스트 탭에서 체크(구매완료)한 항목들의 총합계입니다.
               </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 기타(설정/PDF) 섹션 -->
+        <div id="wrapperEtc" class="extra-section-wrapper hidden">
+          <div class="card glass-card etc-card" style="width: 100%; max-width: 100%;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <i class="ri-settings-4-line card-header-icon"></i>
+                <h3 class="card-title">여행 부가 기능</h3>
+              </div>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 16px; padding: 24px;">
+              <div style="text-align: center; padding: 20px 10px;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">📄</div>
+                <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin: 0 0 8px 0;">전체 일정 통합 PDF 저장</h4>
+                <p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; margin: 0 0 20px 0; max-width: 320px; margin-left: auto; margin-right: auto;">
+                  Day 1부터 Day 4까지 등록된 모든 방문지 정보(시간, 장소명, 메모, 꿀팁, 비용 등)를 하나로 묶어 A4 인쇄용 레이아웃의 PDF 파일로 저장합니다.
+                </p>
+                <button type="button" id="btnExportPDF" class="btn btn-primary btn-glow" onclick="exportTimelineToPDF()" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; font-size: 0.95rem; margin-left: auto; margin-right: auto;">
+                  <i class="ri-file-pdf-2-line" style="font-size: 1.2rem;"></i>
+                  <span>통합 일정 PDF 다운로드</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -604,6 +626,6 @@
   <!-- Toast Notification System -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script type="module" src="app.js?v=4.3"></script>
+  <script type="module" src="app.js?v=4.4"></script>
 </body>
 </html>

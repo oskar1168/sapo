@@ -906,7 +906,7 @@ function renderApp() {
   // 버전 표시 반영 (캐시 및 배포 여부 확인용)
   const footerTip = document.querySelector(".footer-tip");
   if (footerTip) {
-    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.3)`;
+    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.4)`;
   }
   
   // 1. Hide all tab contents first to prevent overlapping or rendering conflicts
@@ -957,21 +957,32 @@ window.setExtraSubTab = function(subTab) {
   
   const btnChecklist = document.getElementById("btnSubChecklist");
   const btnSettlement = document.getElementById("btnSubSettlement");
+  const btnEtc = document.getElementById("btnSubEtc");
+  
   const wrapperChecklist = document.getElementById("wrapperChecklist");
   const wrapperSettlement = document.getElementById("wrapperSettlement");
+  const wrapperEtc = document.getElementById("wrapperEtc");
+  
+  // Reset all active and visibility states
+  if (btnChecklist) btnChecklist.classList.remove("active");
+  if (btnSettlement) btnSettlement.classList.remove("active");
+  if (btnEtc) btnEtc.classList.remove("active");
+  
+  if (wrapperChecklist) wrapperChecklist.classList.add("hidden");
+  if (wrapperSettlement) wrapperSettlement.classList.add("hidden");
+  if (wrapperEtc) wrapperEtc.classList.add("hidden");
   
   if (subTab === "checklist") {
-    if (btnChecklist) btnChecklist.classList.add("active");
-    if (btnSettlement) btnSettlement.classList.remove("active");
+    if (btnChecklist) btnChecklist.add("active");
     if (wrapperChecklist) wrapperChecklist.classList.remove("hidden");
-    if (wrapperSettlement) wrapperSettlement.classList.add("hidden");
     renderChecklistTab();
-  } else {
-    if (btnChecklist) btnChecklist.classList.remove("active");
-    if (btnSettlement) btnSettlement.classList.add("active");
-    if (wrapperChecklist) wrapperChecklist.classList.add("hidden");
+  } else if (subTab === "settlement") {
+    if (btnSettlement) btnSettlement.add("active");
     if (wrapperSettlement) wrapperSettlement.classList.remove("hidden");
     renderSettlementTab();
+  } else if (subTab === "etc") {
+    if (btnEtc) btnEtc.classList.add("active");
+    if (wrapperEtc) wrapperEtc.classList.remove("hidden");
   }
 };
 
