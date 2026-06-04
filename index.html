@@ -22,12 +22,12 @@
       div.style.overflow = 'auto';
       div.style.boxSizing = 'border-box';
       div.innerHTML = '<h2 style="margin-top:0; border-bottom:2px solid rgba(255,255,255,0.3); padding-bottom:10px;">🚨 앱 실행 오류 발생 (JavaScript Error)</h2>' +
-                      '<p><strong>에러 메시지:</strong> \' + (e.message || \'Unknown Error\') + \'</p>\' +
-                      \'<p><strong>소스 파일:</strong> \' + (e.filename || \'N/A\') + \'</p>\' +
-                      \'<p><strong>라인 번호:</strong> \' + (e.lineno || 0) + \':\' + (e.colno || 0) + \'</p>\' +
-                      \'<p><strong>상세 스택 트레이스:</strong></p>\' +
-                      \'<pre style="background:rgba(0,0,0,0.4); padding:15px; border-radius:8px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; font-size:0.9rem;">\' + (e.error ? e.error.stack : \'N/A\') + \'</pre>\' +
-                      \'<p style="margin-top:20px; font-size:0.85rem; opacity:0.8;">💡 네트워크 연결 문제나 광고 차단 확장 프로그램이 CDN 및 Firebase를 차단하고 있는지 확인해 주세요.</p>\';
+                      '<p><strong>에러 메시지:</strong> ' + (e.message || 'Unknown Error') + '</p>' +
+                      '<p><strong>소스 파일:</strong> ' + (e.filename || 'N/A') + '</p>' +
+                      '<p><strong>라인 번호:</strong> ' + (e.lineno || 0) + ':' + (e.colno || 0) + '</p>' +
+                      '<p><strong>상세 스택 트레이스:</strong></p>' +
+                      '<pre style="background:rgba(0,0,0,0.4); padding:15px; border-radius:8px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; font-size:0.9rem;">' + (e.error ? e.error.stack : 'N/A') + '</pre>' +
+                      '<p style="margin-top:20px; font-size:0.85rem; opacity:0.8;">💡 네트워크 연결 문제나 광고 차단 확장 프로그램이 CDN 및 Firebase를 차단하고 있는지 확인해 주세요.</p>';
       document.body.appendChild(div);
     });
     window.addEventListener('unhandledrejection', function(e) {
@@ -45,10 +45,10 @@
       div.style.overflow = 'auto';
       div.style.boxSizing = 'border-box';
       div.innerHTML = '<h2 style="margin-top:0; border-bottom:2px solid rgba(255,255,255,0.3); padding-bottom:10px;">🚨 비동기 처리 오류 발생 (Promise Rejection)</h2>' +
-                      '<p><strong>오류 사유:</strong> \' + (e.reason || \'Unknown Rejection\') + \'</p>\' +
-                      \'<p><strong>상세 정보:</strong></p>\' +
-                      \'<pre style="background:rgba(0,0,0,0.4); padding:15px; border-radius:8px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; font-size:0.9rem;">\' + (e.reason && e.reason.stack ? e.reason.stack : \'N/A\') + \'</pre>\' +
-                      \'<p style="margin-top:20px; font-size:0.85rem; opacity:0.8;">💡 네트워크 연결 문제나 광고 차단 확장 프로그램이 CDN 및 Firebase를 차단하고 있는지 확인해 주세요.</p>\';
+                      '<p><strong>오류 사유:</strong> ' + (e.reason || 'Unknown Rejection') + '</p>' +
+                      '<p><strong>상세 정보:</strong></p>' +
+                      '<pre style="background:rgba(0,0,0,0.4); padding:15px; border-radius:8px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; font-size:0.9rem;">' + (e.reason && e.reason.stack ? e.reason.stack : 'N/A') + '</pre>' +
+                      '<p style="margin-top:20px; font-size:0.85rem; opacity:0.8;">💡 네트워크 연결 문제나 광고 차단 확장 프로그램이 CDN 및 Firebase를 차단하고 있는지 확인해 주세요.</p>';
       document.body.appendChild(div);
     });
   </script>
