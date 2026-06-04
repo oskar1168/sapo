@@ -939,7 +939,7 @@ function renderFoodList(city, filterType = "all") {
       </div>
       <p class="food-tips">${escapeHTML(item.tips)}</p>
       <div class="food-card-footer">
-        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도 보기</a>
+        <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" style="flex: 1; text-align: center; justify-content: center;" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도</a>
         <a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" style="flex: 1; text-align: center; justify-content: center;" title="내 위치에서 길찾기"><i class="ri-navigation-fill"></i> 길찾기</a>
       </div>
     `;
@@ -1073,11 +1073,17 @@ function renderTimeline(dayKey) {
     const memberCount = parseInt(travelData.memberCount) || 2;
     const totalCost = (parseFloat(item.cost) || 0) * memberCount;
 
-    const displayCost = item.cost > 0 
+    const displayCostPerPerson = item.cost > 0 
       ? (item.currency === "JPY" 
-         ? `¥ ${formatNumber(item.cost)} (1인) ➡️ 총 ¥ ${formatNumber(totalCost)} (${memberCount}명)` 
-         : `₩ ${formatNumber(item.cost)} (1인) ➡️ 총 ₩ ${formatNumber(totalCost)} (${memberCount}명)`)
+         ? `¥ ${formatNumber(item.cost)} (1인)` 
+         : `₩ ${formatNumber(item.cost)} (1인)`)
       : "무료 / 예산 없음";
+      
+    const displayCostTotal = item.cost > 0 
+      ? (item.currency === "JPY" 
+         ? `총 ¥ ${formatNumber(totalCost)} (${memberCount}명)` 
+         : `총 ₩ ${formatNumber(totalCost)} (${memberCount}명)`)
+      : "";
       
     const krwCostSub = (item.cost > 0 && item.currency === "JPY")
       ? `<span class="cost-converted">(총 약 ${formatNumber(getCostInKRW(totalCost, item.currency))}원)</span>`
@@ -1109,21 +1115,23 @@ function renderTimeline(dayKey) {
     const mapQuery = item.mapAddress || item.name;
     const googleMapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
     const directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`;
-    const directionBtnHtml = `<a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" title="현재 내 위치에서 구글맵 길찾기 시작"><i class="ri-navigation-fill"></i> 내 위치에서 길찾기</a>`;
+    const directionBtnHtml = `<a href="${directionUrl}" target="_blank" class="btn-map-action btn-map-dir" title="현재 내 위치에서 구글맵 길찾기 시작"><i class="ri-navigation-fill"></i> 길찾기</a>`;
 
     itemEl.innerHTML = `
       <div class="timeline-marker">${badgeHtml}</div>
       <div class="card glass-card timeline-card ${item.completed ? "completed" : ""}">
         <div class="card-top">
           <div class="place-time-title">
-            <span class="place-time"><i class="ri-time-line"></i> ${item.time}</span>
-            <div style="display: flex; align-items: center; gap: 6px;">
+            <div class="place-time-row">
+              <span class="place-time"><i class="ri-time-line"></i> ${item.time}</span>
+              <span class="badge badge-${item.category}">${categoryLabels[item.category] || "기타"}</span>
+            </div>
+            <div class="place-name-row">
               <button class="btn-complete-toggle ${item.completed ? "completed" : ""}" onclick="toggleTimelineItemCompleted('${dayKey}', ${index})" title="${item.completed ? "미완료로 표시" : "완료로 표시"}">
                 <i class="${item.completed ? "ri-checkbox-circle-fill" : "ri-checkbox-blank-circle-line"}"></i>
               </button>
               <h3 class="place-title">${escapeHTML(item.name)}</h3>
             </div>
-            <span class="badge badge-${item.category}">${categoryLabels[item.category] || "기타"}</span>
           </div>
           ${isEditor ? `
           <div class="card-actions">
@@ -1136,16 +1144,23 @@ function renderTimeline(dayKey) {
         
         <!-- Google Maps Quick Actions -->
         <div class="card-map-actions">
-          <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도 보기</a>
+          <a href="${googleMapSearchUrl}" target="_blank" class="btn-map-action btn-map-view" title="구글맵에서 장소 주소 검색"><i class="ri-map-pin-2-fill"></i> 지도</a>
           ${directionBtnHtml}
         </div>
 
         <div class="card-bottom">
-          <span class="place-cost">
-            <i class="ri-money-dollar-circle-line"></i>
-            <span class="currency-${item.currency.toLowerCase()}">${displayCost}</span>
-            ${krwCostSub}
-          </span>
+          <div class="cost-info-group">
+            <span class="place-cost">
+              <i class="ri-money-dollar-circle-line"></i>
+              <span class="currency-${item.currency.toLowerCase()}">${displayCostPerPerson}</span>
+            </span>
+            ${item.cost > 0 ? `
+            <div class="place-cost-total">
+              <i class="ri-corner-down-right-line"></i>
+              <span>${displayCostTotal} ${krwCostSub}</span>
+            </div>
+            ` : ""}
+          </div>
         </div>
       </div>
     `;
