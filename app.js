@@ -1123,8 +1123,16 @@ function renderTimeline(dayKey) {
         <div class="card-top">
           <div class="place-time-title">
             <div class="place-time-row">
-              <span class="place-time"><i class="ri-time-line"></i> ${item.time}</span>
-              <span class="badge badge-${item.category}">${categoryLabels[item.category] || "기타"}</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="place-time"><i class="ri-time-line"></i> ${item.time}</span>
+                <span class="badge badge-${item.category}">${categoryLabels[item.category] || "기타"}</span>
+              </div>
+              ${isEditor ? `
+              <div class="card-actions">
+                <button class="btn-card-action btn-edit" onclick="openEditModal('${dayKey}', ${index})" title="일정 수정"><i class="ri-edit-box-line"></i></button>
+                <button class="btn-card-action btn-delete" onclick="deleteTimelineItem('${dayKey}', ${index})" title="일정 삭제"><i class="ri-delete-bin-6-line"></i></button>
+              </div>
+              ` : ""}
             </div>
             <div class="place-name-row">
               <button class="btn-complete-toggle ${item.completed ? "completed" : ""}" onclick="toggleTimelineItemCompleted('${dayKey}', ${index})" title="${item.completed ? "미완료로 표시" : "완료로 표시"}">
@@ -1133,12 +1141,6 @@ function renderTimeline(dayKey) {
               <h3 class="place-title">${escapeHTML(item.name)}</h3>
             </div>
           </div>
-          ${isEditor ? `
-          <div class="card-actions">
-            <button class="btn-card-action btn-edit" onclick="openEditModal('${dayKey}', ${index})" title="일정 수정"><i class="ri-edit-box-line"></i></button>
-            <button class="btn-card-action btn-delete" onclick="deleteTimelineItem('${dayKey}', ${index})" title="일정 삭제"><i class="ri-delete-bin-6-line"></i></button>
-          </div>
-          ` : ""}
         </div>
         ${item.memo ? `<p class="place-memo">${escapeHTML(item.memo)}</p>` : ""}
         
