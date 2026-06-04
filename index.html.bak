@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>삿포로 & 오타루 초여름 여행 ✈️</title>
+  
+  <!-- SEO & Open Graph Meta Tags -->
+  <meta name="description" content="6월의 삿포로 & 오타루 여행">
+  <meta property="og:title" content="삿포로 & 오타루 초여름 여행 계획표 ✈️">
+  <meta property="og:description" content="우리들의 삿포로-오타루 3박 4일 여행 코스! 링크를 열어 일정을 확인하세요.">
+  <meta property="og:type" content="website">
+  
+  <!-- Google Fonts (Outfit & Noto Sans KR) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Remix Icon (Premium Icons) -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <!-- LZ-String Compression CDN (For ultra-compact shareable URLs) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements for premium aesthetics -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <div class="app-container">
+    <!-- Header Section -->
+    <header class="app-header">
+      <div class="header-main">
+        <div class="logo-area">
+          <span class="logo-emoji">❄️✈️</span>
+          <div>
+            <h1 class="app-title" id="appMainTitle">삿포로 & 오타루</h1>
+            <p class="app-subtitle">초여름의 낭만 여행 · 3박 4일</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="btnShare" class="btn btn-primary btn-glow editor-only" title="링크공유.">
+            <i class="ri-share-forward-line"></i>
+            <span>일정 링크 공유</span>
+          </button>
+          <div class="badge-viewer-mode viewer-only hidden" id="badgeViewerMode">
+            <i class="ri-eye-line"></i>
+            <span>일정 보기 전용 모드</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Quick Stats -->
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon icon-blue"><i class="ri-calendar-todo-fill"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">여행 일정</span>
+            <span class="stat-value">06.13 - 06.16</span>
+          </div>
+        </div>
+        <div class="stat-card" id="statDdayCard">
+          <div class="stat-icon icon-purple"><i class="ri-time-fill"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">남은 시간</span>
+            <span class="stat-value" id="txtDday">D-??</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-green"><i class="ri-wallet-3-fill"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">총 예상 예산</span>
+            <span class="stat-value" id="txtTotalBudget">0원</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-orange"><i class="ri-map-pin-2-fill"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">총 방문 장소</span>
+            <span class="stat-value" id="txtTotalPlaces">0곳</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="app-nav">
+      <div class="tabs-scroll-container">
+        <div class="nav-tabs" role="tablist">
+          <button class="nav-tab active" data-tab="day1" role="tab" aria-selected="true" id="tabDay1">
+            <span class="tab-day">Day 1</span>
+            <span class="tab-date">06/13 (토)</span>
+          </button>
+          <button class="nav-tab" data-tab="day2" role="tab" aria-selected="false" id="tabDay2">
+            <span class="tab-day">Day 2</span>
+            <span class="tab-date">06/14 (일)</span>
+          </button>
+          <button class="nav-tab" data-tab="day3" role="tab" aria-selected="false" id="tabDay3">
+            <span class="tab-day">Day 3</span>
+            <span class="tab-date">06/15 (월)</span>
+          </button>
+          <button class="nav-tab" data-tab="day4" role="tab" aria-selected="false" id="tabDay4">
+            <span class="tab-day">Day 4</span>
+            <span class="tab-date">06/16 (화)</span>
+          </button>
+          <button class="nav-tab tab-special" data-tab="extra" role="tab" aria-selected="false" id="tabExtra">
+            <i class="ri-suitcase-line"></i>
+            <span>체크리스트 & 정산</span>
+          </button>
+          <button class="nav-tab tab-special" data-tab="foodOtaru" role="tab" aria-selected="false" id="tabOtaruFood">
+            <i class="ri-restaurant-2-line"></i>
+            <span>맛집리스트(오타루)</span>
+          </button>
+          <button class="nav-tab tab-special" data-tab="foodSapporo" role="tab" aria-selected="false" id="tabSapporoFood">
+            <i class="ri-goblet-line"></i>
+            <span>맛집리스트(삿포로)</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+      <!-- Days Timelines -->
+      <div id="tabContentDays" class="tab-content active">
+        <div class="timeline-header">
+          <h2 class="timeline-title" id="timelineDayTitle">Day 1 일정</h2>
+          <button id="btnAddPlace" class="btn btn-secondary editor-only">
+            <i class="ri-add-circle-fill"></i>
+            <span>새 장소 추가</span>
+          </button>
+        </div>
+
+        <!-- Empty State (Shown when no items) -->
+        <div id="timelineEmptyState" class="empty-state hidden">
+          <i class="ri-map-pin-add-line empty-icon"></i>
+          <h3>아직 등록된 일정이 없습니다.</h3>
+          <p>첫 번째 방문할 장소를 추가하고 여행 계획을 완성해 보세요!</p>
+          <button id="btnEmptyAdd" class="btn btn-primary editor-only">장소 추가하기</button>
+        </div>
+
+        <!-- The Timeline -->
+        <div class="timeline-container" id="timelineList">
+          <!-- Timeline items will be injected dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Extra (Checklist & Settlement) Tab Content -->
+      <div id="tabContentExtra" class="tab-content hidden">
+        <div class="extra-grid">
+          <!-- 1. Budget & Settlement Card -->
+          <div class="card glass-card settlement-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <i class="ri-money-dollar-box-line card-header-icon"></i>
+                <h3 class="card-title">여행 예산 및 정산</h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="budget-summary-box">
+                <div class="budget-item">
+                  <span class="label">총 예상 지출</span>
+                  <span class="value text-primary" id="settleTotalBudget">0원</span>
+                </div>
+                <div class="budget-divider"></div>
+                <div class="budget-input-group">
+                  <label for="inputMemberCount" class="input-label">함께 가는 인원 (명)</label>
+                  <div class="counter-input">
+                    <button type="button" class="btn-counter" id="btnMemberDec"><i class="ri-subtract-line"></i></button>
+                    <input type="number" id="inputMemberCount" value="2" min="1" max="50">
+                    <button type="button" class="btn-counter" id="btnMemberInc"><i class="ri-add-line"></i></button>
+                  </div>
+                </div>
+                <div class="budget-divider"></div>
+                <div class="budget-item highlight">
+                  <span class="label">1인당 예상 정산 금액</span>
+                  <span class="value text-success" id="settlePerMember">0원</span>
+                </div>
+              </div>
+
+              <!-- Budget Category breakdown -->
+              <h4 class="sub-section-title">카테고리별 지출 비율</h4>
+              <div class="category-breakdown" id="categoryBreakdownList">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Travel Checklist Card -->
+          <div class="card glass-card checklist-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <i class="ri-checkbox-multiple-line card-header-icon"></i>
+                <h3 class="card-title">여행 준비물 체크리스트</h3>
+              </div>
+              <button id="btnResetChecklist" class="btn btn-icon-only editor-only" title="체크리스트 초기화"><i class="ri-restart-line"></i></button>
+            </div>
+            <div class="card-body">
+              <form id="formAddChecklist" class="checklist-add-form editor-only">
+                <input type="text" id="inputChecklistText" placeholder="준비물 직접 추가..." required maxlength="30">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="ri-add-line"></i></button>
+              </form>
+
+              <div class="checklist-container" id="checklistContainer">
+                <!-- Checklist items injected here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Otaru Food List Content -->
+      <div id="tabContentFoodOtaru" class="tab-content hidden">
+        <div class="food-list-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+          <div>
+            <h2 class="timeline-title">🍣 오타루 엄선 대체 맛집 리스트 (Plan B)</h2>
+            <p class="timeline-desc" style="color: var(--text-sub); font-size: 0.9rem; margin-top: 4px; margin-bottom: 0;">
+              원래 계획했던 식당의 대기 줄이 너무 길거나 재료 소진 시 즉각적으로 찾아갈 수 있는 훌륭한 대체 맛집들입니다.
+            </p>
+          </div>
+          <button class="btn btn-secondary editor-only" onclick="openFoodModal('otaru')">
+            <i class="ri-add-circle-fill"></i>
+            <span>오타루 맛집 추가</span>
+          </button>
+        </div>
+        <div class="food-filter-container" id="otaruFoodFilter"></div>
+        <div class="food-grid" id="otaruFoodGrid">
+          <!-- Injected dynamically by JS -->
+        </div>
+      </div>
+
+      <!-- Sapporo Food List Content -->
+      <div id="tabContentFoodSapporo" class="tab-content hidden">
+        <div class="food-list-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+          <div>
+            <h2 class="timeline-title">🍺 삿포로 엄선 대체 맛집 리스트 (Plan B)</h2>
+            <p class="timeline-desc" style="color: var(--text-sub); font-size: 0.9rem; margin-top: 4px; margin-bottom: 0;">
+              웨이팅이 너무 길거나 현지 상황으로 다른 선택지가 필요할 때, 즉각 플랜 B로 활용할 수 있는 검증된 1티어 대안지들입니다.
+            </p>
+          </div>
+          <button class="btn btn-secondary editor-only" onclick="openFoodModal('sapporo')">
+            <i class="ri-add-circle-fill"></i>
+            <span>삿포로 맛집 추가</span>
+          </button>
+        </div>
+        <div class="food-grid" id="sapporoFoodGrid">
+          <!-- Injected dynamically by JS -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer-bar">
+      <p>© 2026 삿포로 & 오타루 여름여행 시작</p>
+      <p class="footer-tip"><i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다.</p>
+    </footer>
+  </div>
+
+  <!-- Food Add Modal -->
+  <div id="modalFood" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content glass-card animate-slide-up">
+      <div class="modal-header">
+        <h3 class="modal-title" id="foodModalTitle">대체 맛집 추가</h3>
+        <button id="btnFoodModalClose" class="btn-close-modal"><i class="ri-close-line"></i></button>
+      </div>
+      <form id="formFood">
+        <!-- Hidden input to store city type during adding -->
+        <input type="hidden" id="foodCityType" value="">
+
+        <div class="form-group">
+          <label for="foodName" class="form-label">맛집 이름 *</label>
+          <input type="text" id="foodName" class="form-input" placeholder="예: 스스기노 스아게플러스, 오타루 마사즈시" required maxlength="50">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="foodCategory" class="form-label">음식 종류 *</label>
+            <select id="foodCategory" class="form-input">
+              <option value="meat" selected>🥩 고기 / 육류</option>
+              <option value="seafood">🐟 해산물 / 스시</option>
+              <option value="noodle">🍛 면 / 스프카레</option>
+              <option value="dessert">🍰 디저트 / 카페</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="foodRating" class="form-label">평점 (별점) *</label>
+            <select id="foodRating" class="form-input">
+              <option value="5.0">⭐⭐⭐⭐⭐ 5.0</option>
+              <option value="4.5" selected>⭐⭐⭐⭐☆ 4.5</option>
+              <option value="4.0">⭐⭐⭐⭐☆ 4.0</option>
+              <option value="3.5">⭐⭐⭐☆☆ 3.5</option>
+              <option value="3.0">⭐⭐⭐☆☆ 3.0</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="foodMenu" class="form-label">추천 메뉴 *</label>
+          <input type="text" id="foodMenu" class="form-input" placeholder="예: 닭꼬치 스프카레 (1,400엔)" required maxlength="50">
+        </div>
+
+        <div class="form-group">
+          <label for="foodAddress" class="form-label">구글맵 주소 또는 검색어 *</label>
+          <input type="text" id="foodAddress" class="form-input" placeholder="예: Suage+ Sapporo, 롯카테이 오타루" required maxlength="100">
+        </div>
+
+        <div class="form-group">
+          <label for="foodTips" class="form-label">대체 및 웨이팅 꿀팁 (선택)</label>
+          <textarea id="foodTips" class="form-input text-area" placeholder="예: 가라쿠 대기가 너무 길 때의 1선 대체지! 꼬치식이라 먹기 엄청 편합니다." maxlength="250"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btnFoodModalCancel" class="btn btn-secondary-outline">취소</button>
+          <button type="submit" id="btnFoodModalSubmit" class="btn btn-primary">등록하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Place Add/Edit Modal -->
+  <div id="modalPlace" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content glass-card animate-slide-up">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">방문 장소 추가</h3>
+        <button id="btnModalClose" class="btn-close-modal"><i class="ri-close-line"></i></button>
+      </div>
+      <form id="formPlace">
+        <!-- Hidden input to store index during editing -->
+        <input type="hidden" id="editItemIndex" value="">
+
+        <div class="form-group">
+          <label for="placeName" class="form-label">장소 이름 *</label>
+          <input type="text" id="placeName" class="form-input" placeholder="예: 스스키노 라멘 골목, 오타루 운하" required maxlength="50">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="placeTime" class="form-label">방문 시간</label>
+            <input type="time" id="placeTime" class="form-input" value="12:00">
+          </div>
+          <div class="form-group">
+            <label for="placeCategory" class="form-label">카테고리</label>
+            <select id="placeCategory" class="form-input">
+              <option value="flight">✈️ 항공</option>
+              <option value="meal">🍴 식당 / 맛집</option>
+              <option value="cafe">☕ 카페 / 디저트</option>
+              <option value="sightseeing">🏔️ 관광지 / 명소</option>
+              <option value="shopping">🛍️ 쇼핑</option>
+              <option value="lodging">🏨 숙소</option>
+              <option value="transport">🚌 교통</option>
+              <option value="etc">✨ 기타</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="placeCost" class="form-label">예상 비용 (원/엔)</label>
+          <div class="cost-input-wrapper">
+            <input type="number" id="placeCost" class="form-input" placeholder="예: 1500" min="0" max="99999999">
+            <select id="placeCurrency" class="currency-select">
+              <option value="KRW">₩ 원</option>
+              <option value="JPY">¥ 엔</option>
+            </select>
+          </div>
+          <span class="cost-helper-text" id="lblCostConversion">₩ 0원 (대략 환율 100엔 = 900원 기준)</span>
+        </div>
+
+        <div class="form-group">
+          <label for="placeMap" class="form-label">구글맵 주소 또는 검색어 (선택)</label>
+          <input type="text" id="placeMap" class="form-input" placeholder="예: 삿포로역, 스스키노 다루마, 4 Chome Otaru" maxlength="100">
+        </div>
+
+        <div class="form-group">
+          <label for="placeMemo" class="form-label">메모 / 꿀팁</label>
+          <textarea id="placeMemo" class="form-input text-area" placeholder="예: 스프카레는 맵기 4단계 추천!, 5시 이전에 가야 웨이팅 없음" maxlength="200"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btnModalCancel" class="btn btn-secondary-outline">취소</button>
+          <button type="submit" id="btnModalSubmit" class="btn btn-primary">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js?v=3.0"></script>
+</body>
+</html>
