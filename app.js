@@ -2345,15 +2345,13 @@ window.exportTimelineToPDF = function() {
   showToast("📄 전 일정 통합 PDF를 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
   
   // 2. 가상 PDF 문서용 보이지 않는 절대위치(absolute) 래퍼 컨테이너 생성
-  // position: absolute; left: 0; top: 0; height: 0; overflow: hidden; 스타일을 적용하여
-  // 사용자 화면에는 전혀 노출되지 않으면서, html2canvas가 문서 기준 절대 좌표(0, 0)에서
-  // 스크롤이나 화면 크기(PC/모바일)에 따른 위치 왜곡(Shift) 없이 정확하게 캡처하도록 합니다.
+  // 가로폭을 720px로 명시적으로 지정하여 A4 인쇄 가로 영역(마진 제외 약 720px)에 완벽히 정렬되도록 합니다.
   const wrapper = document.createElement("div");
   wrapper.id = "pdf-export-wrapper";
   wrapper.style.position = "absolute";
   wrapper.style.left = "0";
   wrapper.style.top = "0";
-  wrapper.style.width = "790px";
+  wrapper.style.width = "720px";
   wrapper.style.height = "0";
   wrapper.style.overflow = "hidden";
   wrapper.style.zIndex = "-99999";
@@ -2365,7 +2363,7 @@ window.exportTimelineToPDF = function() {
   pdfContainer.style.fontFamily = "'Outfit', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif";
   pdfContainer.style.color = "#2c3e50";
   pdfContainer.style.background = "#ffffff";
-  pdfContainer.style.width = "790px"; // A4 가로폭 해상도 최적화
+  pdfContainer.style.width = "720px"; // A4 가로폭 해상도 최적화
   pdfContainer.style.padding = "40px";
   pdfContainer.style.boxSizing = "border-box";
   pdfContainer.style.display = "block";
@@ -2381,11 +2379,11 @@ window.exportTimelineToPDF = function() {
         margin: 0 !important;
         padding: 0 !important;
         background: #ffffff !important;
-        width: 790px !important;
+        width: 720px !important;
       }
       .pdf-export-container {
         margin: 0 auto !important;
-        width: 790px !important;
+        width: 720px !important;
       }
     </style>
   `;
@@ -2500,8 +2498,8 @@ window.exportTimelineToPDF = function() {
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
-        width: 790,        // html2canvas가 렌더링할 가상 가로폭 강제 지정 (모바일 뷰포트 잘림 해결)
-        windowWidth: 790  // 모바일 기기 너비가 아닌 790px를 브라우저 너비로 인식하여 렌더링하게 함
+        width: 720,        // html2canvas가 렌더링할 가상 가로폭 강제 지정 (모바일 뷰포트 잘림 해결)
+        windowWidth: 720  // 모바일 기기 너비가 아닌 720px를 브라우저 너비로 인식하여 렌더링하게 함
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
