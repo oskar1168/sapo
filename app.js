@@ -906,7 +906,7 @@ function renderApp() {
   // 버전 표시 반영 (캐시 및 배포 여부 확인용)
   const footerTip = document.querySelector(".footer-tip");
   if (footerTip) {
-    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.5)`;
+    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.6)`;
   }
   
   // 1. Hide all tab contents first to prevent overlapping or rendering conflicts
@@ -2490,6 +2490,195 @@ window.exportTimelineToPDF = function() {
       pdfContainer.innerHTML += itemHtml;
     });
   });
+
+  // 5-2. 예산 및 정산 데이터 집계 연산 (PDF 포함용)
+  let totalCostKRW = 0;
+  const catCosts = { flight: 0, meal: 0, cafe: 0, sightseeing: 0, shopping: 0, lodging: 0, transport: 0, etc: 0 };
+  const mCount = parseInt(travelData.memberCount) || 2;
+  const detailedExpenses = [];
+
+  // A. 일정별 지출 내역 분석 및 집계
+  dayKeys.forEach(dayKey => {
+    const items = travelData.days[dayKey] || [];
+    const dayIndex = dayKey.replace("day", "");
+    const sortedItems = [...items].sort((a, b) => a.time.localeCompare(b.time));
+
+    sortedItems.forEach(item => {
+      if (item.cost > 0) {
+        const totalItemCost = item.cost * mCount;
+        const krwVal = getCostInKRW(totalItemCost, item.currency);
+        totalCostKRW += krwVal;
+
+        if (catCosts.hasOwnProperty(item.category)) {
+          catCosts[item.category] += krwVal;
+        } else {
+          catCosts.etc += krwVal;
+        }
+
+        const costString = item.currency === "JPY" ? `¥ ${formatNumber(item.cost)}` : `₩ ${formatNumber(item.cost)}`;
+
+        detailedExpenses.push({
+          name: item.name,
+          categoryName: `Day ${dayIndex} - ${categoryLabels[item.category] || "기타"}`,
+          costPerUnit: costString,
+          qtyText: `${mCount}명`,
+          totalKRW: krwVal
+        });
+      }
+    });
+  });
+
+  // B. 쇼핑 리스트(구매 완료 항목) 실지출 분석 및 집계
+  const shoppingList = travelData.shoppingList || [];
+  shoppingList.forEach(item => {
+    if (item.checked && item.cost > 0) {
+      const itemQty = parseInt(item.qty) || 1;
+      const totalItemCost = item.cost * itemQty;
+      const krwVal = getCostInKRW(totalItemCost, item.currency);
+      totalCostKRW += krwVal;
+
+      catCosts.shopping += krwVal; // 쇼핑 비용으로 가산
+
+      const costString = item.currency === "JPY" ? `¥ ${formatNumber(item.cost)}` : `₩ ${formatNumber(item.cost)}`;
+
+      detailedExpenses.push({
+        name: `🛒 ${item.name}`,
+        categoryName: "쇼핑 실지출",
+        costPerUnit: costString,
+        qtyText: `${itemQty}개`,
+        totalKRW: krwVal
+      });
+    }
+  });
+
+  const costPerMember = Math.round(totalCostKRW / mCount);
+
+  // C. 예산 보고서 마크업 생성
+  let budgetHtml = `
+    <!-- 새로운 페이지 분할 지점 -->
+    <div style="page-break-before: always; padding-top: 10px; width: 100%;">
+      <!-- 타이틀 -->
+      <div style="border-bottom: 3px solid #2ecc71; padding-bottom: 12px; margin-bottom: 24px; text-align: left; width: 100%;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: #27ae60; margin: 0; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">💰 여행 예산 & 정산 보고서</h2>
+      </div>
+
+      <!-- 정산 요약 박스 -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 28px; background: #fafdfb; border: 1.5px solid rgba(46, 204, 113, 0.15); border-radius: 12px; box-sizing: border-box;">
+        <tr>
+          <td style="padding: 20px 10px; width: 33.3%; text-align: center; border-right: 1.5px solid rgba(46, 204, 113, 0.12);">
+            <span style="font-size: 0.85rem; color: #7f8c8d; display: block; font-weight: 700; margin-bottom: 6px; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">총 예상 지출 (일정+쇼핑)</span>
+            <span style="font-size: 1.35rem; font-weight: 900; color: #e74c3c; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${formatNumber(totalCostKRW)}원</span>
+          </td>
+          <td style="padding: 20px 10px; width: 33.3%; text-align: center; border-right: 1.5px solid rgba(46, 204, 113, 0.12);">
+            <span style="font-size: 0.85rem; color: #7f8c8d; display: block; font-weight: 700; margin-bottom: 6px; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">인원 구성</span>
+            <span style="font-size: 1.35rem; font-weight: 900; color: #2c3e50; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${mCount}명</span>
+          </td>
+          <td style="padding: 20px 10px; width: 33.3%; text-align: center;">
+            <span style="font-size: 0.85rem; color: #7f8c8d; display: block; font-weight: 700; margin-bottom: 6px; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">1인당 예상 금액</span>
+            <span style="font-size: 1.35rem; font-weight: 900; color: #27ae60; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${formatNumber(costPerMember)}원</span>
+          </td>
+        </tr>
+      </table>
+
+      <!-- 카테고리별 분포 -->
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: #2c3e50; margin: 0 0 14px 0; text-align: left; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">📊 카테고리별 지출 분포</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+  `;
+
+  const catNames = {
+    flight: "✈️ 항공/비행기",
+    meal: "🍴 식당/맛집",
+    cafe: "☕ 카페/디저트",
+    sightseeing: "🏔️ 관광지/명소",
+    shopping: "🛍️ 쇼핑/실지출",
+    lodging: "🏨 숙박시설",
+    transport: "🚌 교통비용",
+    etc: "✨ 기타 잡비"
+  };
+
+  const catColors = {
+    flight: "#3498db",
+    meal: "#ff7675",
+    cafe: "#e17055",
+    sightseeing: "#fdcb6e",
+    shopping: "#2ecc71",
+    lodging: "#9b59b6",
+    transport: "#1abc9c",
+    etc: "#95a5a6"
+  };
+
+  Object.keys(catCosts).forEach(cat => {
+    const amount = catCosts[cat];
+    const percentage = totalCostKRW > 0 ? Math.round((amount / totalCostKRW) * 100) : 0;
+
+    if (amount > 0 || cat === "flight" || cat === "meal" || cat === "lodging" || cat === "transport") {
+      budgetHtml += `
+        <tr style="height: 38px;">
+          <td style="width: 120px; font-size: 0.85rem; font-weight: 700; color: #2c3e50; vertical-align: middle; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">${catNames[cat] || cat}</td>
+          <td style="padding: 0 10px; vertical-align: middle;">
+            <div style="width: 100%; height: 10px; background: rgba(0,0,0,0.04); border-radius: 5px; overflow: hidden;">
+              <div style="width: ${percentage}%; height: 100%; background: ${catColors[cat] || "#6c5ce7"}; border-radius: 5px;"></div>
+            </div>
+          </td>
+          <td style="width: 150px; font-size: 0.85rem; font-weight: 700; text-align: right; color: #2c3e50; vertical-align: middle; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">
+            ${formatNumber(amount)}원 <span style="font-size: 0.75rem; color: #7f8c8d; font-weight: 600; margin-left: 4px;">(${percentage}%)</span>
+          </td>
+        </tr>
+      `;
+    }
+  });
+
+  budgetHtml += `
+      </table>
+
+      <!-- 상세 지출 내역 리스트 표 -->
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: #2c3e50; margin: 0 0 14px 0; text-align: left; font-family: 'Outfit', 'Noto Sans KR', sans-serif;">📝 상세 지출 내역</h3>
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid rgba(0,0,0,0.06); font-family: 'Outfit', 'Noto Sans KR', sans-serif; box-sizing: border-box;">
+        <thead>
+          <tr style="background: rgba(46, 204, 113, 0.06); border-bottom: 1.5px solid rgba(46, 204, 113, 0.25);">
+            <th style="padding: 10px; font-size: 0.8rem; font-weight: 800; color: #2c3e50; text-align: left;">항목명</th>
+            <th style="padding: 10px; font-size: 0.8rem; font-weight: 800; color: #2c3e50; text-align: left; width: 130px;">분류</th>
+            <th style="padding: 10px; font-size: 0.8rem; font-weight: 800; color: #2c3e50; text-align: right; width: 100px;">단가</th>
+            <th style="padding: 10px; font-size: 0.8rem; font-weight: 800; color: #2c3e50; text-align: right; width: 70px;">수량/인원</th>
+            <th style="padding: 10px; font-size: 0.8rem; font-weight: 800; color: #2c3e50; text-align: right; width: 140px;">총 예상 금액</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  if (detailedExpenses.length === 0) {
+    budgetHtml += `
+          <tr>
+            <td colspan="5" style="padding: 30px; text-align: center; color: #7f8c8d; font-size: 0.82rem; font-weight: 600;">등록된 비용 발생 내역이 없습니다.</td>
+          </tr>
+    `;
+  } else {
+    detailedExpenses.forEach((exp, idx) => {
+      const isAltRow = idx % 2 === 1;
+      budgetHtml += `
+          <tr style="border-bottom: 1px solid rgba(0,0,0,0.04); background-color: ${isAltRow ? "rgba(0,0,0,0.01)" : "#ffffff"};">
+            <td style="padding: 10px; font-size: 0.8rem; color: #2c3e50; font-weight: 600; text-align: left;">${escapeHTML(exp.name)}</td>
+            <td style="padding: 10px; font-size: 0.78rem; color: #7f8c8d; font-weight: 600; text-align: left;">${exp.categoryName}</td>
+            <td style="padding: 10px; font-size: 0.8rem; color: #2c3e50; font-weight: 700; text-align: right;">${exp.costPerUnit}</td>
+            <td style="padding: 10px; font-size: 0.78rem; color: #7f8c8d; font-weight: 600; text-align: right;">${exp.qtyText}</td>
+            <td style="padding: 10px; font-size: 0.8rem; color: #27ae60; font-weight: 800; text-align: right;">${formatNumber(exp.totalKRW)}원</td>
+          </tr>
+      `;
+    });
+  }
+
+  budgetHtml += `
+          <!-- 총 합계 행 -->
+          <tr style="background: rgba(46, 204, 113, 0.04); border-top: 1.5px solid rgba(46, 204, 113, 0.25); font-weight: 800;">
+            <td colspan="4" style="padding: 12px 10px; font-size: 0.85rem; color: #2c3e50; text-align: left;">총 합계 금액 (상세 내역 전체)</td>
+            <td style="padding: 12px 10px; font-size: 0.95rem; color: #e74c3c; font-weight: 900; text-align: right;">${formatNumber(totalCostKRW)}원</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  pdfContainer.innerHTML += budgetHtml;
 
   // 6. 가상 노드를 body에 임시 삽입
   wrapper.appendChild(pdfContainer);
