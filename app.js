@@ -2235,53 +2235,126 @@ async function updateInAppMap(dayKey) {
 // 13. PDF IMAGE EXPORT SYSTEM
 // ==========================================
 window.exportTimelineToPDF = function() {
-  const timelineEl = document.getElementById("timelineList");
-  if (!timelineEl || timelineEl.children.length === 0) {
+  // 1. 등록된 일정이 하나라도 있는지 확인
+  let hasAnyItem = false;
+  Object.keys(travelData.days).forEach(dayKey => {
+    if (travelData.days[dayKey] && travelData.days[dayKey].length > 0) {
+      hasAnyItem = true;
+    }
+  });
+
+  if (!hasAnyItem) {
     showToast("캡처할 일정이 없습니다! 장소를 먼저 추가해 주세요.", "error");
     return;
   }
   
-  showToast("📄 PDF 일정을 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
+  showToast("📄 전 일정 통합 PDF를 생성하고 있습니다. 잠시만 기다려 주세요...", "info");
   
-  // 1. 임시 복제본(clone) 생성
-  const clone = timelineEl.cloneNode(true);
+  // 2. 가상 PDF 문서 컨테이너 생성
+  const pdfContainer = document.createElement("div");
+  pdfContainer.className = "pdf-export-container";
   
-  // 2. 복제본 및 내부 모든 요소들의 애니메이션, 트랜지션, 투명도 강제 무력화 (백지 버그 원천 해결)
-  clone.style.animation = "none !important";
-  clone.style.transform = "none !important";
-  clone.style.transition = "none !important";
-  clone.style.opacity = "1 !important";
+  // 3. 인쇄용 깔끔한 스타일 정의
+  pdfContainer.style.fontFamily = "var(--font-family)";
+  pdfContainer.style.color = "#2c3e50";
+  pdfContainer.style.background = "#ffffff";
+  pdfContainer.style.width = "720px"; // A4 가로폭 비율 매핑
+  pdfContainer.style.padding = "30px 40px";
+  pdfContainer.style.boxSizing = "border-box";
   
-  const items = clone.querySelectorAll(".timeline-item, .card, .timeline-card, .btn-complete-toggle, .place-title, .place-time");
-  items.forEach(el => {
-    el.style.animation = "none";
-    el.style.transform = "none";
-    el.style.transition = "none";
-    el.style.opacity = "1";
+  // 모바일 뷰포트 렌더링 활성화용 fixed 처리
+  pdfContainer.style.position = "fixed";
+  pdfContainer.style.left = "0";
+  pdfContainer.style.top = "0";
+  pdfContainer.style.zIndex = "-9999";
+  pdfContainer.style.opacity = "0.01";
+  
+  // 4. 리포트 헤더 추가 (여행 제목 & 기본 정보)
+  const tripTitle = travelData.title || "삿포로 & 오타루 초여름 여행 ✈️";
+  const tripDates = `${travelData.startDate} ~ ${travelData.endDate}`;
+  const memberText = `${travelData.memberCount || 2}명`;
+  
+  let headerHtml = `
+    <div style="border-bottom: 3px solid #6c5ce7; padding-bottom: 16px; margin-bottom: 24px; text-align: center;">
+      <h1 style="font-size: 1.8rem; font-weight: 800; color: #2c3e50; margin: 0 0 8px 0; letter-spacing: -0.5px;">✈️ ${escapeHTML(tripTitle)}</h1>
+      <p style="font-size: 0.95rem; color: #7f8c8d; font-weight: 600; margin: 0;">여행 기간: ${tripDates} | 여행 인원: ${memberText}</p>
+    </div>
+  `;
+  pdfContainer.innerHTML = headerHtml;
+  
+  // 5. 일차별 루프 (Day 1 ~ Day 4)
+  const categoryLabels = {
+    flight: "✈️ 항공",
+    meal: "🍴 맛집",
+    cafe: "☕ 카페",
+    sightseeing: "🏔️ 명소",
+    shopping: "🛍️ 쇼핑",
+    lodging: "🏨 숙소",
+    transport: "🚌 교통",
+    etc: "✨ 기타"
+  };
+  
+  const dayKeys = ["day1", "day2", "day3", "day4"];
+  
+  dayKeys.forEach(dayKey => {
+    const items = travelData.days[dayKey] || [];
+    if (items.length === 0) return;
+    
+    const dayIndex = dayKey.replace("day", "");
+    const dateStr = getDayDateString(dayIndex);
+    
+    // 일차별 타이틀 헤더 추가
+    let dayHeaderHtml = `
+      <div style="margin-top: 28px; margin-bottom: 14px; border-bottom: 1.5px solid rgba(108, 92, 231, 0.25); padding-bottom: 6px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #6c5ce7; margin: 0;">Day ${dayIndex} <span style="font-size: 0.9rem; font-weight: 600; color: #7f8c8d; margin-left: 6px;">(${dateStr})</span></h2>
+      </div>
+    `;
+    pdfContainer.innerHTML += dayHeaderHtml;
+    
+    // 시간 순으로 정렬
+    const sortedItems = [...items].sort((a, b) => a.time.localeCompare(b.time));
+    
+    // 일정 카드 루프 추가
+    sortedItems.forEach((item, index) => {
+      const catLabel = categoryLabels[item.category] || "기타";
+      
+      const costText = item.cost > 0 
+        ? (item.currency === "JPY" ? `¥ ${formatNumber(item.cost)} (1인)` : `₩ ${formatNumber(item.cost)} (1인)`)
+        : "비용 없음/무료";
+        
+      let itemHtml = `
+        <div style="display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; padding: 12px 16px; background: #fdfdfd; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); page-break-inside: avoid;">
+          <!-- 시간 & 분류 버블 -->
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 62px; background: rgba(108, 92, 231, 0.08); border-radius: 8px; padding: 6px 4px; flex-shrink: 0; text-align: center;">
+            <span style="font-size: 0.75rem; font-weight: 800; color: #6c5ce7; line-height: 1.2;">${item.time}</span>
+            <span style="font-size: 0.62rem; color: #7f8c8d; font-weight: 700; margin-top: 2px;">${catLabel}</span>
+          </div>
+          
+          <!-- 상세 내용 -->
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+              <h3 style="font-size: 1rem; font-weight: 700; color: #2c3e50; margin: 0;">${escapeHTML(item.name)}</h3>
+              <span style="font-size: 0.78rem; color: #2ecc71; font-weight: 700; display: inline-flex; align-items: center; gap: 2px;"><i class="ri-money-dollar-circle-line"></i> ${costText}</span>
+            </div>
+            ${item.memo ? `
+              <p style="font-size: 0.8rem; color: #7f8c8d; margin: 4px 0 0 0; white-space: pre-line; background: rgba(0,0,0,0.01); padding: 6px 10px; border-radius: 6px; border-left: 3px solid rgba(108, 92, 231, 0.4); line-height: 1.4;">${escapeHTML(item.memo)}</p>
+            ` : ""}
+          </div>
+        </div>
+      `;
+      pdfContainer.innerHTML += itemHtml;
+    });
   });
+
+  // 6. 가상 노드를 body에 임시 삽입
+  document.body.appendChild(pdfContainer);
   
-  // 3. 모바일 브라우저 렌더링 최적화:
-  // 오프스크린(-9999px)으로 보내면 모바일 브라우저가 리소스를 아끼기 위해 그리기(Paint)를 생략하여 백지가 발생합니다.
-  // fixed와 opacity: 0.01을 주어 화면 내에 실제로 렌더링되게 만듭니다.
-  clone.style.position = "fixed";
-  clone.style.left = "0";
-  clone.style.top = "0";
-  clone.style.zIndex = "-9999";
-  clone.style.opacity = "0.01";
-  clone.style.width = timelineEl.offsetWidth + "px";
-  clone.style.background = "#ffffff";
-  clone.style.padding = "20px";
-  clone.style.boxSizing = "border-box";
-  
-  document.body.appendChild(clone);
-  
-  // 4. 모바일 기기의 렌더링 성능을 고려하여 200ms 대기 후 PDF 생성 트리거
+  // 7. 모바일 렌더링 성능 고려 200ms 대기 후 PDF 생성 트리거
   setTimeout(() => {
-    const dayNum = activeTab.replace("day", "");
-    const fileName = `sapo_travel_day${dayNum}_schedule.pdf`;
+    const fileName = "sapo_travel_full_schedule.pdf";
     
     const options = {
-      margin: [10, 10, 10, 10],
+      margin: [15, 15, 15, 15],
       filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
@@ -2292,15 +2365,15 @@ window.exportTimelineToPDF = function() {
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    // 5. 복제본 엘리먼트로 PDF 캡처 생성
-    html2pdf().from(clone).set(options).save().then(() => {
-      // 6. 사용 후 삭제
-      document.body.removeChild(clone);
-      showToast("🎉 PDF 저장이 완료되었습니다!", "success");
+    // 8. PDF 생성 및 저장
+    html2pdf().from(pdfContainer).set(options).save().then(() => {
+      // 9. 완료 후 가상 요소 안전하게 제거
+      document.body.removeChild(pdfContainer);
+      showToast("🎉 전 일정 PDF 저장이 완료되었습니다!", "success");
     }).catch(err => {
       console.error("PDF 생성 실패:", err);
-      if (document.body.contains(clone)) {
-        document.body.removeChild(clone);
+      if (document.body.contains(pdfContainer)) {
+        document.body.removeChild(pdfContainer);
       }
       showToast("PDF 생성 중 오류가 발생했습니다.", "error");
     });
