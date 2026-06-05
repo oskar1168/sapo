@@ -87,8 +87,39 @@
   <div class="bg-glow bg-glow-3"></div>
 
   <div class="app-container">
-    <!-- Header Section -->
-    <header class="app-header">
+    <!-- Home Dashboard View (Initial Entry) -->
+    <div id="homeView" class="home-view">
+      <div class="home-header">
+        <h2 class="home-welcome-title">✈️ 어디로 떠나시나요?</h2>
+        <p class="home-welcome-subtitle">나의 여행 계획 목록</p>
+      </div>
+      <div class="home-trips-grid">
+        <!-- 삿포로 & 오타루 여행 카드 (클릭 시 상세 일정으로 진입) -->
+        <div class="trip-card glass-card" id="btnTripSapporo" style="cursor: pointer;">
+          <div class="trip-card-image" style="background: linear-gradient(135deg, #6c5ce7, #4a90e2);">
+            <span class="trip-dday-badge" id="homeDdayBadge">D-??</span>
+          </div>
+          <div class="trip-card-info">
+            <h3 class="trip-title-text" id="homeTripTitle">삿포로 & 오타루</h3>
+            <p class="trip-date-text"><i class="ri-calendar-line"></i> <span id="homeTripDates">06.13 - 06.16</span></p>
+            <p class="trip-meta-text"><i class="ri-user-line"></i> <span id="homeTripMember">2명</span> · <span id="homeTripPlaces">0곳 방문</span></p>
+          </div>
+        </div>
+        
+        <!-- 새 여행 만들기 시안 카드 -->
+        <div class="trip-card trip-card-new glass-card" id="btnCreateNewTrip" style="cursor: pointer;">
+          <div class="trip-new-content">
+            <i class="ri-add-circle-line"></i>
+            <span>새 여행 계획 만들기</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Trip Planner View (Wraps Header, Nav, and Main Content) -->
+    <div id="tripDetailView" class="trip-detail-view hidden">
+      <!-- Header Section -->
+      <header class="app-header">
       <div class="header-main">
         <div class="logo-area">
           <span class="logo-emoji">❄️✈️</span>
@@ -163,18 +194,7 @@
             <span class="tab-day">Day 4</span>
             <span class="tab-date">06/16 (화)</span>
           </button>
-          <button class="nav-tab tab-special" data-tab="recommendedSpots" role="tab" aria-selected="false" id="tabRecommendedSpots">
-            <i class="ri-compass-3-line"></i>
-            <span>추천 스팟</span>
-          </button>
-          <button class="nav-tab tab-special" data-tab="shoppingList" role="tab" aria-selected="false" id="tabShoppingList">
-            <i class="ri-shopping-cart-2-line"></i>
-            <span>쇼핑 리스트</span>
-          </button>
-          <button class="nav-tab tab-special" data-tab="extra" role="tab" aria-selected="false" id="tabExtra">
-            <i class="ri-suitcase-line"></i>
-            <span>체크리스트 & 정산</span>
-          </button>          
+          
         </div>
       </div>
     </nav>
@@ -408,6 +428,7 @@
         </div>
       </div>
     </main>
+    </div> <!-- #tripDetailView 닫기 -->
 
     <!-- Footer -->
     <footer class="app-footer-bar">
@@ -648,6 +669,30 @@
 
   <!-- Toast Notification System -->
   <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Sticky Bottom Navigation Bar (5-Tabs) -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item active" data-bottom-tab="home">
+      <i class="ri-home-5-line"></i>
+      <span>홈</span>
+    </button>
+    <button class="bottom-nav-item" data-bottom-tab="timeline">
+      <i class="ri-calendar-todo-line"></i>
+      <span>일정</span>
+    </button>
+    <button class="bottom-nav-item" data-bottom-tab="spots">
+      <i class="ri-compass-3-line"></i>
+      <span>추천 스팟</span>
+    </button>
+    <button class="bottom-nav-item" data-bottom-tab="shopping">
+      <i class="ri-shopping-cart-2-line"></i>
+      <span>쇼핑</span>
+    </button>
+    <button class="bottom-nav-item" data-bottom-tab="extra">
+      <i class="ri-checkbox-multiple-line"></i>
+      <span>정산/체크</span>
+    </button>
+  </nav>
 
   <script type="module" src="app.js?v=4.7"></script>
 </body>

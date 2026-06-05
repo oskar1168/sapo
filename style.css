@@ -2081,6 +2081,237 @@ body {
   transform: rotate(-90deg);
 }
 
+/* ==========================================
+   17. STICKY BOTTOM NAVIGATION BAR & HOME VIEW
+   ========================================== */
+
+/* Overriding App Container for Bottom Space */
+.app-container {
+  padding-bottom: 100px !important;
+}
+
+/* Bottom Navigation Bar Layout */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 900px;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 9999;
+  padding: 4px 8px 12px 8px;
+}
+
+.bottom-nav-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub);
+  gap: 3px;
+  flex: 1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-family);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
+.bottom-nav-item i {
+  font-size: 1.35rem;
+  transition: transform 0.2s;
+  color: var(--text-sub);
+}
+
+.bottom-nav-item:hover {
+  color: var(--primary);
+}
+
+.bottom-nav-item:hover i {
+  color: var(--primary);
+}
+
+.bottom-nav-item.active {
+  color: var(--secondary);
+}
+
+.bottom-nav-item.active i {
+  color: var(--secondary);
+  transform: translateY(-2px);
+}
+
+/* Home Dashboard View Layout */
+.home-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease-out;
+  padding: 10px 4px;
+}
+
+.home-header {
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.home-welcome-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--text-main), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.home-welcome-subtitle {
+  font-size: 0.92rem;
+  color: var(--text-sub);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.home-trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Trip Card Styling */
+.trip-card {
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px 0 var(--shadow-glass);
+}
+
+.trip-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(108, 92, 231, 0.12);
+  border-color: rgba(var(--primary-rgb), 0.35);
+}
+
+.trip-card-image {
+  height: 120px;
+  position: relative;
+  border-radius: 24px 24px 0 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.trip-dday-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: var(--secondary);
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.trip-card-info {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.trip-title-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.trip-date-text {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.trip-meta-text {
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.trip-meta-text span {
+  color: var(--secondary);
+  font-weight: 700;
+}
+
+/* Create New Trip Dotted Card styling */
+.trip-card-new {
+  border: 2px dashed rgba(var(--primary-rgb), 0.25);
+  background: transparent;
+  min-height: 236px;
+  justify-content: center;
+  align-items: center;
+  box-shadow: none;
+}
+
+.trip-card-new:hover {
+  background: rgba(var(--primary-rgb), 0.03);
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.05);
+}
+
+.trip-new-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-sub);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.trip-new-content i {
+  font-size: 2.2rem;
+  color: rgba(var(--primary-rgb), 0.4);
+  transition: transform 0.2s;
+}
+
+.trip-card-new:hover .trip-new-content i {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.trip-card-new:hover .trip-new-content {
+  color: var(--primary);
+}
+
 
 
 

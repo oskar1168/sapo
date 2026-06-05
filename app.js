@@ -218,6 +218,7 @@ let leafletMap = null;
 let leafletMarkers = [];
 let leafletPolyline = null;
 let isMapVisible = localStorage.getItem("sapo_map_visible") !== "false";
+let activeBottomTab = "home"; // 'home', 'timeline', 'spots', 'shopping', 'extra'
 const coordsCache = {};
 
 // Sapporo & Otaru Essential Coordinates Database (0-latency rendering)
@@ -527,6 +528,9 @@ const elements = {
   btnShare: document.getElementById("btnShare"),
   btnToggleMap: document.getElementById("btnToggleMap"),
   iconToggleMap: document.getElementById("iconToggleMap"),
+  homeView: document.getElementById("homeView"),
+  tripDetailView: document.getElementById("tripDetailView"),
+  bottomNavItems: document.querySelectorAll(".bottom-nav-item"),
   
   // Settlement Tab Elements
   settleTotalBudget: document.getElementById("settleTotalBudget"),
@@ -926,50 +930,115 @@ function renderApp() {
   // 버전 표시 반영 (캐시 및 배포 여부 확인용)
   const footerTip = document.querySelector(".footer-tip");
   if (footerTip) {
-    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.6)`;
+    footerTip.innerHTML = `<i class="ri-lightbulb-line"></i> 일정을 수정하면 자동으로 저장됩니다. (버전: 4.8)`;
   }
   
-  // 1. Hide all tab contents first to prevent overlapping or rendering conflicts
+  // Update Bottom Nav active state
+  elements.bottomNavItems.forEach(item => {
+    if (item.getAttribute("data-bottom-tab") === activeBottomTab) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  // 1. Hide all main views first
+  elements.homeView.classList.add("hidden");
+  elements.tripDetailView.classList.add("hidden");
+
+  // 2. Hide all detailed tab contents in detail view to prevent overlapping
   elements.tabContentDays.classList.add("hidden");
   elements.tabContentDays.classList.remove("active");
-  
   elements.tabContentExtra.classList.add("hidden");
   elements.tabContentExtra.classList.remove("active");
-  
   elements.tabContentRecommendedSpots.classList.add("hidden");
   elements.tabContentRecommendedSpots.classList.remove("active");
-  
   elements.tabContentShoppingList.classList.add("hidden");
   elements.tabContentShoppingList.classList.remove("active");
-  
-  // 2. Open and render the selected tab precisely
-  if (activeTab === "extra") {
-    elements.tabContentExtra.classList.remove("hidden");
-    elements.tabContentExtra.classList.add("active");
-    setExtraSubTab(activeExtraSubTab);
-  } else if (activeTab === "recommendedSpots") {
-    elements.tabContentRecommendedSpots.classList.remove("hidden");
-    elements.tabContentRecommendedSpots.classList.add("active");
-    renderSpotsFilters();
-    renderSpotsList();
-  } else if (activeTab === "shoppingList") {
-    elements.tabContentShoppingList.classList.remove("hidden");
-    elements.tabContentShoppingList.classList.add("active");
-    renderShoppingList();
+
+  // 3. Render according to active bottom tab
+  if (activeBottomTab === "home") {
+    elements.homeView.classList.remove("hidden");
+    
+    // Bind Realtime stats to home dashboard card
+    const ddayText = elements.txtDday.innerText;
+    const homeDdayBadge = document.getElementById("homeDdayBadge");
+    if (homeDdayBadge) {
+      homeDdayBadge.innerText = ddayText;
+    }
+
+    const homeTripTitle = document.getElementById("homeTripTitle");
+    if (homeTripTitle) {
+      homeTripTitle.innerText = travelData.title || "삿포로 & 오타루";
+    }
+
+    const homeTripDates = document.getElementById("homeTripDates");
+    if (homeTripDates) {
+      homeTripDates.innerText = `${travelData.startDate} ~ ${travelData.endDate}`;
+    }
+
+    const homeTripMember = document.getElementById("homeTripMember");
+    if (homeTripMember) {
+      homeTripMember.innerText = `${travelData.memberCount || 2}명`;
+    }
+
+    const homeTripPlaces = document.getElementById("homeTripPlaces");
+    if (homeTripPlaces) {
+      let totalPlaces = 0;
+      Object.keys(travelData.days).forEach(dayKey => {
+        totalPlaces += (travelData.days[dayKey] || []).length;
+      });
+      homeTripPlaces.innerText = `${totalPlaces}곳 방문`;
+    }
+
   } else {
-    // Day Tabs (day1 ~ day4)
-    elements.tabContentDays.classList.remove("hidden");
-    elements.tabContentDays.classList.add("active");
-    
-    // Set Day Title
-    const dayIndex = activeTab.replace("day", "");
-    const dateStr = getDayDateString(dayIndex);
-    elements.timelineDayTitle.innerText = `Day ${dayIndex} 일정 (${dateStr})`;
-    
-    renderTimeline(activeTab);
-    applyMapVisibilityState();
+    // Show detailed planner view
+    elements.tripDetailView.classList.remove("hidden");
+
+    if (activeBottomTab === "timeline") {
+      // If we are in timeline, ensure activeTab is one of the days
+      if (!activeTab.startsWith("day")) {
+        activeTab = "day1";
+        // Sync top tabs active class
+        elements.tabButtons.forEach(btn => {
+          if (btn.getAttribute("data-tab") === activeTab) {
+            btn.classList.add("active");
+            btn.setAttribute("aria-selected", "true");
+          } else {
+            btn.classList.remove("active");
+            btn.setAttribute("aria-selected", "false");
+          }
+        });
+      }
+
+      elements.tabContentDays.classList.remove("hidden");
+      elements.tabContentDays.classList.add("active");
+      
+      const dayIndex = activeTab.replace("day", "");
+      const dateStr = getDayDateString(dayIndex);
+      elements.timelineDayTitle.innerText = `Day ${dayIndex} 일정 (${dateStr})`;
+      
+      renderTimeline(activeTab);
+      applyMapVisibilityState();
+
+    } else if (activeBottomTab === "spots") {
+      elements.tabContentRecommendedSpots.classList.remove("hidden");
+      elements.tabContentRecommendedSpots.classList.add("active");
+      renderSpotsFilters();
+      renderSpotsList();
+
+    } else if (activeBottomTab === "shopping") {
+      elements.tabContentShoppingList.classList.remove("hidden");
+      elements.tabContentShoppingList.classList.add("active");
+      renderShoppingList();
+
+    } else if (activeBottomTab === "extra") {
+      elements.tabContentExtra.classList.remove("hidden");
+      elements.tabContentExtra.classList.add("active");
+      setExtraSubTab(activeExtraSubTab);
+    }
   }
-  
+
   applyEditorRights(); // Ensure permissions are applied strictly after all renders!
 }
 
@@ -1782,6 +1851,12 @@ function setupEventListeners() {
       btn.setAttribute("aria-selected", "true");
       
       activeTab = btn.getAttribute("data-tab");
+      
+      // If upper tab is clicked, make sure bottom nav syncs to timeline
+      if (activeTab.startsWith("day")) {
+        activeBottomTab = "timeline";
+      }
+      
       renderApp();
     });
   });
@@ -1804,6 +1879,74 @@ function setupEventListeners() {
 
   elements.btnAddPlace.addEventListener("click", handleOpenAddModal);
   elements.btnEmptyAdd.addEventListener("click", handleOpenAddModal);
+
+  // Bottom Navigation Switching
+  elements.bottomNavItems.forEach(item => {
+    item.addEventListener("click", () => {
+      const tab = item.getAttribute("data-bottom-tab");
+      activeBottomTab = tab;
+      
+      // If switching to timeline, make sure activeTab is one of the days
+      if (tab === "timeline" && !activeTab.startsWith("day")) {
+        activeTab = "day1";
+        // Sync top tab visual active class
+        elements.tabButtons.forEach(btn => {
+          if (btn.getAttribute("data-tab") === "day1") {
+            btn.classList.add("active");
+            btn.setAttribute("aria-selected", "true");
+          } else {
+            btn.classList.remove("active");
+            btn.setAttribute("aria-selected", "false");
+          }
+        });
+      }
+      
+      renderApp();
+      
+      // If switching to timeline and map is visible, recalculate map size
+      if (tab === "timeline" && isMapVisible && leafletMap) {
+        setTimeout(() => {
+          leafletMap.invalidateSize();
+          updateInAppMap(activeTab);
+        }, 100);
+      }
+    });
+  });
+
+  // Home Dashboard Card Clicks
+  const btnTripSapporo = document.getElementById("btnTripSapporo");
+  if (btnTripSapporo) {
+    btnTripSapporo.addEventListener("click", () => {
+      activeBottomTab = "timeline";
+      activeTab = "day1";
+      // Sync top tab active class
+      elements.tabButtons.forEach(btn => {
+        if (btn.getAttribute("data-tab") === "day1") {
+          btn.classList.add("active");
+          btn.setAttribute("aria-selected", "true");
+        } else {
+          btn.classList.remove("active");
+          btn.setAttribute("aria-selected", "false");
+        }
+      });
+      renderApp();
+      
+      // Auto-refresh map
+      if (isMapVisible && leafletMap) {
+        setTimeout(() => {
+          leafletMap.invalidateSize();
+          updateInAppMap(activeTab);
+        }, 100);
+      }
+    });
+  }
+
+  const btnCreateNewTrip = document.getElementById("btnCreateNewTrip");
+  if (btnCreateNewTrip) {
+    btnCreateNewTrip.addEventListener("click", () => {
+      showToast("🚀 새로운 여행 생성 기능은 추후 연동될 예정입니다. 시안 카드입니다!", "info");
+    });
+  }
 
   // Toggle Map Accordion via Arrow Icon
   if (elements.btnToggleMap) {
