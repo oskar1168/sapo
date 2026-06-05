@@ -81,32 +81,111 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Premium Splash Intro Overlay -->
+  <div id="splashIntro" class="splash-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(30, 30, 40, 0.98), rgba(15, 15, 25, 0.99)); z-index: 999999; display: none; opacity: 0; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none;">
+    <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 220px; height: 220px;">
+      <img id="splashGif" src="walking_summer.gif" style="width: 180px; height: 180px; object-fit: contain; border-radius: 24px;" alt="Walking Summer">
+    </div>
+    <div style="text-align: center; color: white;">
+      <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; font-family: var(--font-family); letter-spacing: 1px; color: var(--text-main);">새로운 여행 계획을 만드는 중... ✈️</h3>
+      <p style="font-size: 0.78rem; opacity: 0.7; margin: 6px 0 0 0; font-weight: 600;">민상님의 맞춤형 초여름 일정을 짓고 있습니다.</p>
+    </div>
+  </div>
+
   <!-- Ambient background glow elements for premium aesthetics -->
   <div class="bg-glow bg-glow-1"></div>
   <div class="bg-glow bg-glow-2"></div>
   <div class="bg-glow bg-glow-3"></div>
 
   <div class="app-container">
-    <!-- Home Dashboard View (Initial Entry) -->
-    <div id="homeView" class="home-view">
-      <div class="home-header">
-        <h2 class="home-welcome-title">✈️ 어디로 떠나시나요?</h2>
-        <p class="home-welcome-subtitle">나의 여행 계획 목록</p>
+    <!-- 1단계: Main Explore View (Recommended cities & tools) -->
+    <div id="mainExploreView" class="explore-view">
+
+      <div class="explore-header" style="position: relative; margin-bottom: 24px; text-align: left;">
+        <div class="explore-welcome-group" style="padding-right: 50px;">
+          <h2 class="explore-welcome-title">안녕하세요, 민상님! ❄️</h2>
+          <p class="explore-welcome-subtitle">초여름의 낭만 홋카이도로 떠나볼까요?</p>
+        </div>
+        <button id="btnGoToMyTrips" class="btn btn-primary btn-glow" title="내 일정 목록" style="position: absolute; right: 0; top: 0; width: 42px; height: 42px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; min-width: auto;">
+          <i class="ri-calendar-todo-line" style="font-size: 1.25rem; position: relative; display: inline-flex; align-items: center; justify-content: center;">
+            <span style="position: absolute; top: -6px; right: -6px; font-size: 0.7rem; background: var(--secondary); color: white; border-radius: 50%; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 1.5px solid var(--primary); line-height: 1;">+</span>
+          </i>
+        </button>
       </div>
-      <div class="home-trips-grid">
-        <!-- 삿포로 & 오타루 여행 카드 (클릭 시 상세 일정으로 진입) -->
-        <div class="trip-card glass-card" id="btnTripSapporo" style="cursor: pointer;">
-          <div class="trip-card-image" style="background: linear-gradient(135deg, #6c5ce7, #4a90e2);">
-            <span class="trip-dday-badge" id="homeDdayBadge">D-??</span>
-          </div>
-          <div class="trip-card-info">
-            <h3 class="trip-title-text" id="homeTripTitle">삿포로 & 오타루</h3>
-            <p class="trip-date-text"><i class="ri-calendar-line"></i> <span id="homeTripDates">06.13 - 06.16</span></p>
-            <p class="trip-meta-text"><i class="ri-user-line"></i> <span id="homeTripMember">2명</span> · <span id="homeTripPlaces">0곳 방문</span></p>
+
+      <!-- Explore Trip Reminder (Dynamic) -->
+      <div id="exploreTripReminder" class="explore-reminder-box hidden" style="margin-bottom: 16px; text-align: left; font-size: 0.84rem; font-weight: 700; color: var(--text-main); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 16px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+        <span class="reminder-emoji">✈️</span>
+        <span class="reminder-text">여행 더 준비는 다 끝나셨나요?</span>
+      </div>
+
+      <!-- Main Visual Promotion Banner -->
+      <div class="explore-banner glass-card bg-sapporo">
+        <span style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; align-self: flex-start; text-transform: uppercase;">HOT 추천 가이드</span>
+        <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0; line-height: 1.3;">6월 삿포로 라벤더 축제 & 비에이 투어 핵심 꿀팁</h3>
+        <p style="font-size: 0.82rem; opacity: 0.9; margin: 0; font-weight: 500;">현지인들만 아는 주차 명소와 웨이팅 없는 맛집 리스트 대공개</p>
+      </div>
+
+      <!-- Recommended Cities Section -->
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 16px 0; text-align: left; font-family: var(--font-family);">🗺️ 홋카이도 추천 도시 탐색</h3>
+      <div class="explore-cities-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-bottom: 30px;">
+        <div class="city-explore-card glass-card" style="cursor: pointer; text-align: center; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="font-size: 2.2rem;">🧭</div>
+          <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">삿포로</h4>
+          <span style="font-size: 0.7rem; color: var(--text-sub); font-weight: 600;">식당 & 도심 야경</span>
+        </div>
+        <div class="city-explore-card glass-card" style="cursor: pointer; text-align: center; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="font-size: 2.2rem;">🌊</div>
+          <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">오타루</h4>
+          <span style="font-size: 0.7rem; color: var(--text-sub); font-weight: 600;">오르골 & 감성 운하</span>
+        </div>
+        <div class="city-explore-card glass-card" style="cursor: pointer; text-align: center; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="font-size: 2.2rem;">✨</div>
+          <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">하코다테</h4>
+          <span style="font-size: 0.7rem; color: var(--text-sub); font-weight: 600;">세계 3대 로프웨이 야경</span>
+        </div>
+        <div class="city-explore-card glass-card" style="cursor: pointer; text-align: center; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="font-size: 2.2rem;">🌸</div>
+          <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">비에이/후라노</h4>
+          <span style="font-size: 0.7rem; color: var(--text-sub); font-weight: 600;">청의 호수 & 패치워크</span>
+        </div>
+      </div>
+
+      <!-- Partner Coupon & Ticket Deals Section -->
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 16px 0; text-align: left; font-family: var(--font-family);">🛍️ 여행 필수품 & 특가 상품</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="deal-card glass-card" style="display: flex; align-items: center; gap: 16px; padding: 14px 20px; text-align: left; cursor: pointer;">
+          <div style="font-size: 1.8rem; background: rgba(253, 121, 168, 0.12); padding: 8px; border-radius: 12px; line-height: 1;"><i class="ri-coupon-3-fill" style="color: var(--cat-shopping);"></i></div>
+          <div>
+            <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">돈키호테 할인 쿠폰 15% 받기</h4>
+            <p style="font-size: 0.78rem; color: var(--text-sub); margin: 2px 0 0 0; font-weight: 600;">10% 면세 + 최대 5% 추가 즉시할인 바코드 연동</p>
           </div>
         </div>
+        <div class="deal-card glass-card" style="display: flex; align-items: center; gap: 16px; padding: 14px 20px; text-align: left; cursor: pointer;">
+          <div style="font-size: 1.8rem; background: rgba(74, 144, 226, 0.12); padding: 8px; border-radius: 12px; line-height: 1;"><i class="ri-train-line" style="color: var(--primary);"></i></div>
+          <div>
+            <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">JR 홋카이도 레일패스 (재팬 레일패스)</h4>
+            <p style="font-size: 0.78rem; color: var(--text-sub); margin: 2px 0 0 0; font-weight: 600;">삿포로-오타루-하코다테 전 노선 자유 탑승권 예약</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2단계: Home Dashboard View (My Trips) -->
+    <div id="homeView" class="home-view hidden">
+      <div class="home-header" style="position: relative; margin-bottom: 24px; text-align: left;">
+        <div style="padding-right: 50px;">
+          <h2 class="home-welcome-title">✈️ 어디로 떠나시나요?</h2>
+          <p class="home-welcome-subtitle">나의 여행 계획 목록</p>
+        </div>
+        <button id="btnBackToExplore" class="btn btn-secondary" title="홈으로" style="position: absolute; right: 0; top: 0; width: 42px; height: 42px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; min-width: auto; background: var(--bg-glass); border: 1px solid var(--border-glass);">
+          <i class="ri-home-5-line" style="font-size: 1.25rem; color: var(--text-main);"></i>
+        </button>
+      </div>
+      <div class="home-trips-grid" id="homeTripsGrid">
+        <!-- Trips will be dynamically rendered here by app.js -->
         
-        <!-- 새 여행 만들기 시안 카드 -->
+        <!-- 새 여행 만들기 카드 -->
         <div class="trip-card trip-card-new glass-card" id="btnCreateNewTrip" style="cursor: pointer;">
           <div class="trip-new-content">
             <i class="ri-add-circle-line"></i>
@@ -122,10 +201,10 @@
       <header class="app-header">
       <div class="header-main">
         <div class="logo-area">
-          <span class="logo-emoji">❄️✈️</span>
+          <span class="logo-emoji" id="appMainEmoji">❄️✈️</span>
           <div>
             <h1 class="app-title" id="appMainTitle">삿포로 & 오타루</h1>
-            <p class="app-subtitle">초여름의 낭만 여행 · 3박 4일</p>
+            <p class="app-subtitle" id="appSubTitle">초여름의 낭만 여행 · 3박 4일</p>
           </div>
         </div>
         <div class="header-actions">
@@ -147,7 +226,7 @@
           <div class="stat-icon icon-blue"><i class="ri-calendar-todo-fill"></i></div>
           <div class="stat-info">
             <span class="stat-label">여행 일정</span>
-            <span class="stat-value">06.13 - 06.16</span>
+            <span class="stat-value" id="txtTripPeriod">06.13 - 06.16</span>
           </div>
         </div>
         <div class="stat-card" id="statDdayCard">
@@ -177,24 +256,8 @@
     <!-- Navigation Tabs -->
     <nav class="app-nav">
       <div class="tabs-scroll-container">
-        <div class="nav-tabs" role="tablist">
-          <button class="nav-tab active" data-tab="day1" role="tab" aria-selected="true" id="tabDay1">
-            <span class="tab-day">Day 1</span>
-            <span class="tab-date">06/13 (토)</span>
-          </button>
-          <button class="nav-tab" data-tab="day2" role="tab" aria-selected="false" id="tabDay2">
-            <span class="tab-day">Day 2</span>
-            <span class="tab-date">06/14 (일)</span>
-          </button>
-          <button class="nav-tab" data-tab="day3" role="tab" aria-selected="false" id="tabDay3">
-            <span class="tab-day">Day 3</span>
-            <span class="tab-date">06/15 (월)</span>
-          </button>
-          <button class="nav-tab" data-tab="day4" role="tab" aria-selected="false" id="tabDay4">
-            <span class="tab-day">Day 4</span>
-            <span class="tab-date">06/16 (화)</span>
-          </button>
-          
+        <div class="nav-tabs" role="tablist" id="navTabs">
+          <!-- Day tabs will be dynamically rendered here -->
         </div>
       </div>
     </nav>
@@ -382,7 +445,7 @@
         
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
           <!-- City Selector Chips -->
-          <div class="city-selector-container" id="citySelectorContainer" style="display: flex; gap: 8px;">
+          <div class="city-selector-container" id="citySelectorContainer">
             <button type="button" class="filter-chip active" id="btnCityAll" onclick="setCityFilter('all')">🗺️ 전체보기</button>
             <button type="button" class="filter-chip" id="btnCitySapporo" onclick="setCityFilter('sapporo')">🧭 삿포로 스팟</button>
             <button type="button" class="filter-chip" id="btnCityOtaru" onclick="setCityFilter('otaru')">🌊 오타루 스팟</button>
@@ -418,6 +481,16 @@
                 <span class="label" style="font-size: 0.9rem;">총 지출 금액 (쇼핑)</span>
                 <span class="value text-primary" id="shoppingTotalCost" style="font-size: 1.35rem; font-weight: 800; text-align: right;">0원</span>
               </div>
+            </div>
+
+            <!-- Don Quijote Discount Coupon Banner -->
+            <div class="deal-card glass-card" id="btnShoppingDonkiCoupon" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-align: left; cursor: pointer; background: rgba(253, 121, 168, 0.12); border: 1px solid rgba(253, 121, 168, 0.25); border-radius: 14px; margin-top: -4px;">
+              <div style="font-size: 1.4rem; color: var(--cat-shopping); line-height: 1;"><i class="ri-coupon-3-fill"></i></div>
+              <div style="flex: 1;">
+                <h4 style="font-size: 0.84rem; font-weight: 800; margin: 0; color: var(--text-main);">돈키호테 15% 면세 할인 쿠폰 🎟️</h4>
+                <p style="font-size: 0.72rem; color: var(--text-sub); margin: 2px 0 0 0; font-weight: 600;">10% 면세 + 5% 추가 할인 바코드 받기</p>
+              </div>
+              <div style="font-size: 1.1rem; color: var(--text-sub);"><i class="ri-arrow-right-s-line"></i></div>
             </div>
 
             <!-- List Container -->
@@ -667,6 +740,116 @@
     </div>
   </div>
 
+  <!-- City Select Modal -->
+  <div id="modalCitySelect" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content glass-card animate-slide-up" style="max-width: 420px; padding: 28px;">
+      <div class="modal-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="modal-title" id="cityModalTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">어디로 여행을 떠나시나요? ✈️</h3>
+        <button id="btnCityModalClose" class="btn-close-modal" style="background: none; border: none; font-size: 1.3rem; color: var(--text-sub); cursor: pointer;"><i class="ri-close-line"></i></button>
+      </div>
+
+      <!-- Step 1: Destination Selection -->
+      <div id="citySelectStep1" class="step-container">
+        <div class="city-select-list" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+          <div class="city-select-card glass-card" data-city="sapporo" style="display: flex; align-items: center; gap: 16px; padding: 16px; cursor: pointer; transition: all 0.2s;">
+            <div style="font-size: 2.2rem; line-height: 1;">❄️</div>
+            <div style="text-align: left;">
+              <h4 style="font-size: 0.98rem; font-weight: 800; margin: 0; color: var(--text-main);">삿포로 & 오타루</h4>
+              <p style="font-size: 0.76rem; color: var(--text-sub); margin: 3px 0 0 0; font-weight: 600;">초여름 낭만과 설경의 도시</p>
+            </div>
+          </div>
+          <div class="city-select-card glass-card" data-city="tokyo" style="display: flex; align-items: center; gap: 16px; padding: 16px; cursor: pointer; transition: all 0.2s;">
+            <div style="font-size: 2.2rem; line-height: 1;">🗼</div>
+            <div style="text-align: left;">
+              <h4 style="font-size: 0.98rem; font-weight: 800; margin: 0; color: var(--text-main);">도쿄 (Tokyo)</h4>
+              <p style="font-size: 0.76rem; color: var(--text-sub); margin: 3px 0 0 0; font-weight: 600;">쇼핑과 미식, 화려한 도심의 중심</p>
+            </div>
+          </div>
+          <div class="city-select-card glass-card" data-city="osaka" style="display: flex; align-items: center; gap: 16px; padding: 16px; cursor: pointer; transition: all 0.2s;">
+            <div style="font-size: 2.2rem; line-height: 1;">🐙</div>
+            <div style="text-align: left;">
+              <h4 style="font-size: 0.98rem; font-weight: 800; margin: 0; color: var(--text-main);">오사카 & 교토</h4>
+              <p style="font-size: 0.76rem; color: var(--text-sub); margin: 3px 0 0 0; font-weight: 600;">먹다 지치는 오사카와 천년고도 교토</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end;">
+          <button id="btnCityModalCancel" class="btn btn-secondary-outline" style="padding: 10px 18px; border-radius: 12px; font-size: 0.85rem;">취소</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Date Selection -->
+      <div id="citySelectStep2" class="step-container hidden">
+        <div class="date-select-form" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 28px; text-align: left;">
+          
+          <div class="selected-city-banner glass-card" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(108, 92, 231, 0.08); border-color: rgba(108, 92, 231, 0.15);">
+            <div id="selectedCityEmoji" style="font-size: 1.8rem;">🗼</div>
+            <div>
+              <h4 id="selectedCityName" style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">도쿄 (Tokyo)</h4>
+              <p style="font-size: 0.72rem; color: var(--text-sub); margin: 2px 0 0 0; font-weight: 600;">여행 기간을 입력해 주세요</p>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-line" style="color: var(--primary);"></i> 출발일</label>
+            <input type="date" id="inputTripStartDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-check-line" style="color: var(--secondary);"></i> 도착일</label>
+            <input type="date" id="inputTripEndDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+          </div>
+          
+        </div>
+        
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+          <button id="btnDateSelectBack" class="btn btn-secondary-outline" style="padding: 10px 18px; border-radius: 12px; font-size: 0.85rem;"><i class="ri-arrow-left-line"></i> 이전으로</button>
+          <button id="btnCreateTripSubmit" class="btn btn-primary btn-glow" style="padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 700;">일정 만들기 🚀</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Trip Edit Modal -->
+  <div id="modalTripEdit" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-content glass-card animate-slide-up" style="max-width: 420px; padding: 28px;">
+      <div class="modal-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="modal-title" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">여행 일정 수정 ✏️</h3>
+        <button id="btnTripEditClose" class="btn-close-modal" style="background: none; border: none; font-size: 1.3rem; color: var(--text-sub); cursor: pointer;"><i class="ri-close-line"></i></button>
+      </div>
+
+      <form id="formTripEdit" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+        <input type="hidden" id="inputEditTripId">
+        
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-edit-line" style="color: var(--primary);"></i> 여행 제목</label>
+          <input type="text" id="inputEditTripTitle" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required placeholder="예: 도쿄 힐링 여행">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-line" style="color: var(--primary);"></i> 출발일</label>
+          <input type="date" id="inputEditTripStartDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-check-line" style="color: var(--secondary);"></i> 도착일</label>
+          <input type="date" id="inputEditTripEndDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-team-line" style="color: var(--primary);"></i> 여행 인원수</label>
+          <input type="number" id="inputEditTripMember" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" min="1" required>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+          <button type="button" id="btnTripEditCancel" class="btn btn-secondary-outline" style="padding: 10px 18px; border-radius: 12px; font-size: 0.85rem;">취소</button>
+          <button type="submit" id="btnTripEditSubmit" class="btn btn-primary btn-glow" style="padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 700;">저장하기 💾</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification System -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -694,6 +877,6 @@
     </button>
   </nav>
 
-  <script type="module" src="app.js?v=4.7"></script>
+  <script type="module" src="app.js?v=5.4"></script>
 </body>
 </html>

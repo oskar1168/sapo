@@ -20,37 +20,178 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ==========================================
-// 1. CONSTANTS & INITIAL DATA (Sapporo 3박 4일 템플릿)
+// 1. CONSTANTS & INITIAL DATA (Multi-City Templates)
 // ==========================================
-const SAPPORO_TEMPLATE = {
-  version: "1.0",
-  title: "삿포로 & 오타루 초여름 여행 ✈️",
-  startDate: "2026-06-13",
-  endDate: "2026-06-16",
-  memberCount: 2,
-  days: {
-    day1: [],
-    day2: [],
-    day3: [],
-    day4: []
+const CITY_TEMPLATES = {
+  sapporo: {
+    cityCode: "sapporo",
+    title: "삿포로 & 오타루 초여름 여행 ✈️",
+    startDate: "2026-06-13",
+    endDate: "2026-06-16",
+    memberCount: 2,
+    mapCenter: [43.06, 141.35],
+    mapZoom: 11,
+    days: {
+      day1: [
+        { id: 1, type: "checkin", name: "신치토세 공항", time: "11:30", memo: "세관 신고 완료 후 JR 탑승구로 이동" },
+        { id: 2, type: "food", name: "삿포로역", time: "13:00", memo: "라멘 공화국에서 미소라멘 점심 식사" },
+        { id: 3, type: "checkin", name: "머큐어 호텔 삿포로", time: "15:00", memo: "체크인 후 짐 보관" },
+        { id: 4, type: "spot", name: "오도리 공원", time: "17:00", memo: "TV타워 배경으로 사진 촬영 📸" },
+        { id: 5, type: "food", name: "징기스칸 다루마", time: "19:00", memo: "양고기구이와 시원한 맥주 한 잔" }
+      ],
+      day2: [
+        { id: 6, type: "checkin", name: "오타루역", time: "10:00", memo: "JR 쾌속 에어포트 탑승 (약 35분 소요)" },
+        { id: 7, type: "food", name: "오타루 마사즈시", time: "12:00", memo: "초밥 세트 점심식사" },
+        { id: 8, type: "spot", name: "사카이마치 거리", time: "14:00", memo: "오르골당, 오타루 르타오 본점 디저트 쇼핑" },
+        { id: 9, type: "spot", name: "오타루 운하", time: "18:00", memo: "가스등 켜지는 운하 야경 감상 및 크루즈" }
+      ],
+      day3: [
+        { id: 10, type: "checkin", name: "비에이역", time: "09:30", memo: "비에이 버스 투어 합류" },
+        { id: 11, type: "food", name: "준페이", time: "12:00", memo: "대표 메뉴 에비동 (새우튀김 덮밥)" },
+        { id: 12, type: "spot", name: "청의 호수", time: "14:00", memo: "에메랄드빛 푸른 연못 감상" },
+        { id: 13, type: "spot", name: "흰수염 폭포", time: "15:30", memo: "푸른 물줄기가 내리는 계곡 절경 감상" },
+        { id: 14, type: "spot", name: "닝글테라스", time: "17:30", memo: "숲속 요정마을 같은 아기자기한 통나무 공방" }
+      ],
+      day4: [
+        { id: 15, type: "shopping", name: "스스키노", time: "10:00", memo: "돈키호테에서 마지막 기념품 쇼핑" },
+        { id: 16, type: "checkin", name: "신치토세 공항", time: "13:30", memo: "면세점에서 로이스 및 시로이코이비토 구매 후 출국" }
+      ]
+    },
+    checklist: [
+      { id: 1, text: "여권 (만료일 6개월 이상)", checked: true },
+      { id: 2, text: "비행기 표 & 호텔 바우처 확인", checked: true },
+      { id: 3, text: "Visit Japan Web 미리 등록", checked: false },
+      { id: 4, text: "트래블월렛 / 트래블로그 카드 발급", checked: true },
+      { id: 5, text: "현금 환전 (야타이나 시장 결제용)", checked: false },
+      { id: 6, text: "일본용 eSIM / 유심 구매", checked: false },
+      { id: 7, text: "110V 돼지코 플러그", checked: false }
+    ],
+    shoppingList: [
+      { id: 1, name: "시로이 코이비토 18개입", category: "dessert", qty: 2, cost: 1520, currency: "JPY", memo: "신치토세 공항 면세점 추천", checked: false },
+      { id: 2, name: "돈키호테 동전패치", category: "drug", qty: 3, cost: 800, currency: "JPY", memo: "사츠도라 또는 돈키호테 스스키노점", checked: false }
+    ],
+    explore: {
+      welcomeSubtitle: "초여름의 낭만 홋카이도로 떠나볼까요?",
+      bannerTitle: "6월 삿포로 라벤더 축제 & 비에이 투어 핵심 꿀팁",
+      bannerDesc: "현지인들만 아는 주차 명소와 웨이팅 없는 맛집 리스트 대공개",
+      cities: [
+        { emoji: "🧭", name: "삿포로", desc: "식당 & 도심 야경", filter: "sapporo" },
+        { emoji: "🌊", name: "오타루", desc: "오르골 & 감성 운하", filter: "otaru" },
+        { emoji: "✨", name: "하코다테", desc: "세계 3대 로프웨이 야경", filter: "hakodate" },
+        { emoji: "🌸", name: "비에이/후라노", desc: "청의 호수 & 패치워크", filter: "biei" }
+      ],
+      deals: [
+        { emoji: "ri-coupon-3-fill", color: "var(--cat-shopping)", title: "돈키호테 할인 쿠폰 15% 받기", desc: "10% 면세 + 최대 5% 추가 즉시할인 바코드 연동" },
+        { emoji: "ri-train-line", color: "var(--primary)", title: "JR 홋카이도 레일패스 (재팬 레일패스)", desc: "삿포로-오타루-하코다테 전 노선 자유 탑승권 예약" }
+      ]
+    }
   },
-  checklist: [
-    { id: 1, text: "여권 (만료일 6개월 이상)", checked: true },
-    { id: 2, text: "비행기 표 & 호텔 바우처 확인", checked: true },
-    { id: 3, text: "Visit Japan Web 미리 등록", checked: false },
-    { id: 4, text: "트래블월렛 / 트래블로그 카드 발급", checked: true },
-    { id: 5, text: "현금 환전 (야타이나 시장 결제용)", checked: false },
-    { id: 6, text: "일본용 eSIM / 유심 구매", checked: false },
-    { id: 7, text: "110V 돼지코 플러그", checked: false },
-    { id: 8, text: "얇은 가디건 또는 바람막이 (밤 기온 낮음)", checked: false },
-    { id: 9, text: "우산/양산 겸용 소형 우산", checked: false }
-  ],
-  shoppingList: [
-    { id: 1, name: "시로이 코이비토 18개입", category: "dessert", qty: 2, cost: 1520, currency: "JPY", memo: "신치토세 공항 면세점 추천", checked: false },
-    { id: 2, name: "돈키호테 동전패치", category: "drug", qty: 3, cost: 800, currency: "JPY", memo: "사츠도라 또는 돈키호테 스스키노점", checked: false },
-    { id: 3, name: "삿포로 클래식 맥주 6캔", category: "alcohol", qty: 1, cost: 1300, currency: "JPY", memo: "편의점 또는 동네 마트", checked: false }
-  ]
+  tokyo: {
+    cityCode: "tokyo",
+    title: "도쿄 화려한 도심 탐방 🗼",
+    startDate: "2026-07-10",
+    endDate: "2026-07-13",
+    memberCount: 2,
+    mapCenter: [35.6812, 139.7671],
+    mapZoom: 12,
+    days: {
+      day1: [
+        { id: 1, type: "checkin", name: "도쿄역", time: "12:00", memo: "나리타 익스프레스(N'EX) 탑승 후 하차" },
+        { id: 2, type: "food", name: "신주쿠역", time: "14:00", memo: "현지 라멘 맛집 점심 식사" },
+        { id: 3, type: "spot", name: "도쿄 타워", time: "18:00", memo: "붉게 빛나는 상징적인 야경 전망대" }
+      ],
+      day2: [
+        { id: 4, type: "spot", name: "아사쿠사 센소지", time: "10:00", memo: "전통 향로 연기 마시기 및 신주쿠 상점가 구경" },
+        { id: 5, type: "spot", name: "시부야 스카이", time: "17:00", memo: "시부야 스크램블 교차로 야경 내려다보기 (예약 필수)" }
+      ],
+      day3: [
+        { id: 6, type: "spot", name: "도쿄 디즈니랜드", time: "09:00", memo: "오픈런! 최고 스릴 어트랙션 우선 대기" }
+      ],
+      day4: [
+        { id: 7, type: "shopping", name: "신주쿠역", time: "10:00", memo: "백화점 쇼핑 및 드럭스토어 마지막 털기" }
+      ]
+    },
+    checklist: [
+      { id: 1, text: "여권 (만료일 6개월 이상)", checked: true },
+      { id: 2, text: "비행기 표 & 호텔 바우처 확인", checked: true },
+      { id: 3, text: "도쿄 디즈니랜드 입장권 QR 확인", checked: false },
+      { id: 4, text: "트래블월렛 카드 확인", checked: true },
+      { id: 5, text: "110V 돼지코 플러그", checked: false }
+    ],
+    shoppingList: [
+      { id: 1, name: "도쿄 바나나 8개입", category: "dessert", qty: 3, cost: 1200, currency: "JPY", memo: "공항 면세점 또는 백화점", checked: false },
+      { id: 2, name: "퍼펙트휩 폼클렌징", category: "drug", qty: 5, cost: 450, currency: "JPY", memo: "돈키호테 신주쿠점", checked: false }
+    ],
+    explore: {
+      welcomeSubtitle: "화려한 메트로폴리스 도쿄로 떠나볼까요?",
+      bannerTitle: "도쿄 디즈니랜드 & 시부야 스카이 100% 꿀팁",
+      bannerDesc: "미리 사지 않으면 매진되는 티켓과 어트랙션 루트 완벽 분석",
+      cities: [
+        { emoji: "🗼", name: "신주쿠/시부야", desc: "쇼핑 & 메인 거리", filter: "shinjuku" },
+        { emoji: "⛩️", name: "아사쿠사", desc: "도쿄의 오랜 정취", filter: "asakusa" },
+        { emoji: "🎢", name: "마이하마", desc: "디즈니랜드 리조트", filter: "maihama" },
+        { emoji: "🛍️", name: "긴자", desc: "명품관 & 고급 식당", filter: "ginza" }
+      ],
+      deals: [
+        { emoji: "ri-coupon-3-fill", color: "var(--cat-shopping)", title: "도쿄 메가 돈키호테 할인 쿠폰 15%", desc: "면세 10% + 시부야/신주쿠점 추가 5% 혜택" },
+        { emoji: "ri-subway-line", color: "var(--primary)", title: "도쿄 서브웨이 티켓 (24/48/72시간권)", desc: "도쿄 전역 지하철 노선 무제한 탑승권 예약" }
+      ]
+    }
+  },
+  osaka: {
+    cityCode: "osaka",
+    title: "오사카 & 교토 먹방 여행 🐙",
+    startDate: "2026-08-15",
+    endDate: "2026-08-18",
+    memberCount: 2,
+    mapCenter: [34.6937, 135.5023],
+    mapZoom: 12,
+    days: {
+      day1: [
+        { id: 1, type: "checkin", name: "오사카역", time: "12:00", memo: "간사이 공항 하루카 특급 탑승 후 이동" },
+        { id: 2, type: "food", name: "도톤보리", time: "14:00", memo: "글리코상 앞에서 인증샷 촬영 및 타코야키 점심" },
+        { id: 3, type: "spot", name: "우메다 공중정원", time: "19:00", memo: "바람을 맞으며 감상하는 360도 스카이 야경" }
+      ],
+      day2: [
+        { id: 4, type: "spot", name: "교토역", time: "09:30", memo: "한큐 전철 탑승 후 청수사(기요미즈데라)로 이동" },
+        { id: 5, type: "spot", name: "오사카성", time: "17:00", memo: "역사적인 천수각 공원 산책" }
+      ],
+      day3: [
+        { id: 6, type: "spot", name: "유니버설 스튜디오 재팬", time: "08:30", memo: "마리오 카트, 해리포터 포비든 저니 오픈런 탑승" }
+      ],
+      day4: [
+        { id: 7, type: "shopping", name: "도톤보리", time: "10:00", memo: "드럭스토어 면세 쇼핑 및 말차 디저트 시식" }
+      ]
+    },
+    checklist: [
+      { id: 1, text: "여권 (만료일 6개월 이상)", checked: true },
+      { id: 2, text: "USJ 익스프레스 패스 모바일 저장", checked: false },
+      { id: 3, text: "하루카 편도 티켓 확인", checked: false },
+      { id: 4, text: "110V 돼지코 플러그", checked: false }
+    ],
+    shoppingList: [
+      { id: 1, name: "교토 우지 말차 과자", category: "dessert", qty: 2, cost: 980, currency: "JPY", memo: "교토역 선물샵", checked: false },
+      { id: 2, name: "샤론 파스 140장", category: "drug", qty: 2, cost: 1100, currency: "JPY", memo: "돈키호테 난바점", checked: false }
+    ],
+    explore: {
+      welcomeSubtitle: "도톤보리의 유쾌함과 교토의 고즈넉함 속으로!",
+      bannerTitle: "오사카 유니버설 스튜디오 확약권 실패 없는 대기 꿀팁",
+      bannerDesc: "익스프레스 없이 닌텐도 월드 정리권 발급받는 방법 완벽 가이드",
+      cities: [
+        { emoji: "🐙", name: "난바/우메다", desc: "오사카의 먹거리 & 쇼핑", filter: "namba" },
+        { emoji: "🏯", name: "오사카성", desc: "역사 유적지 산책", filter: "castle" },
+        { emoji: "⛩️", name: "교토", desc: "청수사 & 아라시야마", filter: "kyoto" },
+        { emoji: "🎢", name: "사쿠라지마", desc: "USJ 테마파크", filter: "usj" }
+      ],
+      deals: [
+        { emoji: "ri-coupon-3-fill", color: "var(--cat-shopping)", title: "오사카 돈키호테 난바점 15% 쿠폰", desc: "10% 면세 + 5% 현장 추가 쿠폰 링크" },
+        { emoji: "ri-passport-line", color: "var(--primary)", title: "오사카 주유패스 1일권 / 2일권 예약", desc: "전철 무제한 및 40곳 이상 주요 관광지 무료 입장" }
+      ]
+    }
+  }
 };
+
+const SAPPORO_TEMPLATE = CITY_TEMPLATES.sapporo;
 
 // ==========================================
 // 1-2. PLAN B SPOT LISTS (삿포로 & 오타루 감성 스팟)
@@ -199,11 +340,99 @@ const OTARU_FOOD_LIST = [
   }
 ];
 
+const TOKYO_FOOD_LIST = [
+  {
+    name: "도쿄 타워 (Tokyo Tower)",
+    category: "spot",
+    rating: "4.7",
+    menu: "도쿄의 상징 전망대 관람 🗼",
+    tips: "도쿄의 오랜 랜드마크입니다. 시바 공원에서 도쿄 타워를 배경으로 돗자리를 펴고 피크닉 사진을 찍으면 인생샷을 쉽게 남길 수 있습니다.",
+    address: "Tokyo Tower, Tokyo",
+    openTime: "09:00",
+    closeTime: "23:00"
+  },
+  {
+    name: "아사쿠사 센소지 (Senso-ji)",
+    category: "spot",
+    rating: "4.6",
+    menu: "전통 사찰 산책 & 나카미세도리 길거리 간식",
+    tips: "도쿄에서 가장 오래된 절입니다. 입구의 붉은 거대 등(카미나리몬) 아래서 인증샷을 찍고 사찰 앞 상점가에서 화과자와 모찌를 즐겨보세요.",
+    address: "Sensoji Temple, Tokyo",
+    openTime: "06:00",
+    closeTime: "17:00"
+  },
+  {
+    name: "시부야 스카이 (Shibuya Sky)",
+    category: "spot",
+    rating: "4.8",
+    menu: "전망대 옥상 시부야 스크램블 뷰",
+    tips: "시부야 스크램블 스퀘어 빌딩 옥상에 있는 전망대입니다. 일몰 시간대 예약이 가장 인기가 많으며, 바람을 맞으며 360도로 펼쳐진 야경은 장관입니다.",
+    address: "Shibuya Sky, Tokyo",
+    openTime: "10:00",
+    closeTime: "22:30"
+  },
+  {
+    name: "이치란 라멘 신주쿠점",
+    category: "noodle",
+    rating: "4.3",
+    menu: "천연 돈코츠 라멘 (약 980엔)",
+    tips: "한국인 입맛에 가장 잘 맞는 1인 독서실 형태의 유명 돈코츠 라멘집입니다. 매운맛 소스 레벨을 4~5단계 정도로 올리면 느끼함 없이 맛있게 드실 수 있습니다.",
+    address: "Ichiran Shinjuku, Tokyo",
+    openTime: "10:00",
+    closeTime: "23:00"
+  }
+];
+
+const OSAKA_FOOD_LIST = [
+  {
+    name: "도톤보리 (Dotonbori)",
+    category: "spot",
+    rating: "4.6",
+    menu: "글리코상 인증샷 & 타코야키 투어 🐙",
+    tips: "오사카의 심장 같은 중심가입니다. 거대하고 화려한 입체 간판들을 배경으로 야경을 즐기고, 다리 밑 노점에서 파는 따끈한 타코야키를 맥주와 함께 즐겨보세요.",
+    address: "Dotonbori, Osaka",
+    openTime: "00:00",
+    closeTime: "24:00"
+  },
+  {
+    name: "유니버설 스튜디오 재팬 (USJ)",
+    category: "spot",
+    rating: "4.8",
+    menu: "해리포터 & 닌텐도 월드 어트랙션 🎢",
+    tips: "아시아 최고의 테마파크 중 하나입니다. 슈퍼 닌텐도 월드에 입장하려면 앱으로 정리권을 꼭 발급받거나 익스프레스 패스를 사전 구매해야 합니다.",
+    address: "Universal Studios Japan, Osaka",
+    openTime: "08:30",
+    closeTime: "21:00"
+  },
+  {
+    name: "교토 기요미즈데라 (청수사)",
+    category: "spot",
+    rating: "4.7",
+    menu: "산등성이에 세워진 목조 사찰 관람 ⛩️",
+    tips: "오사카에서 당일치기로 다녀오기 좋은 유네스코 세계유산 사찰입니다. 올라가는 언덕길(니넨자카, 산넨자카)의 고즈넉한 목조 건물들과 녹차 아이스크림이 필수 코스입니다.",
+    address: "Kiyomizu-dera, Kyoto",
+    openTime: "06:00",
+    closeTime: "18:00"
+  },
+  {
+    name: "치보 오사카 도톤보리본점",
+    category: "meat",
+    rating: "4.4",
+    menu: "치보 도톤보리 오코노미야키 (약 1,650엔)",
+    tips: "철판에 즉석으로 구워주는 도톤보리 정통 오코노미야키 & 야키소바 전문점입니다. 마요네즈 쇼를 눈앞에서 볼 수 있어 눈과 입이 모두 즐겁습니다.",
+    address: "Chibo Dotonbori, Osaka",
+    openTime: "11:00",
+    closeTime: "22:00"
+  }
+];
+
 // ==========================================
 // 2. STATE MANAGEMENT & APP STATE
 // ==========================================
 let travelData = {};
+let myTripsList = []; // Array to store multiple trips dynamically
 let roomId = ""; // Room code for Firestore sync
+let selectedCityCode = ""; // Temporary city code for multi-step trip creation
 let activeTab = "day1"; // Default tab
 let activeExtraSubTab = "checklist"; // Sub-tab within extra tab: 'checklist', 'settlement'
 let isEditor = true; // Editor permission state
@@ -219,10 +448,28 @@ let leafletMarkers = [];
 let leafletPolyline = null;
 let isMapVisible = localStorage.getItem("sapo_map_visible") !== "false";
 let activeBottomTab = "home"; // 'home', 'timeline', 'spots', 'shopping', 'extra'
+let currentView = "explore"; // 'explore', 'myTrips', 'detail'
 const coordsCache = {};
 
 // Sapporo & Otaru Essential Coordinates Database (0-latency rendering)
 const LOCATION_COORDINATES = {
+  // Tokyo Landmarks
+  "도쿄역": [35.6812, 139.7671],
+  "신주쿠역": [35.6896, 139.6917],
+  "시부야 스카이": [35.6585, 139.7023],
+  "도쿄 디즈니랜드": [35.6329, 139.8804],
+  "아사쿠사 센소지": [35.7148, 139.7967],
+  "도쿄 타워": [35.6586, 139.7454],
+  
+  // Osaka Landmarks
+  "오사카역": [34.7024, 135.4959],
+  "도톤보리": [34.6687, 135.5013],
+  "유니버설 스튜디오 재팬": [34.6654, 135.4323],
+  "오사카성": [34.6873, 135.5262],
+  "우메다 공중정원": [34.7053, 135.4902],
+  "교토역": [34.9858, 135.7588],
+
+  // Sapporo Landmarks
   "신치토세 공항": [42.7874, 141.6811],
   "삿포로역": [43.0686, 141.3508],
   "머큐어 호텔 삿포로": [43.0560, 141.3556],
@@ -323,10 +570,17 @@ function cleanAddress(addr) {
 async function callNominatim(q) {
   if (!q || q.length < 3) return null;
   
-  // Only append ", Hokkaido" if it doesn't already contain it to prevent OSM confusion
+  // Dynamic suffix based on current travelData.cityCode to prevent OSM confusion
   let searchQuery = q;
-  if (!q.toLowerCase().includes("hokkaido")) {
-    searchQuery = q + ", Hokkaido";
+  const currentCityCode = travelData.cityCode || "sapporo";
+  if (currentCityCode === "sapporo") {
+    if (!q.toLowerCase().includes("hokkaido")) searchQuery = q + ", Hokkaido";
+  } else if (currentCityCode === "tokyo") {
+    if (!q.toLowerCase().includes("tokyo")) searchQuery = q + ", Tokyo";
+  } else if (currentCityCode === "osaka") {
+    if (!q.toLowerCase().includes("osaka") && !q.toLowerCase().includes("kyoto")) {
+      searchQuery = q + ", Osaka";
+    }
   }
   
   try {
@@ -519,6 +773,11 @@ const elements = {
   txtTotalPlaces: document.getElementById("txtTotalPlaces"),
   tabButtons: document.querySelectorAll(".nav-tab"),
   appNav: document.querySelector(".app-nav"),
+  appMainEmoji: document.getElementById("appMainEmoji"),
+  appMainTitle: document.getElementById("appMainTitle"),
+  appSubTitle: document.getElementById("appSubTitle"),
+  txtTripPeriod: document.getElementById("txtTripPeriod"),
+  navTabs: document.getElementById("navTabs"),
   tabContentDays: document.getElementById("tabContentDays"),
   tabContentExtra: document.getElementById("tabContentExtra"),
   timelineDayTitle: document.getElementById("timelineDayTitle"),
@@ -530,10 +789,37 @@ const elements = {
   btnToggleMap: document.getElementById("btnToggleMap"),
   iconToggleMap: document.getElementById("iconToggleMap"),
   homeView: document.getElementById("homeView"),
+  homeTripsGrid: document.getElementById("homeTripsGrid"),
   tripDetailView: document.getElementById("tripDetailView"),
   bottomNavItems: document.querySelectorAll(".bottom-nav-item"),
   bottomNav: document.querySelector(".bottom-nav"),
   appContainer: document.querySelector(".app-container"),
+  mainExploreView: document.getElementById("mainExploreView"),
+  btnGoToMyTrips: document.getElementById("btnGoToMyTrips"),
+  btnBackToExplore: document.getElementById("btnBackToExplore"),
+  modalCitySelect: document.getElementById("modalCitySelect"),
+  cityModalTitle: document.getElementById("cityModalTitle"),
+  citySelectStep1: document.getElementById("citySelectStep1"),
+  citySelectStep2: document.getElementById("citySelectStep2"),
+  selectedCityEmoji: document.getElementById("selectedCityEmoji"),
+  selectedCityName: document.getElementById("selectedCityName"),
+  inputTripStartDate: document.getElementById("inputTripStartDate"),
+  inputTripEndDate: document.getElementById("inputTripEndDate"),
+  btnCityModalClose: document.getElementById("btnCityModalClose"),
+  btnCityModalCancel: document.getElementById("btnCityModalCancel"),
+  btnDateSelectBack: document.getElementById("btnDateSelectBack"),
+  btnCreateTripSubmit: document.getElementById("btnCreateTripSubmit"),
+  
+  // Trip Edit Modal Elements
+  modalTripEdit: document.getElementById("modalTripEdit"),
+  btnTripEditClose: document.getElementById("btnTripEditClose"),
+  btnTripEditCancel: document.getElementById("btnTripEditCancel"),
+  formTripEdit: document.getElementById("formTripEdit"),
+  inputEditTripId: document.getElementById("inputEditTripId"),
+  inputEditTripTitle: document.getElementById("inputEditTripTitle"),
+  inputEditTripStartDate: document.getElementById("inputEditTripStartDate"),
+  inputEditTripEndDate: document.getElementById("inputEditTripEndDate"),
+  inputEditTripMember: document.getElementById("inputEditTripMember"),
   
   // Settlement Tab Elements
   settleTotalBudget: document.getElementById("settleTotalBudget"),
@@ -642,6 +928,19 @@ function initAppState() {
     ownedRooms = [];
   }
 
+  // Load myTripsList from localStorage
+  try {
+    myTripsList = JSON.parse(localStorage.getItem("sapo_trips_list") || "[]");
+    sortMyTripsList();
+  } catch (e) {
+    myTripsList = [];
+  }
+
+  // Auto-route to the most upcoming trip if room parameter is missing in URL
+  if (!roomParam && myTripsList.length > 0) {
+    roomParam = myTripsList[0].id;
+  }
+
   // Set up immediate local data fallback to render instantly before server connects
   let localBackup = null;
   if (roomParam) {
@@ -656,7 +955,7 @@ function initAppState() {
   }
 
   // Pre-load travelData to prevent blank page while waiting for Firestore
-  travelData = localBackup || JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
+  travelData = localBackup || JSON.parse(JSON.stringify(CITY_TEMPLATES.sapporo));
   ensureFoodListsExist();
   
   // Set default edit permission status first
@@ -667,9 +966,24 @@ function initAppState() {
     isEditor = true;
   }
 
+  // Ensure initial roomId is added to myTripsList if missing
+  const activeRoomId = roomId || roomParam || "sapo-default";
+  if (myTripsList.length === 0) {
+    myTripsList.push({
+      id: activeRoomId,
+      title: travelData.title || "삿포로 & 오타루 초여름 여행 ✈️",
+      cityCode: travelData.cityCode || "sapporo",
+      startDate: travelData.startDate || "2026-06-13",
+      endDate: travelData.endDate || "2026-06-16",
+      memberCount: travelData.memberCount || 2
+    });
+    localStorage.setItem("sapo_trips_list", JSON.stringify(myTripsList));
+  }
+
   // Render immediately for instant startup!
   renderApp();
   calculateDday();
+  renderHomeTripsGrid();
 
   // 1. Backward Compatibility Bridge: Old link with compressed '?p=...'
   if (compressedData && !roomParam) {
@@ -687,6 +1001,7 @@ function initAppState() {
         isEditor = true;
         travelData = importedData;
         ensureFoodListsExist();
+        syncTripToMyTripsList();
         
         // Update URL immediately so user sees new state
         const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
@@ -723,15 +1038,16 @@ function initAppState() {
         travelData = JSON.parse(legacyLocal);
         showToast("✨ 기존 로컬 일정을 실시간 클라우드로 자동 동기화합니다!", "success");
       } catch (e) {
-        travelData = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
+        travelData = JSON.parse(JSON.stringify(CITY_TEMPLATES.sapporo));
       }
     } else {
-      travelData = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
+      travelData = JSON.parse(JSON.stringify(CITY_TEMPLATES.sapporo));
     }
     
     roomId = roomParam;
     isEditor = true;
     ensureFoodListsExist();
+    syncTripToMyTripsList();
     
     // Re-render local content
     renderApp();
@@ -761,6 +1077,21 @@ function initAppState() {
     renderApp();
     calculateDday();
     
+    // Add shared room to myTripsList if not present
+    const exists = myTripsList.some(t => t.id === roomId);
+    if (!exists) {
+      myTripsList.push({
+        id: roomId,
+        title: travelData.title || "공유받은 여행",
+        cityCode: travelData.cityCode || "sapporo",
+        startDate: travelData.startDate || "",
+        endDate: travelData.endDate || "",
+        memberCount: travelData.memberCount || 2
+      });
+      localStorage.setItem("sapo_trips_list", JSON.stringify(myTripsList));
+      renderHomeTripsGrid();
+    }
+    
     startFirestoreSync();
   }
 }
@@ -774,6 +1105,9 @@ function startFirestoreSync() {
       const serverData = docSnap.data();
       travelData = serverData;
       ensureFoodListsExist();
+      
+      // Sync metadata with myTripsList locally
+      syncTripToMyTripsList();
       
       // Update UI elements reactively
       renderApp();
@@ -795,7 +1129,7 @@ function startFirestoreSync() {
       // Room does not exist in DB yet (e.g. invalid code or new creation fallback)
       if (isEditor) {
         if (!travelData || Object.keys(travelData).length === 0) {
-          travelData = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
+          travelData = JSON.parse(JSON.stringify(CITY_TEMPLATES.sapporo));
           ensureFoodListsExist();
         }
         setDoc(roomDocRef, travelData).catch(err => console.error("setDoc failed for non-existent room:", err));
@@ -809,21 +1143,387 @@ function startFirestoreSync() {
   });
 }
 
+function syncTripToMyTripsList() {
+  if (!travelData || !roomId) return;
+  const existingIdx = myTripsList.findIndex(t => t.id === roomId);
+  const tripMeta = {
+    id: roomId,
+    title: travelData.title || "새로운 여행",
+    cityCode: travelData.cityCode || "sapporo",
+    startDate: travelData.startDate || "",
+    endDate: travelData.endDate || "",
+    memberCount: travelData.memberCount || 2
+  };
+  
+  if (existingIdx !== -1) {
+    myTripsList[existingIdx] = tripMeta;
+  } else {
+    myTripsList.unshift(tripMeta);
+  }
+  
+  localStorage.setItem("sapo_trips_list", JSON.stringify(myTripsList));
+  renderHomeTripsGrid();
+}
+
+function sortMyTripsList() {
+  myTripsList.sort((a, b) => {
+    const aDate = a.startDate ? new Date(a.startDate) : null;
+    const bDate = b.startDate ? new Date(b.startDate) : null;
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    if (!aDate && !bDate) return 0;
+    if (!aDate) return 1;
+    if (!bDate) return -1;
+    
+    aDate.setHours(0,0,0,0);
+    bDate.setHours(0,0,0,0);
+    
+    const aDiff = aDate - today;
+    const bDiff = bDate - today;
+    
+    const aIsFutureOrToday = aDiff >= 0;
+    const bIsFutureOrToday = bDiff >= 0;
+    
+    if (aIsFutureOrToday && bIsFutureOrToday) {
+      return aDiff - bDiff;
+    } else if (aIsFutureOrToday) {
+      return -1;
+    } else if (bIsFutureOrToday) {
+      return 1;
+    } else {
+      return bDiff - aDiff;
+    }
+  });
+}
+
+function deleteTripCard(id) {
+  if (!confirm("이 여행 일정을 정말 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.")) return;
+  
+  const idx = myTripsList.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  
+  myTripsList.splice(idx, 1);
+  localStorage.setItem("sapo_trips_list", JSON.stringify(myTripsList));
+  localStorage.removeItem(`sapo_travel_data_${id}`);
+  
+  showToast("🗑️ 여행 일정이 성공적으로 삭제되었습니다.", "success");
+  
+  if (roomId === id) {
+    sortMyTripsList();
+    if (myTripsList.length > 0) {
+      roomId = myTripsList[0].id;
+      const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+      window.history.replaceState({}, document.title, newUrl);
+      startFirestoreSync();
+    } else {
+      const newRoomParam = "sapo-" + Math.random().toString(36).substring(2, 8);
+      roomId = newRoomParam;
+      
+      let ownedRooms = [];
+      try {
+        ownedRooms = JSON.parse(localStorage.getItem("sapo_owned_rooms") || "[]");
+      } catch(e) {}
+      ownedRooms.push(roomId);
+      localStorage.setItem("sapo_owned_rooms", JSON.stringify(ownedRooms));
+      
+      travelData = JSON.parse(JSON.stringify(CITY_TEMPLATES.sapporo));
+      ensureFoodListsExist();
+      
+      myTripsList = [{
+        id: roomId,
+        title: travelData.title,
+        cityCode: travelData.cityCode,
+        startDate: travelData.startDate,
+        endDate: travelData.endDate,
+        memberCount: travelData.memberCount
+      }];
+      localStorage.setItem("sapo_trips_list", JSON.stringify(myTripsList));
+      
+      const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+      window.history.replaceState({}, document.title, newUrl);
+      
+      setDoc(doc(db, "rooms", roomId), travelData).then(() => {
+        startFirestoreSync();
+      }).catch(() => startFirestoreSync());
+    }
+  } else {
+    renderHomeTripsGrid();
+  }
+}
+
+function openTripEditModal(id) {
+  showToast("⏳ 일정 정보를 불러오고 있습니다...", "info");
+  
+  getDoc(doc(db, "rooms", id)).then(roomSnap => {
+    if (!roomSnap.exists()) {
+      showToast("⚠️ 존재하지 않는 여행방입니다.", "error");
+      return;
+    }
+    const data = roomSnap.data();
+    
+    // Set edit form values
+    elements.inputEditTripId.value = id;
+    elements.inputEditTripTitle.value = data.title || "";
+    elements.inputEditTripStartDate.value = data.startDate || "";
+    elements.inputEditTripEndDate.value = data.endDate || "";
+    elements.inputEditTripMember.value = data.memberCount || 2;
+    
+    // Set input min constraints
+    const todayStr = new Date().toISOString().split("T")[0];
+    elements.inputEditTripStartDate.min = todayStr;
+    elements.inputEditTripEndDate.min = todayStr;
+    
+    // Show modal
+    elements.modalTripEdit.classList.remove("hidden");
+  }).catch(err => {
+    console.error("Fetch room for edit failed:", err);
+    showToast("⚠️ 여행 정보를 불러오는 데 실패했습니다.", "error");
+  });
+}
+
+function renderHomeTripsGrid() {
+  if (!elements.homeTripsGrid) return;
+  
+  // Sort trips by date proximity before rendering
+  sortMyTripsList();
+  
+  const dynamicCards = elements.homeTripsGrid.querySelectorAll(".trip-card:not(.trip-card-new)");
+  dynamicCards.forEach(c => c.remove());
+  
+  const newTripCard = document.getElementById("btnCreateNewTrip");
+  
+  myTripsList.forEach(trip => {
+    let bgClass = "bg-sapporo";
+    let emoji = "❄️";
+    if (trip.cityCode === "tokyo") {
+      bgClass = "bg-tokyo";
+      emoji = "🗼";
+    } else if (trip.cityCode === "osaka") {
+      bgClass = "bg-osaka";
+      emoji = "🐙";
+    }
+    
+    let ddayText = "D-??";
+    if (trip.startDate) {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const start = new Date(trip.startDate);
+      start.setHours(0,0,0,0);
+      const diffTime = start - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) ddayText = "D-Day";
+      else if (diffDays > 0) ddayText = `D-${diffDays}`;
+      else ddayText = `D+${Math.abs(diffDays)}`;
+    }
+
+    const card = document.createElement("div");
+    card.className = "trip-card glass-card";
+    card.style.cursor = "pointer";
+    if (trip.id === roomId) {
+      card.style.border = "1.5px solid var(--secondary)";
+    }
+    
+    card.innerHTML = `
+      <button class="btn-trip-edit" title="일정 수정"><i class="ri-edit-line"></i></button>
+      <button class="btn-trip-delete" title="일정 삭제"><i class="ri-delete-bin-line"></i></button>
+      <div class="trip-card-image ${bgClass}">
+        <span class="trip-dday-badge" style="color: var(--secondary);">${ddayText}</span>
+        <div style="position: absolute; right: 16px; top: 16px; font-size: 1.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${emoji}</div>
+      </div>
+      <div class="trip-card-info">
+        <h3 class="trip-title-text">${trip.title}</h3>
+        <p class="trip-date-text"><i class="ri-calendar-line"></i> <span>${trip.startDate || "미정"} ~ ${trip.endDate || "미정"}</span></p>
+        <p class="trip-meta-text"><i class="ri-user-line"></i> <span>${trip.memberCount || 2}명</span></p>
+      </div>
+    `;
+    
+    // Bind Edit Button Click with stopPropagation
+    const editBtn = card.querySelector(".btn-trip-edit");
+    if (editBtn) {
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openTripEditModal(trip.id);
+      });
+    }
+
+    // Bind Delete Button Click with stopPropagation
+    const deleteBtn = card.querySelector(".btn-trip-delete");
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteTripCard(trip.id);
+      });
+    }
+    
+    card.addEventListener("click", () => {
+      if (roomId === trip.id) {
+        currentView = "detail";
+        activeBottomTab = "timeline";
+        activeTab = "day1";
+        renderApp();
+      } else {
+        roomId = trip.id;
+        
+        const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+        window.history.replaceState({}, document.title, newUrl);
+        
+        startFirestoreSync();
+        
+        currentView = "detail";
+        activeBottomTab = "timeline";
+        activeTab = "day1";
+        showToast(`✈️ '${trip.title}' 일정으로 전환합니다.`, "info");
+      }
+    });
+    
+    if (newTripCard) {
+      elements.homeTripsGrid.insertBefore(card, newTripCard);
+    } else {
+      elements.homeTripsGrid.appendChild(card);
+    }
+  });
+}
+
+function renderExploreView() {
+  // Dynamic Trip Reminder Banner Above HOT Guide
+  const reminderEl = document.getElementById("exploreTripReminder");
+  if (reminderEl) {
+    const nextTrip = myTripsList.find(t => {
+      if (!t.startDate) return false;
+      const start = new Date(t.startDate);
+      start.setHours(0,0,0,0);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      return (start - today) >= 0;
+    });
+
+    if (nextTrip) {
+      const start = new Date(nextTrip.startDate);
+      start.setHours(0,0,0,0);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const diffTime = start - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      let text = "";
+      if (diffDays === 0) {
+        text = `D-Day 여행준비는 다 끝나셨나요 ?`;
+      } else {
+        text = `D-${diffDays} 여행준비는 다 끝나셨나요 ?`;
+      }
+      
+      const textEl = reminderEl.querySelector(".reminder-text");
+      if (textEl) textEl.innerText = text;
+      reminderEl.classList.remove("hidden");
+    } else {
+      reminderEl.classList.add("hidden");
+    }
+  }
+
+  const cityCode = travelData.cityCode || "sapporo";
+  const template = CITY_TEMPLATES[cityCode] || CITY_TEMPLATES.sapporo;
+  const exp = template.explore;
+  
+  // 1. Welcome Subtitle
+  const subEl = elements.mainExploreView.querySelector(".explore-welcome-subtitle");
+  if (subEl) {
+    subEl.innerText = exp.welcomeSubtitle;
+  }
+  
+  // 2. Main Visual Banner
+  const banner = elements.mainExploreView.querySelector(".explore-banner");
+  if (banner) {
+    const bannerTitle = banner.querySelector("h3");
+    const bannerDesc = banner.querySelector("p");
+    if (bannerTitle) bannerTitle.innerText = exp.bannerTitle;
+    if (bannerDesc) bannerDesc.innerText = exp.bannerDesc;
+    
+    // Set banner cover background based on city using CSS classes
+    banner.className = `explore-banner glass-card bg-${cityCode}`;
+  }
+  
+  // 3. Recommended Cities Grid
+  const citiesGrid = elements.mainExploreView.querySelector(".explore-cities-grid");
+  if (citiesGrid) {
+    citiesGrid.innerHTML = "";
+    exp.cities.forEach(city => {
+      const card = document.createElement("div");
+      card.className = "city-explore-card glass-card";
+      card.style.cursor = "pointer";
+      card.style.textAlign = "center";
+      card.style.padding = "16px";
+      card.style.display = "flex";
+      card.style.flexDirection = "column";
+      card.style.alignItems = "center";
+      card.style.gap = "8px";
+      
+      card.innerHTML = `
+        <div style="font-size: 2.2rem;">${city.emoji}</div>
+        <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">${city.name}</h4>
+        <span style="font-size: 0.7rem; color: var(--text-sub); font-weight: 600;">${city.desc}</span>
+      `;
+      
+      // Toast on click
+      card.addEventListener("click", () => {
+        showToast(`🧭 '${city.name}' 가이드 서비스는 현재 삿포로/오타루 위주로 제공 중입니다!`, "info");
+      });
+      citiesGrid.appendChild(card);
+    });
+  }
+  
+  // 4. Partner Coupon & Deals
+  const dealsHeader = Array.from(elements.mainExploreView.querySelectorAll("h3")).find(h => h.innerText.includes("여행 필수품"));
+  if (dealsHeader) {
+    const dealsContainer = dealsHeader.nextElementSibling;
+    if (dealsContainer) {
+      dealsContainer.innerHTML = "";
+      exp.deals.forEach((deal, idx) => {
+        const dCard = document.createElement("div");
+        dCard.className = "deal-card glass-card";
+        dCard.style.display = "flex";
+        dCard.style.alignItems = "center";
+        dCard.style.gap = "16px";
+        dCard.style.padding = "14px 20px";
+        dCard.style.textAlign = "left";
+        dCard.style.cursor = "pointer";
+        
+        dCard.innerHTML = `
+          <div style="font-size: 1.8rem; background: rgba(108, 92, 231, 0.08); padding: 8px; border-radius: 12px; line-height: 1;"><i class="${deal.emoji}" style="color: ${deal.color};"></i></div>
+          <div>
+            <h4 style="font-size: 0.92rem; font-weight: 800; margin: 0; color: var(--text-main);">${deal.title}</h4>
+            <p style="font-size: 0.78rem; color: var(--text-sub); margin: 2px 0 0 0; font-weight: 600;">${deal.desc}</p>
+          </div>
+        `;
+        
+        dCard.addEventListener("click", () => {
+          if (idx === 0) {
+            showToast(`🛍️ 돈키호테 할인 쿠폰 페이지(제휴 링크)로 연결을 준비 중입니다!`, "success");
+          } else {
+            showToast(`🚌 JR 패스 구매 페이지(제휴 링크)로 연결을 준비 중입니다!`, "success");
+          }
+        });
+        dealsContainer.appendChild(dCard);
+      });
+    }
+  }
+}
+
 // Utility to verify and migrate food list structures to travelData
 function ensureFoodListsExist() {
   if (!travelData) {
-    travelData = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE));
+    travelData = JSON.parse(JSON.stringify(CITY_TEMPLATES.sapporo));
   }
+  travelData.cityCode = travelData.cityCode || "sapporo";
+  const template = CITY_TEMPLATES[travelData.cityCode] || CITY_TEMPLATES.sapporo;
+  
   if (!travelData.days) {
-    travelData.days = {
-      day1: [],
-      day2: [],
-      day3: [],
-      day4: []
-    };
+    travelData.days = JSON.parse(JSON.stringify(template.days));
   }
   // Ensure individual days are defined
-  const daysKeys = ["day1", "day2", "day3", "day4"];
+  const daysKeys = Object.keys(template.days);
   daysKeys.forEach(k => {
     if (!travelData.days[k]) {
       travelData.days[k] = [];
@@ -831,28 +1531,33 @@ function ensureFoodListsExist() {
   });
   
   if (!travelData.checklist) {
-    travelData.checklist = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE.checklist));
+    travelData.checklist = JSON.parse(JSON.stringify(template.checklist));
   }
   if (!travelData.shoppingList) {
-    travelData.shoppingList = JSON.parse(JSON.stringify(SAPPORO_TEMPLATE.shoppingList || []));
+    travelData.shoppingList = JSON.parse(JSON.stringify(template.shoppingList || []));
   }
-  if (!travelData.otaruFoodList) {
-    travelData.otaruFoodList = JSON.parse(JSON.stringify(OTARU_FOOD_LIST));
+  
+  // Bind appropriate food lists depending on cityCode
+  if (travelData.cityCode === "sapporo") {
+    if (!travelData.otaruFoodList) travelData.otaruFoodList = JSON.parse(JSON.stringify(OTARU_FOOD_LIST));
+    if (!travelData.sapporoFoodList) travelData.sapporoFoodList = JSON.parse(JSON.stringify(SAPPORO_FOOD_LIST));
+  } else if (travelData.cityCode === "tokyo") {
+    if (!travelData.tokyoFoodList) travelData.tokyoFoodList = JSON.parse(JSON.stringify(TOKYO_FOOD_LIST));
+  } else if (travelData.cityCode === "osaka") {
+    if (!travelData.osakaFoodList) travelData.osakaFoodList = JSON.parse(JSON.stringify(OSAKA_FOOD_LIST));
   }
-  if (!travelData.sapporoFoodList) {
-    travelData.sapporoFoodList = JSON.parse(JSON.stringify(SAPPORO_FOOD_LIST));
-  }
+  
   if (!travelData.startDate) {
-    travelData.startDate = SAPPORO_TEMPLATE.startDate;
+    travelData.startDate = template.startDate;
   }
   if (!travelData.endDate) {
-    travelData.endDate = SAPPORO_TEMPLATE.endDate;
+    travelData.endDate = template.endDate;
   }
   if (!travelData.title) {
-    travelData.title = SAPPORO_TEMPLATE.title;
+    travelData.title = template.title;
   }
   if (travelData.memberCount === undefined) {
-    travelData.memberCount = SAPPORO_TEMPLATE.memberCount;
+    travelData.memberCount = template.memberCount;
   }
 }
 
@@ -946,6 +1651,7 @@ function renderApp() {
   });
 
   // 1. Hide all main views first
+  elements.mainExploreView.classList.add("hidden");
   elements.homeView.classList.add("hidden");
   elements.tripDetailView.classList.add("hidden");
 
@@ -960,8 +1666,14 @@ function renderApp() {
   elements.tabContentShoppingList.classList.add("hidden");
   elements.tabContentShoppingList.classList.remove("active");
 
-  // 3. Render according to active bottom tab
-  if (activeBottomTab === "home") {
+  // 3. Render according to currentView state
+  if (currentView === "explore") {
+    elements.mainExploreView.classList.remove("hidden");
+    elements.bottomNav.classList.add("hidden");
+    elements.appContainer.classList.remove("has-bottom-nav");
+    renderExploreView();
+    
+  } else if (currentView === "myTrips") {
     elements.homeView.classList.remove("hidden");
     elements.bottomNav.classList.add("hidden");
     elements.appContainer.classList.remove("has-bottom-nav");
@@ -997,26 +1709,97 @@ function renderApp() {
       homeTripPlaces.innerText = `${totalPlaces}곳 방문`;
     }
 
-  } else {
+  } else if (currentView === "detail") {
     // Show detailed planner view
     elements.tripDetailView.classList.remove("hidden");
     elements.bottomNav.classList.remove("hidden");
     elements.appContainer.classList.add("has-bottom-nav");
 
+    // Dynamic header info update
+    if (travelData) {
+      // 1. Emoji
+      if (elements.appMainEmoji) {
+        let cityEmoji = "❄️";
+        if (travelData.cityCode === "tokyo") cityEmoji = "🗼";
+        else if (travelData.cityCode === "osaka") cityEmoji = "🐙";
+        elements.appMainEmoji.innerText = cityEmoji + "✈️";
+      }
+      
+      // 2. Title
+      if (elements.appMainTitle) {
+        let cityName = "삿포로 & 오타루";
+        if (travelData.cityCode === "tokyo") cityName = "도쿄 (Tokyo)";
+        else if (travelData.cityCode === "osaka") cityName = "오사카 & 교토";
+        elements.appMainTitle.innerText = cityName;
+      }
+      
+      // 3. Subtitle (Nights & Days calculation)
+      if (elements.appSubTitle) {
+        const dayKeys = Object.keys(travelData.days || {});
+        const totalDays = dayKeys.length;
+        const nights = totalDays > 1 ? `${totalDays - 1}박 ${totalDays}일` : "당일 일정";
+        let conceptText = "초여름의 낭만 여행";
+        if (travelData.cityCode === "tokyo") conceptText = "도심 쇼핑 미식 여행";
+        else if (travelData.cityCode === "osaka") conceptText = "먹다 지치는 역사 미식 여행";
+        elements.appSubTitle.innerText = `${conceptText} · ${nights}`;
+      }
+      
+      // 4. Trip period text
+      if (elements.txtTripPeriod) {
+        const formatPeriodDate = (dateStr) => {
+          if (!dateStr) return "";
+          const parts = dateStr.split("-");
+          if (parts.length === 3) return `${parts[1]}.${parts[2]}`;
+          return dateStr;
+        };
+        elements.txtTripPeriod.innerText = `${formatPeriodDate(travelData.startDate)} - ${formatPeriodDate(travelData.endDate)}`;
+      }
+    }
+
     if (activeBottomTab === "timeline") {
-      // If we are in timeline, ensure activeTab is one of the days
-      if (!activeTab.startsWith("day")) {
-        activeTab = "day1";
-        // Sync top tabs active class
-        elements.tabButtons.forEach(btn => {
-          if (btn.getAttribute("data-tab") === activeTab) {
-            btn.classList.add("active");
-            btn.setAttribute("aria-selected", "true");
-          } else {
-            btn.classList.remove("active");
-            btn.setAttribute("aria-selected", "false");
-          }
+      // Ensure activeTab is one of the days
+      const dayKeys = Object.keys(travelData.days || {});
+      const sortedDayKeys = dayKeys.sort((a, b) => parseInt(a.replace("day", "")) - parseInt(b.replace("day", "")));
+      
+      if (!activeTab.startsWith("day") || !travelData.days[activeTab]) {
+        activeTab = sortedDayKeys[0] || "day1";
+      }
+
+      // Render Day Tabs Dynamically
+      if (elements.navTabs) {
+        elements.navTabs.innerHTML = "";
+        sortedDayKeys.forEach(dayKey => {
+          const dayIndex = dayKey.replace("day", "");
+          const dateStr = getDayDateString(dayIndex);
+          const btn = document.createElement("button");
+          btn.className = `nav-tab ${dayKey === activeTab ? 'active' : ''}`;
+          btn.setAttribute("data-tab", dayKey);
+          btn.setAttribute("role", "tab");
+          btn.setAttribute("aria-selected", dayKey === activeTab ? "true" : "false");
+          btn.id = `tabDay${dayIndex}`;
+          
+          btn.innerHTML = `
+            <span class="tab-day">Day ${dayIndex}</span>
+            <span class="tab-date">${dateStr}</span>
+          `;
+          
+          btn.addEventListener("click", () => {
+            activeTab = dayKey;
+            renderApp();
+            
+            setTimeout(() => {
+              if (leafletMap) {
+                leafletMap.invalidateSize();
+                updateInAppMap(dayKey);
+              }
+            }, 100);
+          });
+          
+          elements.navTabs.appendChild(btn);
         });
+        
+        // Refresh reference for tabButtons so other functions use the updated elements
+        elements.tabButtons = document.querySelectorAll(".nav-tab");
       }
 
       elements.tabContentDays.classList.remove("hidden");
@@ -1033,6 +1816,22 @@ function renderApp() {
     } else if (activeBottomTab === "spots") {
       elements.tabContentRecommendedSpots.classList.remove("hidden");
       elements.tabContentRecommendedSpots.classList.add("active");
+      
+      // Update spots title dynamically
+      if (elements.spotsTitle) {
+        let cityTitle = "삿포로 & 오타루";
+        if (travelData.cityCode === "tokyo") cityTitle = "도쿄 (Tokyo)";
+        else if (travelData.cityCode === "osaka") cityTitle = "오사카 & 교토";
+        elements.spotsTitle.innerText = `🗺️ ${cityTitle} 추천 스팟`;
+      }
+      
+      // Reset region filter to "all" if the current filter is not compatible with the new city
+      const compatibleRegions = (CITY_SUB_REGIONS[travelData.cityCode || "sapporo"] || []).map(r => r.value);
+      if (!compatibleRegions.includes(currentCityFilter)) {
+        currentCityFilter = "all";
+      }
+      
+      renderCitySelector();
       renderSpotsFilters();
       renderSpotsList();
 
@@ -1085,21 +1884,54 @@ window.setExtraSubTab = function(subTab) {
   }
 };
 
+const CITY_SUB_REGIONS = {
+  sapporo: [
+    { value: "all", label: "🗺️ 전체보기" },
+    { value: "sapporo", label: "🧭 삿포로 스팟" },
+    { value: "otaru", label: "🌊 오타루 스팟" }
+  ],
+  tokyo: [
+    { value: "all", label: "🗺️ 전체보기" },
+    { value: "shinjuku", label: "🗼 도심 스팟" },
+    { value: "asakusa", label: "⛩️ 아사쿠사" },
+    { value: "maihama", label: "🎢 디즈니 리조트" },
+    { value: "ginza", label: "🛍️ 긴자" }
+  ],
+  osaka: [
+    { value: "all", label: "🗺️ 전체보기" },
+    { value: "namba", label: "🐙 난바/우메다" },
+    { value: "kyoto", label: "⛩️ 교토" },
+    { value: "usj", label: "🎢 USJ" },
+    { value: "castle", label: "🏯 오사카성" }
+  ]
+};
+
+function renderCitySelector() {
+  const container = document.getElementById("citySelectorContainer");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  const cityCode = travelData.cityCode || "sapporo";
+  const regions = CITY_SUB_REGIONS[cityCode] || CITY_SUB_REGIONS.sapporo;
+  
+  regions.forEach(r => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `filter-chip ${currentCityFilter === r.value ? "active" : ""}`;
+    btn.innerText = r.label;
+    btn.addEventListener("click", () => {
+      currentCityFilter = r.value;
+      renderCitySelector();
+      renderSpotsList();
+    });
+    container.appendChild(btn);
+  });
+}
+
 // Spot list navigation city filter chip toggle
 window.setCityFilter = function(city) {
   currentCityFilter = city;
-  
-  // Update active class on selector chips
-  const container = document.getElementById("citySelectorContainer");
-  if (container) {
-    const chips = container.querySelectorAll(".filter-chip");
-    chips.forEach(chip => chip.classList.remove("active"));
-    
-    if (city === "all") document.getElementById("btnCityAll").classList.add("active");
-    else if (city === "sapporo") document.getElementById("btnCitySapporo").classList.add("active");
-    else if (city === "otaru") document.getElementById("btnCityOtaru").classList.add("active");
-  }
-  
+  renderCitySelector();
   renderSpotsFilters();
   renderSpotsList();
 };
@@ -1141,19 +1973,39 @@ function renderSpotsList() {
   gridEl.innerHTML = "";
   
   let mergedList = [];
+  const cityCode = travelData.cityCode || "sapporo";
   
-  // Extract and tag Sapporo places
-  if (travelData.sapporoFoodList) {
-    travelData.sapporoFoodList.forEach((item, index) => {
-      mergedList.push({ ...item, city: "sapporo", originalIndex: index });
-    });
-  }
-  
-  // Extract and tag Otaru places
-  if (travelData.otaruFoodList) {
-    travelData.otaruFoodList.forEach((item, index) => {
-      mergedList.push({ ...item, city: "otaru", originalIndex: index });
-    });
+  if (cityCode === "sapporo") {
+    if (travelData.sapporoFoodList) {
+      travelData.sapporoFoodList.forEach((item, index) => {
+        mergedList.push({ ...item, city: item.city || "sapporo", originalIndex: index });
+      });
+    }
+    if (travelData.otaruFoodList) {
+      travelData.otaruFoodList.forEach((item, index) => {
+        mergedList.push({ ...item, city: item.city || "otaru", originalIndex: index });
+      });
+    }
+  } else if (cityCode === "tokyo") {
+    if (travelData.tokyoFoodList) {
+      travelData.tokyoFoodList.forEach((item, index) => {
+        let subCity = "shinjuku";
+        if (item.name.includes("아사쿠사") || item.name.includes("Senso-ji")) subCity = "asakusa";
+        else if (item.name.includes("디즈니") || item.name.includes("마이하마")) subCity = "maihama";
+        else if (item.name.includes("긴자")) subCity = "ginza";
+        mergedList.push({ ...item, city: item.city || subCity, originalIndex: index });
+      });
+    }
+  } else if (cityCode === "osaka") {
+    if (travelData.osakaFoodList) {
+      travelData.osakaFoodList.forEach((item, index) => {
+        let subCity = "namba";
+        if (item.name.includes("교토") || item.name.includes("청수사") || item.name.includes("Kiyomizu")) subCity = "kyoto";
+        else if (item.name.includes("유니버설") || item.name.includes("USJ") || item.name.includes("Universal")) subCity = "usj";
+        else if (item.name.includes("오사카성")) subCity = "castle";
+        mergedList.push({ ...item, city: item.city || subCity, originalIndex: index });
+      });
+    }
   }
   
   // 1. City Filter
@@ -1171,9 +2023,22 @@ function renderSpotsList() {
     return;
   }
   
+  const cityLabelMap = {
+    sapporo: "🧭 삿포로",
+    otaru: "🌊 오타루",
+    shinjuku: "🗼 신주쿠/시부야",
+    asakusa: "⛩️ 아사쿠사",
+    maihama: "🎢 디즈니 리조트",
+    ginza: "🛍️ 긴자",
+    namba: "🐙 난바/우메다",
+    castle: "🏯 오사카성",
+    kyoto: "⛩️ 교토",
+    usj: "🎢 USJ"
+  };
+  
   mergedList.forEach((item) => {
     const catInfo = FOOD_CATEGORIES[item.category] || { label: item.category, icon: "ri-restaurant-fill" };
-    const cityLabel = item.city === "otaru" ? "🌊 오타루" : "🧭 삿포로";
+    const cityLabel = cityLabelMap[item.city] || "🗺️ 기타";
     
     const card = document.createElement("div");
     card.className = "card glass-card food-card";
@@ -1197,7 +2062,7 @@ function renderSpotsList() {
           <div class="food-meta" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin-top: 6px;">
             <!-- 1층: 스팟 기본 정보 및 도시 태그 -->
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span class="badge" style="font-size: 0.72rem; padding: 3px 6px; background-color: ${item.city === 'otaru' ? 'var(--secondary)' : 'var(--primary)'}">${cityLabel}</span>
+              <span class="badge" style="font-size: 0.72rem; padding: 3px 6px; background-color: ${item.city === 'otaru' || item.city === 'kyoto' || item.city === 'asakusa' ? 'var(--secondary)' : 'var(--primary)'}">${cityLabel}</span>
               <span class="badge badge-meal" style="font-size: 0.72rem; padding: 3px 6px;">${escapeHTML(catInfo.label)}</span>
               <span class="food-rating" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 2px;"><i class="ri-star-fill"></i> ${item.rating}</span>
             </div>
@@ -1450,6 +2315,9 @@ window.addSpotToTimeline = function(city, originalIndex) {
   elements.modalTitle.innerText = "추천 스팟을 일정에 추가";
   elements.editItemIndex.value = ""; // 신규 추가 모드
 
+  // Set place day option tags dynamically
+  setupPlaceDayOptions();
+
   // 방문 일차 기본값 설정
   elements.placeDay.value = activeTab.startsWith("day") ? activeTab : "day1";
 
@@ -1481,8 +2349,36 @@ window.addSpotToTimeline = function(city, originalIndex) {
 
 // Helper to get formatted date string for tab
 function getDayDateString(dayIndex) {
-  const dates = ["06/13 (토)", "06/14 (일)", "06/15 (월)", "06/16 (화)"];
-  return dates[parseInt(dayIndex) - 1] || "";
+  if (!travelData || !travelData.startDate) return "";
+  const startDateObj = new Date(travelData.startDate);
+  if (isNaN(startDateObj.getTime())) return "";
+  
+  const targetDate = new Date(startDateObj.getTime() + (parseInt(dayIndex) - 1) * 24 * 60 * 60 * 1000);
+  
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+  const dayName = daysOfWeek[targetDate.getDay()];
+  
+  return `${month}/${day} (${dayName})`;
+}
+
+function setupPlaceDayOptions() {
+  const selectDayEl = elements.placeDay;
+  if (!selectDayEl) return;
+  selectDayEl.innerHTML = "";
+  
+  const dayKeys = Object.keys(travelData.days || {});
+  const sortedDayKeys = dayKeys.sort((a, b) => parseInt(a.replace("day", "")) - parseInt(b.replace("day", "")));
+  
+  sortedDayKeys.forEach(dayKey => {
+    const dayIndex = dayKey.replace("day", "");
+    const dateStr = getDayDateString(dayIndex);
+    const opt = document.createElement("option");
+    opt.value = dayKey;
+    opt.innerText = `Day ${dayIndex} (${dateStr})`;
+    selectDayEl.appendChild(opt);
+  });
 }
 
 // Update Top Dashboard Stats
@@ -1631,7 +2527,7 @@ function renderTimeline(dayKey) {
           <div class="cost-info-group">
             <span class="place-cost">
               <i class="ri-money-dollar-circle-line"></i>
-              <span class="currency-${item.currency.toLowerCase()}">${displayCostPerPerson}</span>
+              <span class="currency-${(item.currency || "JPY").toLowerCase()}">${displayCostPerPerson}</span>
             </span>
             ${item.cost > 0 ? `
             <div class="place-cost-total">
@@ -1791,6 +2687,10 @@ window.openEditModal = function(dayKey, index) {
   
   elements.modalTitle.innerText = "방문 장소 수정";
   elements.editItemIndex.value = `${dayKey}:${index}`;
+  
+  // Set place day option tags dynamically
+  setupPlaceDayOptions();
+  
   elements.placeDay.value = dayKey;
   elements.placeName.value = item.name;
   elements.placeTime.value = item.time;
@@ -1876,6 +2776,9 @@ function setupEventListeners() {
     elements.editItemIndex.value = "";
     elements.formPlace.reset();
     
+    // Set place day option tags dynamically
+    setupPlaceDayOptions();
+    
     // Set smart defaults
     elements.placeDay.value = activeTab.startsWith("day") ? activeTab : "day1";
     elements.placeTime.value = "12:00";
@@ -1889,11 +2792,32 @@ function setupEventListeners() {
   elements.btnAddPlace.addEventListener("click", handleOpenAddModal);
   elements.btnEmptyAdd.addEventListener("click", handleOpenAddModal);
 
+  // 1단계 -> 2단계: 메인 "내 일정" 버튼 클릭 시
+  if (elements.btnGoToMyTrips) {
+    elements.btnGoToMyTrips.addEventListener("click", () => {
+      currentView = "myTrips";
+      renderApp();
+    });
+  }
+
+  // 2단계 -> 1단계: 나의 여행 목록 "홈으로" 버튼 클릭 시
+  if (elements.btnBackToExplore) {
+    elements.btnBackToExplore.addEventListener("click", () => {
+      currentView = "explore";
+      renderApp();
+    });
+  }
+
   // Bottom Navigation Switching
   elements.bottomNavItems.forEach(item => {
     item.addEventListener("click", () => {
       const tab = item.getAttribute("data-bottom-tab");
-      activeBottomTab = tab;
+      
+      if (tab === "home") {
+        currentView = "myTrips";
+      } else {
+        activeBottomTab = tab;
+      }
       
       // If switching to timeline, make sure activeTab is one of the days
       if (tab === "timeline" && !activeTab.startsWith("day")) {
@@ -1926,6 +2850,7 @@ function setupEventListeners() {
   const btnTripSapporo = document.getElementById("btnTripSapporo");
   if (btnTripSapporo) {
     btnTripSapporo.addEventListener("click", () => {
+      currentView = "detail";
       activeBottomTab = "timeline";
       activeTab = "day1";
       // Sync top tab active class
@@ -1950,12 +2875,407 @@ function setupEventListeners() {
     });
   }
 
+  // Open City Select Modal & Reset steps
   const btnCreateNewTrip = document.getElementById("btnCreateNewTrip");
-  if (btnCreateNewTrip) {
+  if (btnCreateNewTrip && elements.modalCitySelect) {
     btnCreateNewTrip.addEventListener("click", () => {
-      showToast("🚀 새로운 여행 생성 기능은 추후 연동될 예정입니다. 시안 카드입니다!", "info");
+      if (myTripsList.length >= 3) {
+        showToast("⚠️ 여행 계획은 최대 3개까지만 생성할 수 있습니다. 기존 일정을 삭제하고 진행해 주세요.", "error");
+        return;
+      }
+      if (elements.cityModalTitle) elements.cityModalTitle.innerText = "어디로 여행을 떠나시나요? ✈️";
+      if (elements.citySelectStep1) elements.citySelectStep1.classList.remove("hidden");
+      if (elements.citySelectStep2) elements.citySelectStep2.classList.add("hidden");
+      if (elements.inputTripStartDate) elements.inputTripStartDate.value = "";
+      if (elements.inputTripEndDate) elements.inputTripEndDate.value = "";
+      elements.modalCitySelect.classList.remove("hidden");
     });
   }
+
+  // Don Quijote Coupon Banner Click inside Shopping Tab
+  const btnShoppingDonkiCoupon = document.getElementById("btnShoppingDonkiCoupon");
+  if (btnShoppingDonkiCoupon) {
+    btnShoppingDonkiCoupon.addEventListener("click", () => {
+      showToast(`🛍️ 돈키호테 할인 쿠폰 페이지(제휴 링크)로 연결을 준비 중입니다!`, "success");
+    });
+  }
+
+  // Close City Select Modal
+  if (elements.btnCityModalClose) {
+    elements.btnCityModalClose.addEventListener("click", () => {
+      elements.modalCitySelect.classList.add("hidden");
+    });
+  }
+  if (elements.btnCityModalCancel) {
+    elements.btnCityModalCancel.addEventListener("click", () => {
+      elements.modalCitySelect.classList.add("hidden");
+    });
+  }
+
+  // Handle City Card Click (Switch to Step 2: Date Selection Form)
+  document.querySelectorAll(".city-select-card").forEach(card => {
+    card.addEventListener("click", () => {
+      selectedCityCode = card.getAttribute("data-city");
+      const template = CITY_TEMPLATES[selectedCityCode];
+      if (!template) return;
+      
+      let cityEmoji = "❄️";
+      let cityName = "삿포로 & 오타루";
+      if (selectedCityCode === "tokyo") {
+        cityEmoji = "🗼";
+        cityName = "도쿄 (Tokyo)";
+      } else if (selectedCityCode === "osaka") {
+        cityEmoji = "🐙";
+        cityName = "오사카 & 교토";
+      }
+      
+      if (elements.selectedCityEmoji) elements.selectedCityEmoji.innerText = cityEmoji;
+      if (elements.selectedCityName) elements.selectedCityName.innerText = cityName;
+      
+      // Set input min date constraint to today
+      const todayStr = new Date().toISOString().split("T")[0];
+      if (elements.inputTripStartDate) {
+        elements.inputTripStartDate.min = todayStr;
+        elements.inputTripStartDate.value = todayStr;
+      }
+      if (elements.inputTripEndDate) {
+        elements.inputTripEndDate.min = todayStr;
+        elements.inputTripEndDate.value = todayStr;
+      }
+      
+      // Switch Steps
+      if (elements.cityModalTitle) elements.cityModalTitle.innerText = "여행 일정을 정해볼까요? 🗓️";
+      if (elements.citySelectStep1) elements.citySelectStep1.classList.add("hidden");
+      if (elements.citySelectStep2) elements.citySelectStep2.classList.remove("hidden");
+    });
+  });
+
+  // Handle Date Modal "Back to Step 1" Button
+  if (elements.btnDateSelectBack) {
+    elements.btnDateSelectBack.addEventListener("click", () => {
+      if (elements.cityModalTitle) elements.cityModalTitle.innerText = "어디로 여행을 떠나시나요? ✈️";
+      if (elements.citySelectStep1) elements.citySelectStep1.classList.remove("hidden");
+      if (elements.citySelectStep2) elements.citySelectStep2.classList.add("hidden");
+    });
+  }
+
+  // Handle Create Trip Submit (Generate Dynamic Duration Days & Create room)
+  if (elements.btnCreateTripSubmit) {
+    elements.btnCreateTripSubmit.addEventListener("click", () => {
+      if (myTripsList.length >= 3) {
+        showToast("⚠️ 여행 계획은 최대 3개까지만 생성할 수 있습니다. 기존 일정을 삭제하고 진행해 주세요.", "error");
+        return;
+      }
+      const startDateVal = elements.inputTripStartDate.value;
+      const endDateVal = elements.inputTripEndDate.value;
+      
+      if (!startDateVal || !endDateVal) {
+        showToast("⚠️ 출발일과 도착일을 모두 입력해 주세요.", "error");
+        return;
+      }
+      
+      const start = new Date(startDateVal);
+      const end = new Date(endDateVal);
+      
+      if (end < start) {
+        showToast("⚠️ 도착일은 출발일보다 빠를 수 없습니다.", "error");
+        return;
+      }
+      
+      // Calculate N days duration
+      const diffTime = Math.abs(end - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      
+      if (diffDays > 30) {
+        showToast("⚠️ 최대 30일 이하의 일정만 생성할 수 있습니다.", "error");
+        return;
+      }
+      
+      // Hide Modal
+      elements.modalCitySelect.classList.add("hidden");
+      
+      // Trigger Splash Overlay
+      const splash = document.getElementById("splashIntro");
+      const splashGif = document.getElementById("splashGif");
+      if (splash && splashGif) {
+        splash.style.display = "flex";
+        splash.style.opacity = "1";
+        splash.style.transform = "translateY(0)";
+        splash.style.pointerEvents = "auto";
+        splashGif.src = "walking_summer.gif?t=" + Date.now();
+      }
+      
+      // Create new Room in Firestore
+      const newRoomParam = "sapo-" + Math.random().toString(36).substring(2, 8);
+      const template = CITY_TEMPLATES[selectedCityCode];
+      
+      // Clone Template Data
+      const newTripData = JSON.parse(JSON.stringify(template));
+      newTripData.title = `${template.title.replace(" 여행 ✈️", "")} (새 계획)`;
+      newTripData.startDate = startDateVal;
+      newTripData.endDate = endDateVal;
+      newTripData.memberCount = 2;
+      
+      // Re-distribute days dynamic algorithm
+      const templateDays = Object.keys(template.days).length;
+      const newDays = {};
+      
+      for (let i = 1; i <= diffDays; i++) {
+        newDays[`day${i}`] = [];
+      }
+      
+      if (diffDays >= templateDays) {
+        // Expand days: copy templates and fill remaining days with empty array
+        for (let i = 1; i <= diffDays; i++) {
+          if (i <= templateDays) {
+            newDays[`day${i}`] = JSON.parse(JSON.stringify(template.days[`day${i}`] || []));
+          } else {
+            newDays[`day${i}`] = [];
+          }
+        }
+      } else {
+        // Compress days: merge remaining days into the last day (diffDays)
+        for (let i = 1; i <= templateDays; i++) {
+          const items = JSON.parse(JSON.stringify(template.days[`day${i}`] || []));
+          if (i < diffDays) {
+            newDays[`day${i}`] = items;
+          } else {
+            newDays[`day${diffDays}`] = newDays[`day${diffDays}`].concat(items);
+          }
+        }
+      }
+      
+      // Normalize ids to prevent duplicate item keys
+      let currentId = 1;
+      for (let i = 1; i <= diffDays; i++) {
+        newDays[`day${i}`].forEach(item => {
+          item.id = currentId++;
+        });
+      }
+      
+      newTripData.days = newDays;
+      
+      // Register in local owned lists
+      let ownedRooms = [];
+      try {
+        ownedRooms = JSON.parse(localStorage.getItem("sapo_owned_rooms") || "[]");
+      } catch(e) {}
+      ownedRooms.push(newRoomParam);
+      localStorage.setItem("sapo_owned_rooms", JSON.stringify(ownedRooms));
+      
+      // Switch active room
+      roomId = newRoomParam;
+      isEditor = true;
+      travelData = newTripData;
+      ensureFoodListsExist();
+      
+      // Register in local myTripsList
+      myTripsList.unshift({
+        id: roomId,
+        title: travelData.title,
+        cityCode: travelData.cityCode,
+        startDate: travelData.startDate,
+        endDate: travelData.endDate,
+        memberCount: travelData.memberCount
+      });
+      localStorage.setItem("sapo_trips_list", JSON.stringify(myTripsList));
+      
+      // Sync to Firestore
+      setDoc(doc(db, "rooms", roomId), travelData).then(() => {
+        let cityEmoji = "❄️";
+        if (selectedCityCode === "tokyo") cityEmoji = "🗼";
+        else if (selectedCityCode === "osaka") cityEmoji = "🐙";
+        
+        // Change URL and Sync
+        const newUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+        window.history.replaceState({}, document.title, newUrl);
+        
+        startFirestoreSync();
+        
+        // 3초간 웰컴 로딩 화면 노출 후 상세 뷰로 전환
+        setTimeout(() => {
+          showToast(`${cityEmoji} 새로운 여행 계획 방이 성공적으로 개설되었습니다!`, "success");
+          currentView = "detail";
+          activeBottomTab = "timeline";
+          activeTab = "day1";
+          renderApp();
+          calculateDday();
+          
+          // Fade out splash
+          const splash = document.getElementById("splashIntro");
+          if (splash) {
+            splash.style.opacity = "0";
+            splash.style.transform = "translateY(-30px)";
+            splash.style.pointerEvents = "none";
+            setTimeout(() => {
+              splash.style.display = "none";
+            }, 800);
+          }
+        }, 3000);
+      }).catch(err => {
+        console.error("New trip creation setDoc failed:", err);
+        showToast("⚠️ 일정 생성 과정에서 오류가 발생했습니다.", "error");
+        const splash = document.getElementById("splashIntro");
+        if (splash) {
+          splash.style.display = "none";
+        }
+      });
+    });
+  }
+
+  // Handle Trip Edit Submit (Dynamic Date Scale & Update Local/Firestore)
+  if (elements.formTripEdit) {
+    elements.formTripEdit.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const id = elements.inputEditTripId.value;
+      const titleVal = elements.inputEditTripTitle.value.trim();
+      const startDateVal = elements.inputEditTripStartDate.value;
+      const endDateVal = elements.inputEditTripEndDate.value;
+      const memberCountVal = parseInt(elements.inputEditTripMember.value) || 2;
+      
+      if (!titleVal || !startDateVal || !endDateVal) {
+        showToast("⚠️ 모든 입력 항목을 작성해 주세요.", "error");
+        return;
+      }
+      
+      const start = new Date(startDateVal);
+      const end = new Date(endDateVal);
+      
+      if (end < start) {
+        showToast("⚠️ 도착일은 출발일보다 빠를 수 없습니다.", "error");
+        return;
+      }
+      
+      // Calculate N days duration
+      const diffTime = Math.abs(end - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      
+      if (diffDays > 30) {
+        showToast("⚠️ 최대 30일 이하의 일정만 수정 가능합니다.", "error");
+        return;
+      }
+      
+      // Hide modal
+      elements.modalTripEdit.classList.add("hidden");
+      showToast("⏳ 일정 변경사항을 동기화하고 있습니다...", "info");
+      
+      try {
+        // Fetch current room doc to get current days state
+        const docRef = doc(db, "rooms", id);
+        const roomSnap = await getDoc(docRef);
+        if (!roomSnap.exists()) {
+          showToast("⚠️ 수정할 수 없는 일정입니다.", "error");
+          return;
+        }
+        
+        const currentData = roomSnap.data();
+        
+        // Re-scale days dynamic algorithm based on currentData.days
+        const currentDays = currentData.days || {};
+        const currentDaysCount = Object.keys(currentDays).length;
+        const newDays = {};
+        
+        for (let i = 1; i <= diffDays; i++) {
+          newDays[`day${i}`] = [];
+        }
+        
+        if (diffDays >= currentDaysCount) {
+          // Expand days
+          for (let i = 1; i <= diffDays; i++) {
+            if (i <= currentDaysCount) {
+              newDays[`day${i}`] = JSON.parse(JSON.stringify(currentDays[`day${i}`] || []));
+            } else {
+              newDays[`day${i}`] = [];
+            }
+          }
+        } else {
+          // Compress days: merge overflowed days into the last day (diffDays)
+          for (let i = 1; i <= currentDaysCount; i++) {
+            const items = JSON.parse(JSON.stringify(currentDays[`day${i}`] || []));
+            if (i < diffDays) {
+              newDays[`day${i}`] = items;
+            } else {
+              newDays[`day${diffDays}`] = newDays[`day${diffDays}`].concat(items);
+            }
+          }
+        }
+        
+        // Normalize ids to prevent duplicate item keys
+        let currentId = 1;
+        for (let i = 1; i <= diffDays; i++) {
+          newDays[`day${i}`].forEach(item => {
+            item.id = currentId++;
+          });
+        }
+        
+        // Update document object
+        currentData.title = titleVal;
+        currentData.startDate = startDateVal;
+        currentData.endDate = endDateVal;
+        currentData.memberCount = memberCountVal;
+        currentData.days = newDays;
+        
+        // Sync to Firestore
+        await setDoc(docRef, currentData);
+        
+        // Sync cache to local myTripsList
+        const localIdx = myTripsList.findIndex(t => t.id === id);
+        if (localIdx !== -1) {
+          myTripsList[localIdx].title = titleVal;
+          myTripsList[localIdx].startDate = startDateVal;
+          myTripsList[localIdx].endDate = endDateVal;
+          myTripsList[localIdx].memberCount = memberCountVal;
+          localStorage.setItem("sapo_trips_list", JSON.stringify(myTripsList));
+        }
+        
+        // If this edited trip is the currently active trip, sync local state
+        if (id === roomId) {
+          travelData = currentData;
+          ensureFoodListsExist();
+          calculateDday();
+          renderApp();
+        }
+        
+        renderHomeTripsGrid();
+        showToast("✏️ 일정이 성공적으로 수정되었습니다!", "success");
+      } catch(err) {
+        console.error("Update trip failed:", err);
+        showToast("⚠️ 일정 수정 중 오류가 발생했습니다.", "error");
+      }
+    });
+  }
+  
+  // Close / Cancel edit modal
+  if (elements.btnTripEditClose) {
+    elements.btnTripEditClose.addEventListener("click", () => {
+      elements.modalTripEdit.classList.add("hidden");
+    });
+  }
+  if (elements.btnTripEditCancel) {
+    elements.btnTripEditCancel.addEventListener("click", () => {
+      elements.modalTripEdit.classList.add("hidden");
+    });
+  }
+
+  // Explore View City Cards Clicks (Toast demo)
+  document.querySelectorAll(".city-explore-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const cityName = card.querySelector("h4").innerText;
+      showToast(`🧭 '${cityName}' 가이드 서비스는 현재 삿포로/오타루 위주로 제공 중입니다!`, "info");
+    });
+  });
+
+  // Explore View Affiliate Deal Cards Clicks
+  document.querySelectorAll(".deal-card").forEach((card, idx) => {
+    card.addEventListener("click", () => {
+      if (idx === 0) {
+        showToast(`🛍️ 돈키호테 할인 쿠폰 페이지(제휴 링크)로 연결을 준비 중입니다!`, "success");
+      } else {
+        showToast(`🚌 JR 홋카이도 레일패스 구매 페이지(제휴 링크)로 연결을 준비 중입니다!`, "success");
+      }
+    });
+  });
 
   // Toggle Map Accordion via Arrow Icon
   if (elements.btnToggleMap) {
@@ -2404,6 +3724,9 @@ async function updateInAppMap(dayKey) {
   if (!mapEl) return;
 
   const items = travelData.days[dayKey] || [];
+  const template = CITY_TEMPLATES[travelData.cityCode || "sapporo"] || CITY_TEMPLATES.sapporo;
+  const center = template.mapCenter || [43.0686, 141.3508];
+  const zoom = template.mapZoom || 10;
 
   // 1. Initialize map if not already done
   if (!leafletMap) {
@@ -2411,7 +3734,7 @@ async function updateInAppMap(dayKey) {
       leafletMap = L.map('map', {
         zoomControl: false,
         attributionControl: false
-      }).setView([43.0686, 141.3508], 10);
+      }).setView(center, zoom);
       
       // Load premium CartoDB Voyager pastel maps (Beautiful light gray styling)
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -2443,8 +3766,8 @@ async function updateInAppMap(dayKey) {
   const mappableItems = items.filter(item => item.category !== 'flight' && item.category !== 'transport');
 
   if (mappableItems.length === 0) {
-    // Zoom back to general Sapporo view if no mappable items
-    leafletMap.setView([43.0686, 141.3508], 10);
+    // Zoom back to general city view if no mappable items
+    leafletMap.setView(center, zoom);
     return;
   }
 
@@ -2463,9 +3786,9 @@ async function updateInAppMap(dayKey) {
   resolvedCoords.forEach((coords, idx) => {
     let finalCoords = coords;
     
-    // Fallback Safeguard: If geocoding failed, generate a sequential offset near Sapporo center so it ALWAYS displays!
+    // Fallback Safeguard: If geocoding failed, generate a sequential offset near city center so it ALWAYS displays!
     if (!finalCoords) {
-      finalCoords = [43.0620 + (idx * 0.006), 141.3540 + (idx * 0.006)];
+      finalCoords = [center[0] - 0.006 + (idx * 0.003), center[1] - 0.006 + (idx * 0.003)];
     }
     
     latlngs.push(finalCoords);
@@ -2620,7 +3943,7 @@ window.exportTimelineToPDF = function() {
     etc: "✨ 기타"
   };
   
-  const dayKeys = ["day1", "day2", "day3", "day4"];
+  const dayKeys = Object.keys(travelData.days || {}).sort((a, b) => parseInt(a.replace("day", "")) - parseInt(b.replace("day", "")));
   
   dayKeys.forEach(dayKey => {
     const items = travelData.days[dayKey] || [];
@@ -2831,7 +4154,7 @@ window.exportBudgetToPDF = function() {
   const personalShoppingList = [];
 
   // A. 공동 일정 지출 집계
-  const dayKeys = ["day1", "day2", "day3", "day4"];
+  const dayKeys = Object.keys(travelData.days || {}).sort((a, b) => parseInt(a.replace("day", "")) - parseInt(b.replace("day", "")));
   dayKeys.forEach(dayKey => {
     const items = travelData.days[dayKey] || [];
     const dayIndex = dayKey.replace("day", "");

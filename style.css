@@ -406,6 +406,7 @@ body {
 .app-content {
   position: relative;
   min-height: 350px;
+  padding-top: 24px;
 }
 
 .tab-content {
@@ -1382,8 +1383,9 @@ body {
   gap: 8px;
 }
 
-/* Category Filter Chips */
-.food-filter-container {
+/* Category & City Filter Chips */
+.food-filter-container,
+.city-selector-container {
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
@@ -1392,7 +1394,12 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.food-filter-container::-webkit-scrollbar {
+.city-selector-container {
+  margin-bottom: 12px; /* Slight custom spacing */
+}
+
+.food-filter-container::-webkit-scrollbar,
+.city-selector-container::-webkit-scrollbar {
   display: none; /* Hide scrollbar for clean slider look */
 }
 
@@ -2216,6 +2223,16 @@ body {
   padding: 16px;
 }
 
+.trip-card-image.bg-sapporo {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.4), rgba(74, 144, 226, 0.4)), url('sapporo_card.jpg') no-repeat center/cover;
+}
+.trip-card-image.bg-tokyo {
+  background: linear-gradient(135deg, rgba(255, 118, 117, 0.4), rgba(232, 67, 147, 0.4)), url('tokyo_card.jpg') no-repeat center/cover;
+}
+.trip-card-image.bg-osaka {
+  background: linear-gradient(135deg, rgba(253, 203, 110, 0.4), rgba(225, 112, 85, 0.4)), url('osaka_card.jpg') no-repeat center/cover;
+}
+
 .trip-dday-badge {
   position: absolute;
   top: 16px;
@@ -2310,6 +2327,272 @@ body {
 
 .trip-card-new:hover .trip-new-content {
   color: var(--primary);
+}
+
+/* ==========================================
+   18. MAIN EXPLORE VIEW (TRIPLE STYLE RECOMMENDATIONS)
+   ========================================== */
+.explore-view {
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.4s ease-out;
+  padding: 10px 4px;
+}
+
+.explore-welcome-group {
+  text-align: left;
+}
+
+.explore-welcome-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--text-main), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.explore-welcome-subtitle {
+  font-size: 0.92rem;
+  color: var(--text-sub);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.explore-banner {
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 10px 30px rgba(108, 92, 231, 0.15);
+  transition: transform 0.3s ease;
+  min-height: 140px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  color: white;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.explore-banner:hover {
+  transform: translateY(-2px);
+}
+
+.explore-banner.bg-sapporo {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.85), rgba(74, 144, 226, 0.85)), url('sapporo_guide.jpg') no-repeat center/cover;
+}
+.explore-banner.bg-tokyo {
+  background: linear-gradient(135deg, rgba(255, 118, 117, 0.85), rgba(232, 67, 147, 0.85)), url('tokyo_guide.jpg') no-repeat center/cover;
+}
+.explore-banner.bg-osaka {
+  background: linear-gradient(135deg, rgba(253, 203, 110, 0.85), rgba(225, 112, 85, 0.85)), url('osaka_guide.jpg') no-repeat center/cover;
+}
+
+/* Recommended Cities Card Hover Animation */
+.city-explore-card {
+  border-radius: 20px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.city-explore-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(var(--primary-rgb), 0.35);
+  box-shadow: 0 10px 25px rgba(31, 38, 135, 0.08);
+}
+
+/* Coupon & Ticket Deals Styling */
+.deal-card {
+  border-radius: 20px;
+  transition: all 0.25s ease;
+}
+
+.deal-card:hover {
+  transform: translateX(4px);
+  border-color: rgba(var(--primary-rgb), 0.3);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 24px rgba(31, 38, 135, 0.05);
+}
+
+/* City Select Modal Styles */
+.city-select-card {
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 18px !important;
+  background: var(--bg-glass) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.city-select-card:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(var(--primary-rgb), 0.35) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 8px 25px rgba(108, 92, 231, 0.08);
+}
+
+/* Responsive Mobile Layout Optimization */
+@media (max-width: 480px) {
+  /* Main Container padding tweak */
+  .app-container {
+    padding: 12px 12px 30px 12px;
+  }
+  
+  .app-container.has-bottom-nav {
+    padding-bottom: 92px !important;
+  }
+
+  /* Explore View Tweaks */
+  .explore-welcome-title {
+    font-size: 1.45rem;
+  }
+  .explore-welcome-subtitle {
+    font-size: 0.8rem;
+  }
+  #btnGoToMyTrips {
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+    border-radius: 12px !important;
+  }
+  .explore-banner {
+    min-height: 120px !important;
+    padding: 18px !important;
+  }
+  .explore-banner h3 {
+    font-size: 1.1rem !important;
+  }
+  .explore-banner p {
+    font-size: 0.75rem !important;
+  }
+  .explore-cities-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .city-explore-card {
+    padding: 12px !important;
+  }
+  .city-explore-card div {
+    font-size: 1.8rem !important;
+  }
+  .city-explore-card h4 {
+    font-size: 0.85rem !important;
+  }
+  
+  /* Bottom Nav Bar Optimization for mobile thumb reach */
+  .bottom-nav {
+    height: 64px;
+    border-radius: 16px 16px 0 0;
+    padding: 2px 4px 10px 4px;
+  }
+  .bottom-nav-item {
+    font-size: 0.65rem;
+    gap: 2px;
+    padding: 4px 0;
+  }
+  .bottom-nav-item i {
+    font-size: 1.25rem;
+  }
+  
+  /* Home View list scale */
+  .home-welcome-title {
+    font-size: 1.45rem;
+  }
+  .home-trips-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  .trip-card-new {
+    min-height: 180px !important;
+  }
+}
+
+/* Dynamic Trip Card Edit & Delete UI */
+.trip-card {
+  position: relative !important;
+}
+
+.btn-trip-edit {
+  position: absolute;
+  top: 14px;
+  right: 50px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+}
+
+.btn-trip-edit:hover {
+  background: rgba(108, 92, 231, 0.95);
+  color: white;
+  border-color: rgba(108, 92, 231, 0.95);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+  transform: scale(1.08);
+}
+
+.btn-trip-edit i {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.btn-trip-delete {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+}
+
+.btn-trip-delete:hover {
+  background: rgba(255, 76, 76, 0.95);
+  color: white;
+  border-color: rgba(255, 76, 76, 0.95);
+  box-shadow: 0 4px 12px rgba(255, 76, 76, 0.4);
+  transform: scale(1.08);
+}
+
+.btn-trip-delete i {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+/* 2-Step Modal & Dynamic Date Selection Form */
+.step-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.step-container.hidden {
+  display: none !important;
+}
+
+.selected-city-banner {
+  border-radius: 16px;
+  border: 1px solid rgba(108, 92, 231, 0.15);
+  background: rgba(108, 92, 231, 0.05);
+  transition: all 0.3s ease;
 }
 
 
