@@ -78,13 +78,13 @@
   <!-- html2pdf.js CDN (For HTML-to-PDF export system) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=5.6">
 </head>
 <body>
   <!-- Premium Splash Intro Overlay -->
   <div id="splashIntro" class="splash-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(30, 30, 40, 0.98), rgba(15, 15, 25, 0.99)); z-index: 999999; display: none; opacity: 0; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none;">
-    <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 220px; height: 220px;">
-      <img id="splashGif" src="walking_summer.gif" style="width: 180px; height: 180px; object-fit: contain; border-radius: 24px;" alt="Walking Summer">
+    <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 320px; height: 320px;">
+      <img id="splashGif" src="walking_summer.gif" style="width: 280px; height: 280px; object-fit: contain; border-radius: 24px;" alt="Walking Summer">
     </div>
     <div style="text-align: center; color: white;">
       <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; font-family: var(--font-family); letter-spacing: 1px; color: var(--text-main);">새로운 여행 계획을 만드는 중... ✈️</h3>
@@ -203,7 +203,12 @@
         <div class="logo-area">
           <span class="logo-emoji" id="appMainEmoji">❄️✈️</span>
           <div>
-            <h1 class="app-title" id="appMainTitle">삿포로 & 오타루</h1>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h1 class="app-title" id="appMainTitle" style="margin: 0;">삿포로 & 오타루</h1>
+              <button id="btnEditTripTitleDirect" class="btn-icon-only editor-only" style="background: none; border: none; color: var(--text-sub); cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; opacity: 0.6; transition: opacity 0.2s;" title="여행 제목 수정">
+                <i class="ri-edit-line"></i>
+              </button>
+            </div>
             <p class="app-subtitle" id="appSubTitle">초여름의 낭만 여행 · 3박 4일</p>
           </div>
         </div>
@@ -444,6 +449,15 @@
         </div>
         
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+          <!-- Spot Search Bar -->
+          <div id="spotSearchWrapper" class="spot-search-wrapper">
+            <i class="ri-search-line search-icon"></i>
+            <input type="text" id="inputSpotSearch" class="spot-search-input" placeholder="스팟 이름, 추천 메뉴, 이용 꿀팁 검색...">
+            <button id="btnResetSpotSearch" class="btn-reset-search hidden" title="검색어 초기화">
+              <i class="ri-close-line"></i>
+            </button>
+          </div>
+
           <!-- City Selector Chips -->
           <div class="city-selector-container" id="citySelectorContainer">
             <button type="button" class="filter-chip active" id="btnCityAll" onclick="setCityFilter('all')">🗺️ 전체보기</button>
@@ -791,13 +805,20 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-line" style="color: var(--primary);"></i> 출발일</label>
-            <input type="date" id="inputTripStartDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-edit-line" style="color: var(--primary);"></i> 여행 제목 *</label>
+            <input type="text" id="inputTripTitle" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" placeholder="예: 삿포로 힐링 여름 휴가 ✈️" required maxlength="50">
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-check-line" style="color: var(--secondary);"></i> 도착일</label>
-            <input type="date" id="inputTripEndDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+          <div class="form-row-date">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-line" style="color: var(--primary);"></i> 출발일</label>
+              <input type="date" id="inputTripStartDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-check-line" style="color: var(--secondary);"></i> 도착일</label>
+              <input type="date" id="inputTripEndDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+            </div>
           </div>
           
         </div>
@@ -827,14 +848,16 @@
           <input type="text" id="inputEditTripTitle" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required placeholder="예: 도쿄 힐링 여행">
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-line" style="color: var(--primary);"></i> 출발일</label>
-          <input type="date" id="inputEditTripStartDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
-        </div>
+        <div class="form-row-date">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-line" style="color: var(--primary);"></i> 출발일</label>
+            <input type="date" id="inputEditTripStartDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+          </div>
 
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-check-line" style="color: var(--secondary);"></i> 도착일</label>
-          <input type="date" id="inputEditTripEndDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);"><i class="ri-calendar-check-line" style="color: var(--secondary);"></i> 도착일</label>
+            <input type="date" id="inputEditTripEndDate" class="form-input" style="width: 100%; height: 44px; border-radius: 12px; padding: 0 14px; font-size: 0.9rem; font-weight: 600; font-family: var(--font-family);" required>
+          </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px;">

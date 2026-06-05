@@ -803,6 +803,7 @@ const elements = {
   citySelectStep2: document.getElementById("citySelectStep2"),
   selectedCityEmoji: document.getElementById("selectedCityEmoji"),
   selectedCityName: document.getElementById("selectedCityName"),
+  inputTripTitle: document.getElementById("inputTripTitle"),
   inputTripStartDate: document.getElementById("inputTripStartDate"),
   inputTripEndDate: document.getElementById("inputTripEndDate"),
   btnCityModalClose: document.getElementById("btnCityModalClose"),
@@ -835,6 +836,8 @@ const elements = {
   recommendedSpotsGrid: document.getElementById("recommendedSpotsGrid"),
   spotsTitle: document.getElementById("spotsTitle"),
   btnAddSpot: document.getElementById("btnAddSpot"),
+  inputSpotSearch: document.getElementById("inputSpotSearch"),
+  btnResetSpotSearch: document.getElementById("btnResetSpotSearch"),
   
   // Shopping List Elements
   tabContentShoppingList: document.getElementById("tabContentShoppingList"),
@@ -1730,7 +1733,7 @@ function renderApp() {
         let cityName = "삿포로 & 오타루";
         if (travelData.cityCode === "tokyo") cityName = "도쿄 (Tokyo)";
         else if (travelData.cityCode === "osaka") cityName = "오사카 & 교토";
-        elements.appMainTitle.innerText = cityName;
+        elements.appMainTitle.innerText = travelData.title || cityName;
       }
       
       // 3. Subtitle (Nights & Days calculation)
@@ -2017,9 +2020,20 @@ function renderSpotsList() {
   if (currentSpotsFilter !== "all") {
     mergedList = mergedList.filter(item => item.category === currentSpotsFilter);
   }
+
+  // 3. Search Term Filter
+  const searchTerm = elements.inputSpotSearch ? elements.inputSpotSearch.value.trim().toLowerCase() : "";
+  if (searchTerm) {
+    mergedList = mergedList.filter(item => {
+      const nameMatch = (item.name || "").toLowerCase().includes(searchTerm);
+      const menuMatch = (item.menu || "").toLowerCase().includes(searchTerm);
+      const tipsMatch = (item.tips || "").toLowerCase().includes(searchTerm);
+      return nameMatch || menuMatch || tipsMatch;
+    });
+  }
   
   if (mergedList.length === 0) {
-    gridEl.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 600;">등록된 카테고리의 추천 스팟이 없습니다.</p>`;
+    gridEl.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px; font-weight: 600;">조건과 일치하는 추천 스팟이 없습니다.</p>`;
     return;
   }
   
@@ -2771,6 +2785,41 @@ window.deleteChecklistItem = function(index) {
 // 7. EVENT LISTENERS
 // ==========================================
 function setupEventListeners() {
+  // Helper to update End Date based on Start Date (Auto-sync & min limit)
+  const updateEndDateBasedOnStartDate = (startInput, endInput) => {
+    if (!startInput.value) return;
+    
+    // Set min date of EndDate to StartDate to prevent selecting past dates
+    endInput.min = startInput.value;
+    
+    const startD = new Date(startInput.value);
+    const endD = endInput.value ? new Date(endInput.value) : null;
+    
+    // If EndDate is empty or is earlier than StartDate, auto-set to StartDate + 1 day
+    if (!endInput.value || (endD && endD < startD)) {
+      const nextDay = new Date(startD);
+      nextDay.setDate(startD.getDate() + 1);
+      
+      const yyyy = nextDay.getFullYear();
+      const mm = String(nextDay.getMonth() + 1).padStart(2, '0');
+      const dd = String(nextDay.getDate()).padStart(2, '0');
+      
+      endInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+  };
+
+  // Bind StartDate change events for automatic EndDate adjustment
+  if (elements.inputTripStartDate && elements.inputTripEndDate) {
+    elements.inputTripStartDate.addEventListener("change", () => {
+      updateEndDateBasedOnStartDate(elements.inputTripStartDate, elements.inputTripEndDate);
+    });
+  }
+  if (elements.inputEditTripStartDate && elements.inputEditTripEndDate) {
+    elements.inputEditTripStartDate.addEventListener("change", () => {
+      updateEndDateBasedOnStartDate(elements.inputEditTripStartDate, elements.inputEditTripEndDate);
+    });
+  }
+
   // Passcode Unlock Event
   if (elements.btnUnlockEditor) {
     elements.btnUnlockEditor.addEventListener("click", () => {
@@ -2934,6 +2983,7 @@ function setupEventListeners() {
       if (elements.cityModalTitle) elements.cityModalTitle.innerText = "어디로 여행을 떠나시나요? ✈️";
       if (elements.citySelectStep1) elements.citySelectStep1.classList.remove("hidden");
       if (elements.citySelectStep2) elements.citySelectStep2.classList.add("hidden");
+      if (elements.inputTripTitle) elements.inputTripTitle.value = "";
       if (elements.inputTripStartDate) elements.inputTripStartDate.value = "";
       if (elements.inputTripEndDate) elements.inputTripEndDate.value = "";
       elements.modalCitySelect.classList.remove("hidden");
@@ -2980,6 +3030,11 @@ function setupEventListeners() {
       if (elements.selectedCityEmoji) elements.selectedCityEmoji.innerText = cityEmoji;
       if (elements.selectedCityName) elements.selectedCityName.innerText = cityName;
       
+      // Set default smart recommendation title based on template
+      if (elements.inputTripTitle) {
+        elements.inputTripTitle.value = template.title || "";
+      }
+      
       // Set input min date constraint to today
       const todayStr = new Date().toISOString().split("T")[0];
       if (elements.inputTripStartDate) {
@@ -3014,9 +3069,14 @@ function setupEventListeners() {
         showToast("⚠️ 여행 계획은 최대 3개까지만 생성할 수 있습니다. 기존 일정을 삭제하고 진행해 주세요.", "error");
         return;
       }
+      const titleVal = elements.inputTripTitle ? elements.inputTripTitle.value.trim() : "";
       const startDateVal = elements.inputTripStartDate.value;
       const endDateVal = elements.inputTripEndDate.value;
       
+      if (!titleVal) {
+        showToast("⚠️ 여행 제목을 입력해 주세요.", "error");
+        return;
+      }
       if (!startDateVal || !endDateVal) {
         showToast("⚠️ 출발일과 도착일을 모두 입력해 주세요.", "error");
         return;
@@ -3059,7 +3119,7 @@ function setupEventListeners() {
       
       // Clone Template Data
       const newTripData = JSON.parse(JSON.stringify(template));
-      newTripData.title = `${template.title.replace(" 여행 ✈️", "")} (새 계획)`;
+      newTripData.title = titleVal;
       newTripData.startDate = startDateVal;
       newTripData.endDate = endDateVal;
       newTripData.memberCount = 2;
@@ -3620,6 +3680,60 @@ function setupEventListeners() {
 
   if (elements.btnShoppingModalClose) {
     elements.btnShoppingModalClose.addEventListener("click", resetShoppingForm);
+  }
+
+  // Recommended Spots Search Input Event
+  if (elements.inputSpotSearch) {
+    elements.inputSpotSearch.addEventListener("input", () => {
+      const val = elements.inputSpotSearch.value.trim();
+      if (elements.btnResetSpotSearch) {
+        if (val) {
+          elements.btnResetSpotSearch.classList.remove("hidden");
+        } else {
+          elements.btnResetSpotSearch.classList.add("hidden");
+        }
+      }
+      renderSpotsList();
+    });
+  }
+
+  // Recommended Spots Reset Search Button Event
+  if (elements.btnResetSpotSearch) {
+    elements.btnResetSpotSearch.addEventListener("click", () => {
+      if (elements.inputSpotSearch) {
+        elements.inputSpotSearch.value = "";
+      }
+      elements.btnResetSpotSearch.classList.add("hidden");
+      renderSpotsList();
+    });
+  }
+
+  // Direct Trip Title Edit Button Event
+  const btnEditTripTitleDirect = document.getElementById("btnEditTripTitleDirect");
+  if (btnEditTripTitleDirect) {
+    btnEditTripTitleDirect.addEventListener("click", () => {
+      if (!isEditor) return;
+      const newTitle = prompt("✏️ 새로운 여행 제목을 입력해 주세요:", travelData.title || "");
+      if (newTitle !== null) {
+        const trimmed = newTitle.trim();
+        if (!trimmed) {
+          showToast("⚠️ 여행 제목은 빈 칸으로 둘 수 없습니다.", "error");
+          return;
+        }
+        travelData.title = trimmed;
+        
+        // Sync cached title in myTripsList locally
+        const idx = myTripsList.findIndex(t => t.id === roomId);
+        if (idx !== -1) {
+          myTripsList[idx].title = trimmed;
+        }
+        
+        saveToLocalStorage();
+        renderApp();
+        renderHomeTripsGrid(); // Update dashboard trip cards
+        showToast("✏️ 여행 제목이 성공적으로 변경되었습니다!", "success");
+      }
+    });
   }
 
   function resetShoppingForm() {
