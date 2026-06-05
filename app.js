@@ -532,6 +532,8 @@ const elements = {
   homeView: document.getElementById("homeView"),
   tripDetailView: document.getElementById("tripDetailView"),
   bottomNavItems: document.querySelectorAll(".bottom-nav-item"),
+  bottomNav: document.querySelector(".bottom-nav"),
+  appContainer: document.querySelector(".app-container"),
   
   // Settlement Tab Elements
   settleTotalBudget: document.getElementById("settleTotalBudget"),
@@ -961,6 +963,8 @@ function renderApp() {
   // 3. Render according to active bottom tab
   if (activeBottomTab === "home") {
     elements.homeView.classList.remove("hidden");
+    elements.bottomNav.classList.add("hidden");
+    elements.appContainer.classList.remove("has-bottom-nav");
     
     // Bind Realtime stats to home dashboard card
     const ddayText = elements.txtDday.innerText;
@@ -996,6 +1000,8 @@ function renderApp() {
   } else {
     // Show detailed planner view
     elements.tripDetailView.classList.remove("hidden");
+    elements.bottomNav.classList.remove("hidden");
+    elements.appContainer.classList.add("has-bottom-nav");
 
     if (activeBottomTab === "timeline") {
       // If we are in timeline, ensure activeTab is one of the days

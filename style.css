@@ -2085,8 +2085,8 @@ body {
    17. STICKY BOTTOM NAVIGATION BAR & HOME VIEW
    ========================================== */
 
-/* Overriding App Container for Bottom Space */
-.app-container {
+/* Overriding App Container for Bottom Space when bottom-nav is active */
+.app-container.has-bottom-nav {
   padding-bottom: 100px !important;
 }
 
