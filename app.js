@@ -2096,22 +2096,42 @@ function renderSpotsList() {
 // Spot list CRUD actions (Delete & Add Modal)
 window.deleteFoodItem = function(city, originalIndex) {
   if (confirm("정말 이 추천 스팟을 리스트에서 삭제하시겠습니까?")) {
-    const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
-    list.splice(originalIndex, 1);
-    saveToLocalStorage();
+    const cityCode = travelData.cityCode || "sapporo";
+    let list = [];
+    if (cityCode === "sapporo") {
+      list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
+    } else if (cityCode === "tokyo") {
+      list = travelData.tokyoFoodList || [];
+    } else if (cityCode === "osaka") {
+      list = travelData.osakaFoodList || [];
+    }
     
-    renderSpotsList();
-    showToast("추천 스팟이 리스트에서 삭제되었습니다.", "success");
+    if (list && list.length > originalIndex) {
+      list.splice(originalIndex, 1);
+      saveToLocalStorage();
+      renderSpotsList();
+      showToast("추천 스팟이 리스트에서 삭제되었습니다.", "success");
+    }
   }
 };
  
 window.openFoodModal = function(city) {
+  const cityCode = travelData.cityCode || "sapporo";
   let targetCity = city;
   if (city === 'current') {
-    targetCity = currentCityFilter === 'all' ? 'sapporo' : currentCityFilter;
+    targetCity = currentCityFilter === 'all' ? (cityCode === 'sapporo' ? 'sapporo' : cityCode) : currentCityFilter;
   }
   
-  elements.foodModalTitle.innerText = targetCity === "otaru" ? "🗺️ 오타루 추천 스팟 추가" : "🧭 삿포로 추천 스팟 추가";
+  let titleText = "🧭 추천 스팟 추가";
+  if (cityCode === "sapporo") {
+    titleText = targetCity === "otaru" ? "🗺️ 오타루 추천 스팟 추가" : "🧭 삿포로 추천 스팟 추가";
+  } else if (cityCode === "tokyo") {
+    titleText = "🗼 도쿄 추천 스팟 추가";
+  } else if (cityCode === "osaka") {
+    titleText = "🐙 오사카 추천 스팟 추가";
+  }
+  
+  elements.foodModalTitle.innerText = titleText;
   elements.foodCityType.value = targetCity;
   elements.foodEditIndex.value = ""; // Clear edit index
   elements.formFood.reset();
@@ -2129,10 +2149,29 @@ window.openFoodModal = function(city) {
 };
  
 window.openFoodEditModal = function(city, originalIndex) {
-  const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
-  const item = list[originalIndex];
+  const cityCode = travelData.cityCode || "sapporo";
+  let list = [];
+  if (cityCode === "sapporo") {
+    list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
+  } else if (cityCode === "tokyo") {
+    list = travelData.tokyoFoodList || [];
+  } else if (cityCode === "osaka") {
+    list = travelData.osakaFoodList || [];
+  }
   
-  elements.foodModalTitle.innerText = city === "otaru" ? "🗺️ 오타루 추천 스팟 수정" : "🧭 삿포로 추천 스팟 수정";
+  const item = list[originalIndex];
+  if (!item) return;
+  
+  let titleText = "🧭 추천 스팟 수정";
+  if (cityCode === "sapporo") {
+    titleText = city === "otaru" ? "🗺️ 오타루 추천 스팟 수정" : "🧭 삿포로 추천 스팟 수정";
+  } else if (cityCode === "tokyo") {
+    titleText = "🗼 도쿄 추천 스팟 수정";
+  } else if (cityCode === "osaka") {
+    titleText = "🐙 오사카 추천 스팟 수정";
+  }
+  
+  elements.foodModalTitle.innerText = titleText;
   elements.foodCityType.value = city;
   elements.foodEditIndex.value = `${city}:${originalIndex}`;
   
@@ -2307,7 +2346,16 @@ window.openShoppingModal = function() {
 };
 
 window.addSpotToTimeline = function(city, originalIndex) {
-  const list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
+  const cityCode = travelData.cityCode || "sapporo";
+  let list = [];
+  if (cityCode === "sapporo") {
+    list = city === "otaru" ? travelData.otaruFoodList : travelData.sapporoFoodList;
+  } else if (cityCode === "tokyo") {
+    list = travelData.tokyoFoodList || [];
+  } else if (cityCode === "osaka") {
+    list = travelData.osakaFoodList || [];
+  }
+  
   const item = list[originalIndex];
   if (!item) return;
 
@@ -3472,22 +3520,39 @@ function setupEventListeners() {
     const newFoodItem = { name, category, rating, menu, address, openTime, closeTime, breakStart, breakEnd, tips };
     const editVal = elements.foodEditIndex.value;
 
+    const cityCode = travelData.cityCode || "sapporo";
+    
     if (editVal) {
       // EDIT MODE
       const [editCity, indexStr] = editVal.split(":");
       const index = parseInt(indexStr);
-      if (editCity === "otaru") {
-        travelData.otaruFoodList[index] = newFoodItem;
-      } else {
-        travelData.sapporoFoodList[index] = newFoodItem;
+      
+      if (cityCode === "sapporo") {
+        if (editCity === "otaru") {
+          travelData.otaruFoodList[index] = newFoodItem;
+        } else {
+          travelData.sapporoFoodList[index] = newFoodItem;
+        }
+      } else if (cityCode === "tokyo") {
+        travelData.tokyoFoodList[index] = newFoodItem;
+      } else if (cityCode === "osaka") {
+        travelData.osakaFoodList[index] = newFoodItem;
       }
       showToast("추천 스팟 정보가 성공적으로 수정되었습니다!", "success");
     } else {
       // ADD MODE
-      if (city === "otaru") {
-        travelData.otaruFoodList.push(newFoodItem);
-      } else {
-        travelData.sapporoFoodList.push(newFoodItem);
+      if (cityCode === "sapporo") {
+        if (city === "otaru") {
+          travelData.otaruFoodList.push(newFoodItem);
+        } else {
+          travelData.sapporoFoodList.push(newFoodItem);
+        }
+      } else if (cityCode === "tokyo") {
+        if (!travelData.tokyoFoodList) travelData.tokyoFoodList = [];
+        travelData.tokyoFoodList.push(newFoodItem);
+      } else if (cityCode === "osaka") {
+        if (!travelData.osakaFoodList) travelData.osakaFoodList = [];
+        travelData.osakaFoodList.push(newFoodItem);
       }
       showToast("새로운 추천 스팟이 리스트에 추가되었습니다!", "success");
     }
