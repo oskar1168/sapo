@@ -518,6 +518,7 @@ const elements = {
   txtTotalBudget: document.getElementById("txtTotalBudget"),
   txtTotalPlaces: document.getElementById("txtTotalPlaces"),
   tabButtons: document.querySelectorAll(".nav-tab"),
+  appNav: document.querySelector(".app-nav"),
   tabContentDays: document.getElementById("tabContentDays"),
   tabContentExtra: document.getElementById("tabContentExtra"),
   timelineDayTitle: document.getElementById("timelineDayTitle"),
@@ -947,6 +948,7 @@ function renderApp() {
   elements.tripDetailView.classList.add("hidden");
 
   // 2. Hide all detailed tab contents in detail view to prevent overlapping
+  elements.appNav.classList.add("hidden");
   elements.tabContentDays.classList.add("hidden");
   elements.tabContentDays.classList.remove("active");
   elements.tabContentExtra.classList.add("hidden");
@@ -1013,6 +1015,7 @@ function renderApp() {
 
       elements.tabContentDays.classList.remove("hidden");
       elements.tabContentDays.classList.add("active");
+      elements.appNav.classList.remove("hidden");
       
       const dayIndex = activeTab.replace("day", "");
       const dateStr = getDayDateString(dayIndex);
