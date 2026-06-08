@@ -1448,8 +1448,16 @@ body {
 
   /* 모바일 날짜 필드 2열 겹침 방지 ➡ 세로 정렬 및 여행 제목과 동일한 너비 적용 */
   .form-row-date {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     gap: 20px !important;
+  }
+
+  .form-row-date > div {
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   
