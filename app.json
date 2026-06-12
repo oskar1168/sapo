@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.oskar1168.sapo",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
