@@ -1,0 +1,169 @@
+[
+  {
+    "name": "도쿄 타워 (Tokyo Tower)",
+    "category": "spot",
+    "rating": "4.7",
+    "menu": "도쿄의 상징 빨간 철탑 타워 전망대 관람 🗼",
+    "tips": "도쿄의 가장 상징적인 랜드마크입니다. 타워 전망대에 올라가지 않더라도 인근 '시바 공원' 잔디밭에 돗자리를 펴고 도쿄 타워를 배경으로 피크닉 샷을 남기면 인생샷을 쉽게 찍을 수 있습니다. 밤의 주황색 조명이 켜지는 모습이 아주 예쁩니다.",
+    "address": "Tokyo Tower, Tokyo",
+    "openTime": "09:00",
+    "closeTime": "23:00",
+    "imageUrl": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "아사쿠사 센소지 (Senso-ji Temple)",
+    "category": "spot",
+    "rating": "4.6",
+    "menu": "전통 사찰 산책 & 나카미세도리 길거리 먹거리 🍡",
+    "tips": "도쿄에서 가장 오래된 절로 일본 전통 정취가 가득한 곳입니다. 입구의 붉은 거대 등(카미나리몬) 아래서 인증샷을 남기고, 사찰 앞 상점가인 '나카미세도리'에서 화과자, 실크 푸딩, 모찌 등 길거리 간식을 즐겨보세요.",
+    "address": "Sensoji Temple, Tokyo",
+    "openTime": "06:00",
+    "closeTime": "17:00",
+    "imageUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "시부야 스카이 (Shibuya Sky)",
+    "category": "spot",
+    "rating": "4.8",
+    "menu": "옥상 야외 전망대 시부야 크로싱 뷰 🌃",
+    "tips": "시부야 스크램블 스퀘어 빌딩 옥상에 있는 전망대입니다. 일몰 시간대(Sunset) 예약이 제일 치열하므로 한 달 전에 오픈하는 티켓을 무조건 사전 선점해야 합니다. 야외 에스컬레이터와 모퉁이 엣지 포토존이 필수 인증샷 촬영 스팟입니다.",
+    "address": "Shibuya Sky, Tokyo",
+    "openTime": "10:00",
+    "closeTime": "22:30",
+    "imageUrl": "https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "신주쿠 교엔 (Shinjuku Gyoen National Garden)",
+    "category": "spot",
+    "rating": "4.6",
+    "menu": "신카이 마코토 감독 '언어의 정원' 배경지 산책 🌳",
+    "tips": "도심 한복판에 위치한 광활하고 평화로운 국립정원입니다. 프랑스, 영국, 일본식 정원이 아름답게 조화를 이루고 있으며 봄에는 벚꽃, 여름에는 푸른 신록이 환상적입니다. 정원 안의 전통 찻집에서 말차 한 잔을 마시며 힐링해보세요. (입장료 약 500엔)",
+    "address": "Shinjuku Gyoen, Tokyo",
+    "openTime": "09:00",
+    "closeTime": "17:30",
+    "imageUrl": "https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "팀랩 플래닛 도쿄 (teamLab Planets Tokyo)",
+    "category": "spot",
+    "rating": "4.8",
+    "menu": "맨발로 물속을 걷는 몰입형 미디어 아트 체험 🎨",
+    "tips": "몸 전체로 예술을 느끼는 초현실적인 미디어 아트 전시관입니다. 물속을 걷고 사방이 거울인 공간이 있으므로 무릎 위까지 올라오는 짧은 바지나 바지를 걷어올리기 편한 옷을 입고 가는 것이 필수 꿀팁입니다. 인생 프사 제조기 공간입니다.",
+    "address": "teamLab Planets Tokyo, Toyosu",
+    "openTime": "09:00",
+    "closeTime": "22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "도쿄 디즈니씨 (Tokyo DisneySea)",
+    "category": "spot",
+    "rating": "4.8",
+    "menu": "전 세계 유일 바다 테마 디즈니 어트랙션 🎢",
+    "tips": "어른들이 즐기기에 더 로맨틱하고 스릴 넘치는 디즈니 테마파크입니다. 최고 인기 구역인 '소어링'과 '토이 스토리 매니아'는 개장하자마자 프리미어 액세스(DPA) 유료 패스를 사거나 줄을 바로 서는 것이 지혜로운 루트입니다.",
+    "address": "Tokyo DisneySea, Urayasu",
+    "openTime": "09:00",
+    "closeTime": "21:00",
+    "imageUrl": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "츠키지 장외시장 (Tsukiji Outer Market)",
+    "category": "seafood",
+    "rating": "4.4",
+    "menu": "100엔 계란말이 & 카이센동 길거리 투어 🍣",
+    "tips": "도쿄의 유명한 해산물 먹거리 전통시장입니다. 즉석에서 구워주는 촉촉하고 달달한 '100엔 계란말이(야마초)'와 한 입 크기의 성게알(우니) 꼬치, 신선한 참치동을 아침 일찍 방문해 간편하게 즐기기 좋은 먹방 명소입니다.",
+    "address": "Tsukiji Outer Market, Tokyo",
+    "openTime": "05:00",
+    "closeTime": "14:00",
+    "imageUrl": "https://images.unsplash.com/photo-1534482421-64566f976cfa?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "이치란 라멘 신주쿠 가부키초점",
+    "category": "noodle",
+    "rating": "4.3",
+    "menu": "천연 돈코츠 라멘 & 반숙 달걀 (약 1,100엔)",
+    "tips": "한국인 입맛에 가장 잘 맞고 호불호 없는 정통 돈코츠 라멘집입니다. 독서실 칸막이 테이블에서 주문 용지에 맵기(빨간 비밀 소스)를 '4~5단계'로 조절하고 면발 단단함을 '질김'으로 세팅하면 아주 얼큰하고 느끼함 없는 국물을 즐길 수 있습니다.",
+    "address": "Ichiran Shinjuku Kabukicho, Tokyo",
+    "openTime": "10:00",
+    "closeTime": "23:00",
+    "imageUrl": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "긴자 카가리 본점 (Ginza Kagari)",
+    "category": "noodle",
+    "rating": "4.5",
+    "menu": "토리파이탄(닭 백탕) 라멘 (약 1,500엔)",
+    "tips": "미쉐린 빕구르망에 등재되었던 유명 닭 육수 라멘 맛집입니다. 마치 크림 수프처럼 진하고 크리미한 닭 육수가 고소하며, 닭가슴살 차슈가 대단히 부드럽습니다. 긴자 쇼핑 중간 점심 식사로 제격이나 골목 대기가 꽤 기니 피크타임을 피하세요.",
+    "address": "Ginza Kagari, Ginza, Tokyo",
+    "openTime": "11:00",
+    "closeTime": "21:30",
+    "breakStart": "15:30",
+    "breakEnd": "17:30",
+    "imageUrl": "https://images.unsplash.com/photo-1557872943-16a5ac26437e?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "규카츠 모토무라 시부야점",
+    "category": "meat",
+    "rating": "4.6",
+    "menu": "소고기 규카츠 정식 (1.5장 약 2,600엔 / 1장 약 1,930엔)",
+    "tips": "도쿄 맛집 중 웨이팅 줄이 늘 가장 긴 식당 중 하나입니다. 부드러운 소고기 커틀릿을 개인 미니 화로에 원하는 굽기만큼 직접 구워 고소한 고추냉이를 얹어 먹는 재미가 쏠쏠합니다. 본점과 분점의 줄 세기를 비교해 짧은 곳으로 눈치껏 가세요.",
+    "address": "Gyukatsu Motomura Shibuya, Tokyo",
+    "openTime": "11:00",
+    "closeTime": "22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "몬자야키 모헤지 시부야 스크램블 스퀘어점",
+    "category": "meat",
+    "rating": "4.5",
+    "menu": "명란 모찌 치즈 몬자야키 & 오코노미야키 (약 1,600엔)",
+    "tips": "도쿄의 독특한 서민 철판 음식인 '몬자야키' 전문점입니다. 명란, 떡(모찌), 치즈 토핑 조합이 단연 부드럽고 짭조름하여 맥주 도둑입니다. 직원이 철판에서 화려한 퍼포먼스로 직접 볶아주므로 구경하는 재미가 있습니다.",
+    "address": "Monjayaki Moheji Shibuya, Tokyo",
+    "openTime": "11:00",
+    "closeTime": "23:00",
+    "imageUrl": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "스시 미도리 긴자점 (Sushi Midori)",
+    "category": "seafood",
+    "rating": "4.4",
+    "menu": "미도리 특선 모둠 초밥 세트 (약 3,300엔)",
+    "tips": "도쿄 최고의 가성비 고품격 스시 체인입니다. 네타(초밥 위 생선) 크기가 그릇을 덮을 정도로 크고 두툼하며, 입안 가득 신선함이 퍼집니다. 매장 앞 태블릿에서 미리 웨이팅 번호표를 뽑아두고 긴자 쇼핑을 즐기시는 것을 추천합니다.",
+    "address": "Sushi no Midori Ginza, Tokyo",
+    "openTime": "11:00",
+    "closeTime": "21:30",
+    "imageUrl": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "하라주쿠 메이지 신궁 (Meiji Jingu Shrine)",
+    "category": "spot",
+    "rating": "4.5",
+    "menu": "울창한 도심 속 편백나무 숲길 산책 🌲",
+    "tips": "도심 한가운데라고는 믿기지 않을 정도로 숲이 우거진 거대한 신사입니다. 입구의 웅장한 목조 토리이를 지나 자갈길을 밟으며 산책하면 마음이 차분해집니다. 하라주쿠와 오모테산도 쇼핑 거리 바로 옆에 있어 코스로 묶기 좋습니다.",
+    "address": "Meiji Jingu Shrine, Harajuku, Tokyo",
+    "openTime": "05:20",
+    "closeTime": "18:00",
+    "imageUrl": "https://images.unsplash.com/photo-1473842191133-c2d0b0aab48c?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "오모테산도 블루보틀 커피 (Blue Bottle Omotesando)",
+    "category": "dessert",
+    "rating": "4.4",
+    "menu": "고소한 싱글오리진 뉴올리언스 라떼 (약 600엔)",
+    "tips": "쇼핑의 성지 오모테산도 명품거리 골목 안쪽에 위치한 한적하고 아늑한 지점입니다. 시그니처 캔디 같은 뉴올리언스 콜드브루 라떼와 함께 바삭한 와플 한 조각을 즐기며 쇼핑 도중 지친 다리를 쉬어가기 최적의 감성 카페입니다.",
+    "address": "Blue Bottle Coffee Omotesando, Tokyo",
+    "openTime": "08:00",
+    "closeTime": "19:00",
+    "imageUrl": "https://images.unsplash.com/photo-1507133750040-4a8f57021571?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "하라주쿠 마리온 크레페 (Marion Crepes)",
+    "category": "dessert",
+    "rating": "4.2",
+    "menu": "딸기 초코 브라우니 크레페 (약 650엔)",
+    "tips": "하라주쿠 타케시타 스트리트의 역사 깊은 상징적인 디저트집입니다. 얇은 밀가루 밀전병 안에 신선한 생크림, 생딸기, 초코시럽, 브라우니 조각을 가득 채워 싸주는 크레페로 하라주쿠 골목 구경을 하며 달콤하게 하나 먹기 좋은 길거리 디저트입니다.",
+    "address": "Marion Crepes Harajuku, Tokyo",
+    "openTime": "10:30",
+    "closeTime": "20:00",
+    "imageUrl": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=600&q=80"
+  }
+]

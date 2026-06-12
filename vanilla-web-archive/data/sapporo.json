@@ -1,0 +1,136 @@
+[
+  {
+    "name": "오도리 공원 (Odori Park)",
+    "category": "spot",
+    "rating": "4.5",
+    "menu": "공원 산책 및 구운 옥수수 맛보기 🌽",
+    "tips": "삿포로 TV타워를 배경으로 완벽한 인생샷을 남길 수 있는 최고 명소입니다! 공원 내 포장마차(토키비 웨건)에서 파는 노릇노릇한 구운 옥수수와 버터 감자는 삿포로 여름의 상징이니 벤치에 앉아 꼭 드셔보세요.",
+    "address": "Odori Park, Sapporo",
+    "openTime": "00:00",
+    "closeTime": "24:00",
+    "imageUrl": "https://images.unsplash.com/photo-1542640244-7e672d6cef21?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "모이와야마 전망대 (Mt. Moiwa Ropeway)",
+    "category": "spot",
+    "rating": "4.7",
+    "menu": "일본 3대 야경 로프웨이 탑승 🚡",
+    "tips": "해발 531m 정상에서 감상하는 삿포로 시내의 360도 은하수 야경은 압도적입니다. 산 정상의 '사랑의 종'에서 하트 자물쇠를 걸거나 종을 함께 울리며 황홀하고 로맨틱한 삿포로의 밤을 연출해보세요.",
+    "address": "Mt. Moiwa Ropeway, Sapporo",
+    "openTime": "10:30",
+    "closeTime": "22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "스프카레 스아게플러스 (Suage+)",
+    "category": "noodle",
+    "rating": "4.5",
+    "menu": "닭꼬치(시레토코도리) 스프카레 (약 1,400엔)",
+    "tips": "가라쿠(GARAKU)의 줄이 너무 길어 포기해야 할 때 1티어 대안지! 숯불에 구운 닭고기가 꼬치에 꽂혀 나와 먹기 편하고 국물이 대단히 깊고 얼큰합니다. 가라쿠 바로 근처에 본점과 2호점이 붙어있어 웨이팅 분산이 빠릅니다.",
+    "address": "Suage+, South 4 West 5, Sapporo",
+    "openTime": "11:30",
+    "closeTime": "21:30",
+    "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "스프카레 가라쿠 (Soup Curry GARAKU)",
+    "category": "noodle",
+    "rating": "4.6",
+    "menu": "부드러운 닭다리 & 야채 스프카레 (약 1,450엔)",
+    "tips": "삿포로에서 가장 인기가 많은 원조 스프카레 성지입니다. 오픈 1시간 전이나 브레이크타임이 끝날 즈음 가서 번호표(QR코드)를 뽑아두고 스스키노 상점가를 구경하고 오는 것이 가장 영리한 웨이팅 공략법입니다. 맵기는 3~4단계(신라면 수준)가 딱 좋습니다.",
+    "address": "Soup Curry GARAKU, Sapporo",
+    "openTime": "11:30",
+    "closeTime": "21:30",
+    "breakStart": "15:30",
+    "breakEnd": "17:00",
+    "imageUrl": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "스프카레 트레져 (TREASURE)",
+    "category": "noodle",
+    "rating": "4.4",
+    "menu": "함바그 스프카레 (약 1,350엔)",
+    "tips": "스프카레 맛집 가라쿠(GARAKU)의 자매 브랜드 식당입니다. 비법 베이스 스프와 맛이 매우 유사하여 가라쿠 웨이팅이 감당이 안 될 때 바로 갈 수 있는 훌륭한 대안입니다. 철판 함바그 토핑이 대단히 잘 어울립니다.",
+    "address": "스프카레 TREASURE, Sapporo",
+    "openTime": "11:30",
+    "closeTime": "20:30",
+    "imageUrl": "https://images.unsplash.com/photo-1582515073490-39981397c445?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "징기스칸 다루마 4.4 (Daruma 4.4)",
+    "category": "meat",
+    "rating": "4.5",
+    "menu": "생양고기 징기스칸 & 시원한 나마비루 🍺",
+    "tips": "삿포로 징기스칸의 상징입니다. 본점, 4.4, 5.5, 6.4점 등 여러 지점이 가까이 모여있는데, 4.4점 2층은 옷 보관 락커와 맥주 환기 시스템이 잘 갖춰져 있어 냄새 걱정을 덜 수 있습니다. 삿포로 클래식 생맥주와의 궁합은 최고입니다.",
+    "address": "Daruma 4.4, Susukino, Sapporo",
+    "openTime": "17:00",
+    "closeTime": "23:00",
+    "imageUrl": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "징기스칸 아루코 (Alco)",
+    "category": "meat",
+    "rating": "4.6",
+    "menu": "생양고기 어깨살 & 양갈비 (약 1,200엔)",
+    "tips": "다루마 본점`과 스스키노 골목의 다른 지점에 줄이 수십 미터 서 있을 때 갈 수 있는 숨겨진 골목 생양고기 최강 대안! 고기 질이 다루마만큼 훌륭하고 가격도 착합니다. 아늑한 다찌석 위주로 조용히 맥주와 곁들이기 좋습니다.",
+    "address": "Arco Jingisukan, Sapporo",
+    "openTime": "17:00",
+    "closeTime": "22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "라멘 신겐 미나미6조점 (Ramen Shingen)",
+    "category": "noodle",
+    "rating": "4.5",
+    "menu": "코쿠미소(진한 된장) 라멘 & 볶음밥 (라멘 약 880엔)",
+    "tips": "기본 대기가 1시간 이상인 초인기 미소 라멘집입니다. 밤늦게 가도 웨이팅 줄이 깁니다. 진하지만 짜지 않고 구수한 맛이 일품이며, 이곳의 '볶음밥(차한)' 반 사이즈는 라멘 국물과 환상의 짝꿍이니 반드시 함께 주문하세요.",
+    "address": "Ramen Shingen, Minami 6 Jo, Sapporo",
+    "openTime": "11:00",
+    "closeTime": "23:30",
+    "imageUrl": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "라멘 요시야마 쇼텐 (Yoshiyama Shouten)",
+    "category": "noodle",
+    "rating": "4.3",
+    "menu": "매운 참깨 미소 라멘 (약 950엔)",
+    "tips": "라멘 신겐의 1~2시간 이상 웨이팅이 부담스러우시다면 삿포로역 ESTA 공화국이나 스스키노 빌딩 지하의 요시야마 쇼텐으로 가세요! 볶은 참깨의 고소함และ 삿포로 정통 미소의 감칠맛이 폭발하는 국물이 웨이팅 타협 이상의 맛을 선사합니다.",
+    "address": "Yoshiyama Shouten, Sapporo",
+    "openTime": "11:00",
+    "closeTime": "21:00",
+    "imageUrl": "https://images.unsplash.com/photo-1557872943-16a5ac26437e?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "니조시장 오이소 (Ohiso)",
+    "category": "seafood",
+    "rating": "4.4",
+    "menu": "삼색 카이센동 (우니, 연어알, 게살 / 약 3,800엔)",
+    "tips": "니조시장에서 가장 깔끔하고 유명한 카이센동 전문점입니다. 신선도가 압도적이며 기호에 맞게 토핑을 커스텀하여 덮밥을 주문할 수 있습니다. 아침 8시경 일찍 오픈하므로 이른 아침 식사 코스로 다녀오시는 것이 대기를 피하는 꿀팁입니다.",
+    "address": "Ohiso, Nijo Market, Sapporo",
+    "openTime": "07:30",
+    "closeTime": "17:00",
+    "imageUrl": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "스시잔마이 스스키노점 (Sushizanmai)",
+    "category": "seafood",
+    "rating": "4.1",
+    "menu": "참치 세트 & 단품 초밥 (세트 약 2,500엔)",
+    "tips": "삿포로 유명 스시야들이 대부분 사전 예약제이거나 대기가 일찍 마감됩니다. 스시잔마이는 24시간 영업하여 늦은 밤 야식으로도 웨이팅 없이 신선한 홋카이도 해산물 스시를 맛볼 수 있는 최고의 전천후 대체지입니다.",
+    "address": "Sushizanmai Susukino, Sapporo",
+    "openTime": "00:00",
+    "closeTime": "24:00",
+    "imageUrl": "https://images.unsplash.com/photo-1611143669185-af224c5e3252?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "삿포로 맥주 박물관 (Sapporo Beer Museum)",
+    "category": "spot",
+    "rating": "4.3",
+    "menu": "박물관 투어 & 3종 생맥주 시음 (테이스팅 약 800엔)",
+    "tips": "일본 유일의 맥주 박물관으로 고풍스러운 붉은 벽돌 건물이 인상적입니다. 무료 관람 후 1층 스타홀에서 갓 짜낸 삿포로 블랙라벨, 클래식, 개척사 맥주 3종 샘플러 세트를 신선하게 맛볼 수 있으니 꼭 들러보세요.",
+    "address": "Sapporo Beer Museum, Sapporo",
+    "openTime": "11:00",
+    "closeTime": "18:00",
+    "imageUrl": "https://images.unsplash.com/photo-1612838320302-4b3b49af0bb9?auto=format&fit=crop&w=600&q=80"
+  }
+]

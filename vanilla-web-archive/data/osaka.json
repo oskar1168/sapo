@@ -1,0 +1,169 @@
+[
+  {
+    "name": "도톤보리 글리코상 (Dotonbori Glico Sign)",
+    "category": "spot",
+    "rating": "4.6",
+    "menu": "글리코상 러닝 포즈 인증샷 & 운하 산책 🏃",
+    "tips": "오사카 여행의 시작과 끝! 다리 위 글리코상 전광판 앞에서 똑같은 달리기 자세를 취하고 사진을 찍는 것은 필수 코스입니다. 해가 지고 네온사인이 화려하게 켜지는 밤이 훨씬 예쁘며, 톤보리 리버크루즈 탑승 매표소도 다리 바로 밑에 있습니다.",
+    "address": "Dotonbori Glico Sign, Osaka",
+    "openTime": "00:00",
+    "closeTime": "24:00",
+    "imageUrl": "https://images.unsplash.com/photo-1590250764125-97775fe66b72?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "유니버설 스튜디오 재팬 (Universal Studios Japan)",
+    "category": "spot",
+    "rating": "4.8",
+    "menu": "닌텐도 월드 & 해리포터 마법 세계 모험 🎢",
+    "tips": "인생 테마파크! 개장 전 최소 1시간 전 오픈런은 필수입니다. 닌텐도 월드에 대기 없이 들어가려면 아침 일찍 앱으로 에어리어 입장 확약권(정리권)을 선점하거나, 사전에 유료 익스프레스 패스를 반드시 구매해서 가시는 걸 적극 추천합니다.",
+    "address": "Universal Studios Japan, Osaka",
+    "openTime": "08:30",
+    "closeTime": "21:00",
+    "imageUrl": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "오사카성 (Osaka Castle Park)",
+    "category": "spot",
+    "rating": "4.5",
+    "menu": "천수각 관람 및 벚꽃/성곽 공원 산책 🏯",
+    "tips": "오사카의 유서 깊은 성입니다. 성 주변의 해자(물길)와 돌 성벽 산책로가 아주 평화롭습니다. 오사카 주유패스가 있다면 천수각 전망대 입장 및 로드트레인, 놀잇배 탑승이 무료이니 패스를 알차게 사용해보세요. 봄 벚꽃 시즌이 특히 아름답습니다.",
+    "address": "Osaka Castle, Osaka",
+    "openTime": "09:00",
+    "closeTime": "17:00",
+    "imageUrl": "https://images.unsplash.com/photo-1590250764491-0309ff09c063?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "우메다 공중정원 (Umeda Sky Building)",
+    "category": "spot",
+    "rating": "4.6",
+    "menu": "초고층 빌딩 옥상 야외 360도 야경 관람 🌃",
+    "tips": "우메다 스카이 빌딩 꼭대기의 개방형 야외 전망대입니다. 공중을 가로지르는 유리 에스컬레이터 탑승 자체가 스릴 넘칩니다. 오사카 주유패스 소지자는 오후 4시 이전까지만 무료 입장이 가능하므로, 일몰 전에 미리 가시는 걸 추천합니다.",
+    "address": "Umeda Sky Building, Osaka",
+    "openTime": "09:30",
+    "closeTime": "22:30",
+    "imageUrl": "https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "아베노 하루카스 300 (Harukas 300)",
+    "category": "spot",
+    "rating": "4.8",
+    "menu": "일본 최고층 야경 전망대 관람 (입장료 약 2,000엔)",
+    "tips": "지상 300m 높이에서 감상하는 압도적인 통유리 전망대입니다. 주유패스 혜택은 없으나 그만큼 다소 한적하고 야경 퀄리티가 오사카에서 가장 훌륭합니다. 화장실마저 통유리로 되어있어 전경이 훌륭하며, 옥상 헬리포트 투어도 현장 신청 가능합니다.",
+    "address": "Abeno Harukas 300, Osaka",
+    "openTime": "09:00",
+    "closeTime": "22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "교토 기요미즈데라 (청수사)",
+    "category": "spot",
+    "rating": "4.7",
+    "menu": "산비탈의 못을 쓰지 않은 거대 목조 무대 관람 ⛩️",
+    "tips": "교토 여행의 꽃입니다. 절벽 위에 못 하나 쓰지 않고 세워진 웅장한 본당 무대가 볼거리입니다. 올라가는 전통 골목길인 '니넨자카', '산넨자카'에는 전통 보존 지구로 아기자기한 목조건물 숍이 가득합니다. 기모노 대여 체험을 추천합니다.",
+    "address": "Kiyomizu-dera, Kyoto",
+    "openTime": "06:00",
+    "closeTime": "18:00",
+    "imageUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "교토 후시미 이나리 신사 (Fushimi Inari)",
+    "category": "spot",
+    "rating": "4.7",
+    "menu": "끝없이 이어지는 붉은 토리이 터널 걷기 (입장 무료)",
+    "tips": "영화 '게이샤의 추억' 촬영지로 유명한 천 개의 주황빛 토리이 길입니다. 산 전체가 사찰이며 토리이 터널을 다 도는 데는 2시간 넘게 걸리므로, 입구 근처의 터널 시작 지점에서 예쁜 사진을 찍고 적당한 코스에서 돌아 내려오시는 것이 영리합니다.",
+    "address": "Fushimi Inari Taisha, Kyoto",
+    "openTime": "00:00",
+    "closeTime": "24:00",
+    "imageUrl": "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "교토 아라시야마 치쿠린 (Arashiyama Bamboo Grove)",
+    "category": "spot",
+    "rating": "4.6",
+    "menu": "대나무 숲길 산책 & 텐류지 정원 관람 🎋",
+    "tips": "하늘 높이 솟은 거대한 대나무들이 우거진 시원하고 고요한 대나무 숲길입니다. 한낮에는 단체 관광객으로 매우 붐비니, 오전 9시 이전에 일찍 가셔야 한적한 숲의 소리와 맑은 공기를 오롯이 즐길 수 있습니다. 도게츠교 풍경도 필수 코스입니다.",
+    "address": "Arashiyama Bamboo Grove, Kyoto",
+    "openTime": "00:00",
+    "closeTime": "24:00",
+    "imageUrl": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "치보 오사카 도톤보리 본점 (Chibo)",
+    "category": "meat",
+    "rating": "4.4",
+    "menu": "치보 도톤보리 야키 오코노미야키 (약 1,700엔)",
+    "tips": "도톤보리에서 가장 대중적이고 유명한 오코노미야키 전문점입니다. 오픈형 대형 철판에서 요리사가 직접 철판구이 쇼와 함께 소스를 높이서 뿌려주는 화려한 마요네즈 쇼 퍼포먼스를 선보입니다. 야키소바와 함께 시켜 쉐어하기 좋습니다.",
+    "address": "Chibo Dotonbori, Osaka",
+    "openTime": "11:00",
+    "closeTime": "22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "쿠시카츠 다루마 신세카이 본점 (Kushikatsu Daruma)",
+    "category": "meat",
+    "rating": "4.5",
+    "menu": "바삭한 소고기, 치즈, 야채 꼬치 튀김 (세트 약 1,600엔~)",
+    "tips": "오사카 명물 꼬치 튀김 '쿠시카츠'의 원조집입니다. 화가 난 사나운 아저씨 마스코트 캐릭터 간판이 트레이드마크입니다. 튀김옷이 아주 바삭하고 얇아 느끼하지 않습니다. 소스는 위생상 꼬치를 먹기 전에 '딱 한 번만' 찍는 것이 철칙입니다.",
+    "address": "Kushikatsu Daruma Honten, Osaka",
+    "openTime": "11:00",
+    "closeTime": "22:30",
+    "imageUrl": "https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "타코야키 쥬하치반 도톤보리점 (Juhachiban)",
+    "category": "seafood",
+    "rating": "4.3",
+    "menu": "바삭한 튀김가루(텐카스) 소금 타코야키 (약 750엔/8알)",
+    "tips": "도톤보리 타코야키 골목에서 튀김가루를 표면에 가득 묻혀 겉은 대단히 바삭하고 안은 촉촉한 맛으로 차별화된 1티어 맛집입니다. 소스 반 + 소금(하프앤하프) 세트로 시켜 짭조름하고 고소한 본연의 맛을 생맥주와 즐겨보세요.",
+    "address": "Takoyaki Juhachiban, Dotonbori, Osaka",
+    "openTime": "11:00",
+    "closeTime": "22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1618090584126-129cd1f3f947?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "규카츠 타케루 덴덴타운점 (Gyukatsu Takeru)",
+    "category": "meat",
+    "rating": "4.5",
+    "menu": "규카츠 정식 (더블 약 2,600엔 / 싱글 약 1,700엔)",
+    "tips": "오사카 규카츠 모토무라의 엄청난 대기가 엄두가 나지 않을 때 훌륭하게 탈출할 수 있는 생고기 규카츠 최강 맛집입니다! 겉만 살짝 튀겨져 나오며 개인 미니 화로에 마블링이 살아있는 소고기를 한 점씩 원하는 굽기로 소금에 콕 찍어 드세요.",
+    "address": "Gyukatsu Takeru Namba, Osaka",
+    "openTime": "11:00",
+    "closeTime": "21:30",
+    "breakStart": "15:30",
+    "breakEnd": "17:00",
+    "imageUrl": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "하루코마 스시 본점 (Harukoma Sushi)",
+    "category": "seafood",
+    "rating": "4.5",
+    "menu": "두툼하고 신선한 대왕 연어 뱃살 & 붕장어 초밥 (한 접시 약 200~450엔)",
+    "tips": "오사카 텐진바시스지 상점가의 신화적인 가성비 시장 스시 최고 맛집입니다. 초밥 위 생선 두께와 밥 양이 주먹만 하게 큽니다. 네타가 마르지 않고 입안 꽉 차게 살살 녹습니다. 본점 대기가 길 경우 도보 3분 거리의 분점으로 가세요.",
+    "address": "Harukoma Sushi Honten, Osaka",
+    "openTime": "11:00",
+    "closeTime": "21:30",
+    "imageUrl": "https://images.unsplash.com/photo-1611143669185-af224c5e3252?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "교토 요지야 카페 은각사점 (Yojiya Cafe)",
+    "category": "dessert",
+    "rating": "4.4",
+    "menu": "요지야 캐릭터 마크 말차 카푸치노 & 모나카 (음료 약 650엔)",
+    "tips": "교토 철학의 길 산책 도중 들르기 좋은 전통 가옥 카페입니다. 다다미 방에 앉아 평화롭고 조용한 이끼 정원을 바라보며 먹는 시그니처 말차 파페와 카푸치노는 지친 몸을 위로해 줍니다. 나갈 때 숍에서 화장지 기념품도 사기 좋습니다.",
+    "address": "Yojiya Cafe Ginkakuji, Kyoto",
+    "openTime": "10:00",
+    "closeTime": "17:00",
+    "imageUrl": "https://images.unsplash.com/photo-1507133750040-4a8f57021571?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "name": "아라비카 교토 아라시야마 (% Arabica)",
+    "category": "dessert",
+    "rating": "4.5",
+    "menu": "도게츠교 강 전망 아이스 바닐라 라떼 (약 600엔)",
+    "tips": "전 세계적으로 유명한 퍼센트(%) 커피 아라시야마 본점입니다. 도게츠교 강바람을 쐬며 마시는 크리미하고 고소한 풍미의 라떼는 일품입니다. 매장 내부가 좁아 테이크아웃 줄이 항상 길게 강가로 이어져 있습니다. 아침 8시 오픈런이 꿀팁입니다.",
+    "address": "Arabica Coffee Arashiyama, Kyoto",
+    "openTime": "08:00",
+    "closeTime": "18:00",
+    "imageUrl": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80"
+  }
+]
