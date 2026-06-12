@@ -2,11 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, Image, Modal } from 'react-native';
 
 const walkingSummerGif = require('../../assets/walking_summer.gif');
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CITY_TEMPLATES, ActivityItem } from '../constants/travelData';
 import ExploreScreen from '../screens/ExploreScreen';
-import MyTripsScreen, { TripMetadata } from '../screens/MyTripsScreen';
+import MyTripsScreen from '../screens/MyTripsScreen';
 import TripDetailScreen from '../screens/TripDetailScreen';
+import {
+  createTrip,
+  deleteTrip,
+  loadInitialTripSnapshot,
+  persistLikedSpots,
+  selectTrip,
+  updateActiveTripDetail,
+  updateTripMetadata,
+} from '../services/tripRepository';
+import { getSpotDetail, isSameSpotRef } from '../services/spotCatalog';
+import { SpotRef } from '../types/spot';
+import { TripMetadata } from '../types/trip';
 
 export default function AppIndex() {
   const [loading, setLoading] = useState(true);
@@ -17,60 +27,18 @@ export default function AppIndex() {
   const [isCreatingTrip, setIsCreatingTrip] = useState(false);
   const [activeTripId, setActiveTripId] = useState<string>('');
   const [travelData, setTravelData] = useState<any>(null); // Detail data of active trip
-  const [likedSpots, setLikedSpots] = useState<{ city: string; originalIndex: number }[]>([]);
-  const [autoAddSpot, setAutoAddSpot] = useState<{ city: string; originalIndex: number } | null>(null);
+  const [likedSpots, setLikedSpots] = useState<SpotRef[]>([]);
+  const [autoAddSpot, setAutoAddSpot] = useState<SpotRef | null>(null);
 
-  // 1. Initial State Load from AsyncStorage
+  // 1. Initial State Load from storage
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-        const savedTrips = await AsyncStorage.getItem('sapo_trips_list');
-        const savedLiked = await AsyncStorage.getItem('sapo_liked_spots');
-        const savedActiveId = await AsyncStorage.getItem('sapo_active_trip_id');
-
-        let parsedTrips: TripMetadata[] = savedTrips ? JSON.parse(savedTrips) : [];
-        let parsedLiked = savedLiked ? JSON.parse(savedLiked) : [];
-        let activeId = savedActiveId || '';
-
-        // If app has 0 trips, pre-initialize with Sapporo as default template
-        if (parsedTrips.length === 0) {
-          const sapporoTemp = CITY_TEMPLATES.sapporo;
-          const defaultTripId = `trip-${Date.now()}`;
-          
-          const defaultTripMeta: TripMetadata = {
-            id: defaultTripId,
-            cityCode: sapporoTemp.cityCode,
-            title: sapporoTemp.title,
-            startDate: sapporoTemp.startDate,
-            endDate: sapporoTemp.endDate,
-            memberCount: sapporoTemp.memberCount,
-          };
-
-          parsedTrips = [defaultTripMeta];
-          activeId = defaultTripId;
-
-          // Save detail data
-          await AsyncStorage.setItem(`sapo_trip_detail_${defaultTripId}`, JSON.stringify(sapporoTemp));
-          await AsyncStorage.setItem('sapo_trips_list', JSON.stringify(parsedTrips));
-          await AsyncStorage.setItem('sapo_active_trip_id', defaultTripId);
-        }
-
-        setTripsList(parsedTrips);
-        setLikedSpots(parsedLiked);
-        setActiveTripId(activeId);
-
-        // Fetch detailed data of active trip
-        if (activeId) {
-          const detailData = await AsyncStorage.getItem(`sapo_trip_detail_${activeId}`);
-          if (detailData) {
-            setTravelData(JSON.parse(detailData));
-          } else {
-            // fallback template
-            const sapporoTemp = CITY_TEMPLATES.sapporo;
-            setTravelData(sapporoTemp);
-            await AsyncStorage.setItem(`sapo_trip_detail_${activeId}`, JSON.stringify(sapporoTemp));
-          }
-        }
+        const snapshot = await loadInitialTripSnapshot();
+        setTripsList(snapshot.tripsList);
+        setLikedSpots(snapshot.likedSpots);
+        setActiveTripId(snapshot.activeTripId);
+        setTravelData(snapshot.travelData);
       } catch (e) {
         console.warn('Failed to load initial data:', e);
       } finally {
@@ -81,194 +49,121 @@ export default function AppIndex() {
     loadSavedData();
   }, []);
 
-  // Sync trips list change to storage
-  const saveTripsList = async (newList: TripMetadata[]) => {
-    setTripsList(newList);
-    try {
-      await AsyncStorage.setItem('sapo_trips_list', JSON.stringify(newList));
-    } catch (e) {
-      console.warn('Failed to save trips list:', e);
-    }
-  };
-
-  // Sync liked spots change to storage
   const saveLikedSpots = async (newLiked: typeof likedSpots) => {
     setLikedSpots(newLiked);
     try {
-      await AsyncStorage.setItem('sapo_liked_spots', JSON.stringify(newLiked));
+      await persistLikedSpots(newLiked);
     } catch (e) {
       console.warn('Failed to save liked spots:', e);
     }
   };
 
-  // CRUD: Create Trip
   const handleCreateTrip = async (newTripMeta: Omit<TripMetadata, 'id'>) => {
-    const newId = `trip-${Date.now()}`;
-    const tripMeta: TripMetadata = { id: newId, ...newTripMeta };
-    const newList = [tripMeta, ...tripsList];
-    
-    // Copy default template based on cityCode
-    const template = CITY_TEMPLATES[newTripMeta.cityCode] || CITY_TEMPLATES.sapporo;
-    const initialTripDetail = {
-      ...template,
-      title: newTripMeta.title,
-      startDate: newTripMeta.startDate,
-      endDate: newTripMeta.endDate,
-      memberCount: newTripMeta.memberCount,
-    };
-
     setIsCreatingTrip(true);
 
-    // Save
     try {
-      await AsyncStorage.setItem(`sapo_trip_detail_${newId}`, JSON.stringify(initialTripDetail));
-      await AsyncStorage.setItem('sapo_active_trip_id', newId);
+      const result = await createTrip(tripsList, newTripMeta);
+      setTripsList(result.tripsList);
+      setActiveTripId(result.tripId);
+      setTravelData(result.travelData);
     } catch (e) {
       console.warn('Failed to save trip detail:', e);
     }
 
-    await saveTripsList(newList);
-    setActiveTripId(newId);
-    setTravelData(initialTripDetail);
-    
-    // 3초간 Splash 로더 화면 노출 후 상세 뷰로 전환
     setTimeout(() => {
       setIsCreatingTrip(false);
       setCurrentView('detail');
     }, 3000);
   };
 
-  // CRUD: Update Trip Metadata
   const handleEditTripMetadata = async (updatedMeta: TripMetadata) => {
-    const newList = tripsList.map((t) => (t.id === updatedMeta.id ? updatedMeta : t));
-    await saveTripsList(newList);
-
-    // Also sync values inside detail object
     try {
-      const detailStr = await AsyncStorage.getItem(`sapo_trip_detail_${updatedMeta.id}`);
-      if (detailStr) {
-        const detailObj = JSON.parse(detailStr);
-        detailObj.title = updatedMeta.title;
-        detailObj.startDate = updatedMeta.startDate;
-        detailObj.endDate = updatedMeta.endDate;
-        detailObj.memberCount = updatedMeta.memberCount;
-        
-        await AsyncStorage.setItem(`sapo_trip_detail_${updatedMeta.id}`, JSON.stringify(detailObj));
-        
-        if (updatedMeta.id === activeTripId) {
-          setTravelData(detailObj);
-        }
+      const result = await updateTripMetadata(tripsList, updatedMeta);
+      setTripsList(result.tripsList);
+
+      if (updatedMeta.id === activeTripId && result.travelData) {
+        setTravelData(result.travelData);
       }
     } catch (e) {
       console.warn('Failed to sync edited metadata:', e);
     }
   };
 
-  // CRUD: Delete Trip
   const handleDeleteTrip = async (tripId: string) => {
-    const newList = tripsList.filter((t) => t.id !== tripId);
-    await saveTripsList(newList);
-
     try {
-      await AsyncStorage.removeItem(`sapo_trip_detail_${tripId}`);
-      
-      // If we deleted the active trip, assign new active
+      const result = await deleteTrip(tripsList, tripId, activeTripId);
+      setTripsList(result.tripsList);
+
       if (tripId === activeTripId) {
-        if (newList.length > 0) {
-          const nextActiveId = newList[0].id;
-          setActiveTripId(nextActiveId);
-          await AsyncStorage.setItem('sapo_active_trip_id', nextActiveId);
-          
-          const nextDetail = await AsyncStorage.getItem(`sapo_trip_detail_${nextActiveId}`);
-          setTravelData(nextDetail ? JSON.parse(nextDetail) : null);
-        } else {
-          setActiveTripId('');
-          setTravelData(null);
-          await AsyncStorage.removeItem('sapo_active_trip_id');
-        }
+        setActiveTripId(result.activeTripId);
+        setTravelData(result.travelData);
       }
     } catch (e) {
       console.warn('Failed to delete trip data:', e);
     }
   };
 
-  // CRUD: Update active trip detail (e.g., activities, checklist, shopping)
   const handleUpdateTripData = async (updatedDetail: any) => {
     setTravelData(updatedDetail);
     if (!activeTripId) return;
 
     try {
-      await AsyncStorage.setItem(`sapo_trip_detail_${activeTripId}`, JSON.stringify(updatedDetail));
-      
-      // Sync title/dates in metadata list as well
-      const updatedList = tripsList.map((t) => {
-        if (t.id === activeTripId) {
-          return {
-            ...t,
-            title: updatedDetail.title,
-            startDate: updatedDetail.startDate,
-            endDate: updatedDetail.endDate,
-            memberCount: updatedDetail.memberCount,
-          };
-        }
-        return t;
-      });
+      const updatedList = await updateActiveTripDetail(tripsList, activeTripId, updatedDetail);
       setTripsList(updatedList);
-      await AsyncStorage.setItem('sapo_trips_list', JSON.stringify(updatedList));
     } catch (e) {
       console.warn('Failed to save detailed trip updates:', e);
     }
   };
 
-  // Select another trip
   const handleSelectTrip = async (tripId: string) => {
     setActiveTripId(tripId);
     try {
-      await AsyncStorage.setItem('sapo_active_trip_id', tripId);
-      const detailStr = await AsyncStorage.getItem(`sapo_trip_detail_${tripId}`);
-      if (detailStr) {
-        setTravelData(JSON.parse(detailStr));
+      const detail = await selectTrip(tripId);
+      if (detail) {
+        setTravelData(detail);
       }
     } catch (e) {
       console.warn('Failed to select trip:', e);
     }
     setCurrentView('detail');
   };
-
-  // Toggle Spot Liked
+  // Toggle liked spot
   const handleToggleLike = (city: string, originalIndex: number) => {
-    const existsIdx = likedSpots.findIndex(
-      (s) => s.city === city && s.originalIndex === originalIndex
-    );
-    let newLiked = [...likedSpots];
+    const spot = getSpotDetail(city, originalIndex);
+    const nextRef: SpotRef = {
+      city,
+      spotId: spot?.id,
+      originalIndex,
+    };
+    const existsIdx = likedSpots.findIndex((likedSpot) => isSameSpotRef(likedSpot, nextRef));
+    const newLiked = [...likedSpots];
 
     if (existsIdx > -1) {
       newLiked.splice(existsIdx, 1);
     } else {
-      newLiked.push({ city, originalIndex });
+      newLiked.push(nextRef);
     }
     saveLikedSpots(newLiked);
   };
 
-  // Add Recommended Spot directly from explore screen
+  // Add recommended spot directly from explore screen
   const handleAddSpotToTimeline = (city: string, originalIndex: number) => {
-    // Navigate to detail view and auto trigger Place modal
-    setAutoAddSpot({ city, originalIndex });
+    const spot = getSpotDetail(city, originalIndex);
+    setAutoAddSpot({ city, spotId: spot?.id, originalIndex });
     setCurrentView('detail');
   };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#6c5ce7" />
-        <Text style={styles.loadingText}>데이터 동기화 중...</Text>
+        <Text style={styles.loadingText}>여행 데이터를 불러오는 중...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.appContainer}>
-      {/* 1단계: Explore View */}
+      {/* Explore View */}
       {currentView === 'explore' ? (
         <ExploreScreen
           likedSpots={likedSpots}
@@ -279,7 +174,7 @@ export default function AppIndex() {
         />
       ) : null}
 
-      {/* 2단계: Trip List View */}
+      {/* Trip List View */}
       {currentView === 'myTrips' ? (
         <MyTripsScreen
           trips={tripsList}
@@ -292,7 +187,7 @@ export default function AppIndex() {
         />
       ) : null}
 
-      {/* 3단계: Trip Detail View */}
+      {/* Trip Detail View */}
       {currentView === 'detail' && travelData ? (
         <TripDetailScreen
           tripId={activeTripId}
@@ -306,7 +201,7 @@ export default function AppIndex() {
         />
       ) : null}
 
-      {/* 일정 생성 중 로딩 (Splash Intro) */}
+      {/* Trip creation splash */}
       <Modal visible={isCreatingTrip} transparent={true} animationType="fade">
         <View style={styles.splashOverlay}>
           <Image
@@ -314,14 +209,13 @@ export default function AppIndex() {
             style={styles.splashGif}
             resizeMode="contain"
           />
-          <Text style={styles.splashText}>새로운 여행 계획 방을 개설하고 있습니다...</Text>
-          <Text style={styles.splashSubtext}>잠시만 기다려 주세요 ✈️</Text>
+          <Text style={styles.splashText}>새 여행 계획을 준비하고 있습니다...</Text>
+          <Text style={styles.splashSubtext}>잠시만 기다려 주세요</Text>
         </View>
       </Modal>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,

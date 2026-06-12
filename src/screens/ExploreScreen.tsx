@@ -5,20 +5,22 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Image,
   Dimensions,
   Alert,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SAPPORO_FOOD_LIST, OTARU_FOOD_LIST, SpotItem, CITY_TEMPLATES } from '../constants/travelData';
+import { CITY_TEMPLATES } from '../constants/travelData';
 import ExploreGuideModal from '../components/ExploreGuideModal';
+import SpotThumbnail from '../components/SpotThumbnail';
+import { getSpotDetail, getSpotDetailById } from '../services/spotCatalog';
+import { SpotRef } from '../types/spot';
 
 const { width } = Dimensions.get('window');
 const isTablet = width > 600;
 
 interface ExploreScreenProps {
-  likedSpots: { city: string; originalIndex: number }[];
+  likedSpots: SpotRef[];
   onToggleLike: (city: string, originalIndex: number) => void;
   onAddSpotToTimeline: (city: string, originalIndex: number) => void;
   onNavigateToMyTrips: () => void;
@@ -38,19 +40,8 @@ export default function ExploreScreen({
   const template = CITY_TEMPLATES[activeCity] || CITY_TEMPLATES.sapporo;
   const exp = template.explore;
 
-  // Retrieve spot detail using city & index
-  const getSpotDetail = (city: string, index: number): (SpotItem & { city: string; originalIndex: number }) | null => {
-    let list: SpotItem[] = [];
-    if (city === 'sapporo') list = SAPPORO_FOOD_LIST;
-    else if (city === 'otaru') list = OTARU_FOOD_LIST;
-    
-    const item = list[index];
-    if (!item) return null;
-    return { ...item, city, originalIndex: index };
-  };
-
   const activeLikedSpots = likedSpots
-    .map((s) => getSpotDetail(s.city, s.originalIndex))
+    .map((s) => (s.spotId ? getSpotDetailById(s.city, s.spotId) : getSpotDetail(s.city, s.originalIndex)))
     .filter((s): s is Exclude<typeof s, null> => s !== null);
 
   const handleCityPress = (cityName: string) => {
@@ -116,10 +107,7 @@ export default function ExploreScreen({
           >
             {activeLikedSpots.map((spot, i) => (
               <View key={i} style={styles.likedCard}>
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=400&q=80' }}
-                  style={styles.likedCardThumb}
-                />
+                <SpotThumbnail spot={spot} style={styles.likedCardThumb} />
                 <View style={styles.likedCardBody}>
                   <Text style={styles.likedCardName} numberOfLines={1}>
                     {spot.name}

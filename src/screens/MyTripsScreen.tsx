@@ -1,29 +1,28 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
+  Alert,
   Dimensions,
   Modal,
-  TextInput,
-  Alert,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  CITY_OPTIONS,
+  buildDefaultTripTitle,
+  getCityDetails,
+  getDday,
+  isTripMetadataFormValid,
+} from '../services/tripMetadata';
+import { TripMetadata } from '../types/trip';
 
 const { width } = Dimensions.get('window');
 const isTablet = width > 600;
-
-export interface TripMetadata {
-  id: string;
-  cityCode: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  memberCount: number;
-}
 
 interface MyTripsScreenProps {
   trips: TripMetadata[];
@@ -35,6 +34,66 @@ interface MyTripsScreenProps {
   onBackToExplore: () => void;
 }
 
+type TripFormValues = {
+  title: string;
+  startDate: string;
+  endDate: string;
+  memberCount: number;
+};
+
+const emptyForm: TripFormValues = {
+  title: '',
+  startDate: '',
+  endDate: '',
+  memberCount: 2,
+};
+
+function DateField({
+  value,
+  onChangeText,
+}: {
+  value: string;
+  onChangeText: (value: string) => void;
+}) {
+  if (Platform.OS === 'web') {
+    return React.createElement('input', {
+      type: 'date',
+      value,
+      onChange: (event: any) => onChangeText(event.target.value),
+      style: webDateInputStyle,
+    });
+  }
+
+  return (
+    <TextInput
+      style={styles.input}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder="YYYY-MM-DD"
+    />
+  );
+}
+
+function MemberCounter({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <View style={styles.memberCounter}>
+      <TouchableOpacity onPress={() => onChange(Math.max(1, value - 1))} style={styles.counterBtn}>
+        <Ionicons name="remove" size={18} color="#0f172a" />
+      </TouchableOpacity>
+      <Text style={styles.counterText}>{value}명</Text>
+      <TouchableOpacity onPress={() => onChange(value + 1)} style={styles.counterBtn}>
+        <Ionicons name="add" size={18} color="#0f172a" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function MyTripsScreen({
   trips,
   activeTripId,
@@ -44,131 +103,106 @@ export default function MyTripsScreen({
   onDeleteTrip,
   onBackToExplore,
 }: MyTripsScreenProps) {
-  // Modal states for creating new trip
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [step, setStep] = useState(1);
   const [selectedCity, setSelectedCity] = useState('');
-  const [tripTitle, setTripTitle] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [memberCount, setMemberCount] = useState(2);
+  const [createForm, setCreateForm] = useState<TripFormValues>(emptyForm);
 
-  // Edit Modal States
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingTripId, setEditingTripId] = useState('');
-  const [editTitle, setEditTitle] = useState('');
-  const [editStart, setEditStart] = useState('');
-  const [editEnd, setEditEnd] = useState('');
-  const [editMember, setEditMember] = useState(2);
+  const [editForm, setEditForm] = useState<TripFormValues>(emptyForm);
 
-  // Calculate D-day
-  const getDday = (startDateStr: string) => {
-    if (!startDateStr) return 'D-??';
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const start = new Date(startDateStr);
-    start.setHours(0, 0, 0, 0);
-    const diffTime = start.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return 'D-Day';
-    if (diffDays > 0) return `D-${diffDays}`;
-    return `D+${Math.abs(diffDays)}`;
+  const resetCreateForm = () => {
+    setCreateModalVisible(false);
+    setStep(1);
+    setSelectedCity('');
+    setCreateForm(emptyForm);
   };
 
-  const getCityDetails = (cityCode: string) => {
-    switch (cityCode) {
-      case 'tokyo':
-        return { emoji: '🗼', name: '도쿄', bg: '#ff7675' };
-      case 'osaka':
-        return { emoji: '🐙', name: '오사카', bg: '#fdcb6e' };
-      default:
-        return { emoji: '❄️', name: '삿포로 & 오타루', bg: '#6c5ce7' };
-    }
+  const openCreateModal = () => {
+    setStep(1);
+    setSelectedCity('');
+    setCreateForm(emptyForm);
+    setCreateModalVisible(true);
   };
 
   const handleCreateSubmit = () => {
-    if (!tripTitle.trim() || !startDate || !endDate) {
-      Alert.alert('오류', '모든 정보를 성실히 입력해 주세요.');
+    if (!isTripMetadataFormValid(createForm.title, createForm.startDate, createForm.endDate)) {
+      Alert.alert('오류', '여행 제목과 날짜를 모두 입력해 주세요.');
       return;
     }
 
     onCreateTrip({
-      cityCode: selectedCity,
-      title: tripTitle.trim(),
-      startDate,
-      endDate,
-      memberCount,
+      cityCode: selectedCity || 'sapporo',
+      title: createForm.title.trim(),
+      startDate: createForm.startDate,
+      endDate: createForm.endDate,
+      memberCount: createForm.memberCount,
     });
 
-    // Reset Form
-    setCreateModalVisible(false);
-    setStep(1);
-    setSelectedCity('');
-    setTripTitle('');
-    setStartDate('');
-    setEndDate('');
-    setMemberCount(2);
+    resetCreateForm();
   };
 
   const handleEditOpen = (trip: TripMetadata) => {
     setEditingTripId(trip.id);
-    setEditTitle(trip.title);
-    setEditStart(trip.startDate);
-    setEditEnd(trip.endDate);
-    setEditMember(trip.memberCount);
+    setEditForm({
+      title: trip.title,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      memberCount: trip.memberCount,
+    });
     setEditModalVisible(true);
   };
 
   const handleEditSubmit = () => {
-    if (!editTitle.trim() || !editStart || !editEnd) {
-      Alert.alert('오류', '모든 필드를 입력해 주세요.');
+    if (!isTripMetadataFormValid(editForm.title, editForm.startDate, editForm.endDate)) {
+      Alert.alert('오류', '여행 제목과 날짜를 모두 입력해 주세요.');
       return;
     }
 
     onEditTrip({
       id: editingTripId,
-      cityCode: trips.find((t) => t.id === editingTripId)?.cityCode || 'sapporo',
-      title: editTitle.trim(),
-      startDate: editStart,
-      endDate: editEnd,
-      memberCount: editMember,
+      cityCode: trips.find((trip) => trip.id === editingTripId)?.cityCode || 'sapporo',
+      title: editForm.title.trim(),
+      startDate: editForm.startDate,
+      endDate: editForm.endDate,
+      memberCount: editForm.memberCount,
     });
 
     setEditModalVisible(false);
   };
 
   const handleDeleteConfirm = (tripId: string, title: string) => {
+    const message = `'${title}' 일정을 삭제하시겠습니까?`;
+
     if (Platform.OS === 'web') {
-      const confirmDelete = window.confirm(`'${title}' 일정을 삭제하시겠습니까?`);
+      const confirmDelete = window.confirm(message);
       if (confirmDelete) {
         onDeleteTrip(tripId);
       }
-    } else {
-      Alert.alert('일정 삭제', `'${title}' 일정을 삭제하시겠습니까?`, [
-        { text: '취소', style: 'cancel' },
-        { text: '삭제', style: 'destructive', onPress: () => onDeleteTrip(tripId) },
-      ]);
+      return;
     }
+
+    Alert.alert('일정 삭제', message, [
+      { text: '취소', style: 'cancel' },
+      { text: '삭제', style: 'destructive', onPress: () => onDeleteTrip(tripId) },
+    ]);
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBackToExplore} style={styles.btnBack}>
           <Ionicons name="arrow-back" size={24} color="#1e293b" />
-          <Text style={styles.btnBackText}>홈으로</Text>
+          <Text style={styles.btnBackText}>탐색으로</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>✈️ 어디로 떠나시나요?</Text>
-        <Text style={styles.headerSubtitle}>나의 여행 계획 목록</Text>
+        <Text style={styles.headerTitle}>내 여행 일정</Text>
+        <Text style={styles.headerSubtitle}>저장된 여행 계획을 관리하세요</Text>
       </View>
 
-      {/* Trips Grid */}
       <View style={styles.grid}>
         {trips.map((trip) => {
           const city = getCityDetails(trip.cityCode);
-          const dday = getDday(trip.startDate);
           const isActive = trip.id === activeTripId;
 
           return (
@@ -178,21 +212,15 @@ export default function MyTripsScreen({
               onPress={() => onSelectTrip(trip.id)}
               activeOpacity={0.8}
             >
-              {/* Image banner replacement with custom gradient */}
               <View style={[styles.cardHeader, { backgroundColor: city.bg }]}>
-                <Text style={styles.cardDday}>{dday}</Text>
+                <Text style={styles.cardDday}>{getDday(trip.startDate)}</Text>
                 <Text style={styles.cardEmoji}>{city.emoji}</Text>
-
-                {/* Edit & Delete absolute buttons */}
                 <View style={styles.cardActions}>
-                  <TouchableOpacity
-                    style={styles.cardActionBtn}
-                    onPress={() => handleEditOpen(trip)}
-                  >
+                  <TouchableOpacity style={styles.cardActionBtn} onPress={() => handleEditOpen(trip)}>
                     <Ionicons name="create-outline" size={16} color="#ffffff" />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.cardActionBtn, { backgroundColor: 'rgba(255, 76, 76, 0.6)' }]}
+                    style={[styles.cardActionBtn, styles.cardDeleteBtn]}
                     onPress={() => handleDeleteConfirm(trip.id, trip.title)}
                   >
                     <Ionicons name="trash-outline" size={16} color="#ffffff" />
@@ -204,6 +232,7 @@ export default function MyTripsScreen({
                 <Text style={styles.cardTitle} numberOfLines={1}>
                   {trip.title}
                 </Text>
+                <Text style={styles.cardCity}>{city.name}</Text>
                 <View style={styles.cardMetaRow}>
                   <Ionicons name="calendar-outline" size={12} color="#64748b" />
                   <Text style={styles.cardMetaText}>
@@ -219,53 +248,39 @@ export default function MyTripsScreen({
           );
         })}
 
-        {/* Add New Trip Dotted Card */}
-        <TouchableOpacity
-          style={styles.newCard}
-          onPress={() => {
-            setStep(1);
-            setCreateModalVisible(true);
-          }}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={styles.newCard} onPress={openCreateModal} activeOpacity={0.7}>
           <Ionicons name="add-circle-outline" size={36} color="#6c5ce7" />
           <Text style={styles.newCardText}>새 여행 일정 만들기</Text>
         </TouchableOpacity>
       </View>
 
-      {/* CREATE TRIP MODAL (2-STEP) */}
       <Modal
         visible={createModalVisible}
         animationType="fade"
         transparent={true}
-        onRequestClose={() => setCreateModalVisible(false)}
+        onRequestClose={resetCreateForm}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            {/* Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {step === 1 ? '어디로 여행을 떠나시나요? ✈️' : '여행 상세 설정'}
-              </Text>
-              <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
+              <Text style={styles.modalTitle}>{step === 1 ? '여행지를 선택하세요' : '여행 정보 입력'}</Text>
+              <TouchableOpacity onPress={resetCreateForm}>
                 <Ionicons name="close" size={24} color="#64748b" />
               </TouchableOpacity>
             </View>
 
-            {/* Step 1: Destination Selection */}
             {step === 1 && (
               <View style={styles.stepContainer}>
-                {[
-                  { code: 'sapporo', name: '삿포로 & 오타루', desc: '초여름 낭만과 설경의 도시', emoji: '❄️' },
-                  { code: 'tokyo', name: '도쿄 (Tokyo)', desc: '쇼핑과 미식, 화려한 도심', emoji: '🗼' },
-                  { code: 'osaka', name: '오사카 & 교토', desc: '먹방 오사카와 천년고도 교토', emoji: '🐙' },
-                ].map((city) => (
+                {CITY_OPTIONS.map((city) => (
                   <TouchableOpacity
                     key={city.code}
                     style={styles.cityItem}
                     onPress={() => {
                       setSelectedCity(city.code);
-                      setTripTitle(`${city.name} 힐링 여행 ✈️`);
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        title: buildDefaultTripTitle(city.name),
+                      }));
                       setStep(2);
                     }}
                   >
@@ -279,122 +294,27 @@ export default function MyTripsScreen({
               </View>
             )}
 
-            {/* Step 2: Date & Title Setup */}
             {step === 2 && (
-              <View style={styles.stepContainer}>
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>여행 제목 *</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={tripTitle}
-                    onChangeText={setTripTitle}
-                    placeholder="예: 삿포로 여름 휴가"
-                  />
-                </View>
-
-                <View style={styles.formRow}>
-                  <View style={[styles.formGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>출발일 *</Text>
-                    {Platform.OS === 'web' ? (
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        style={{
-                          borderWidth: 1,
-                          borderStyle: 'solid',
-                          borderColor: '#cbd5e1',
-                          borderRadius: 10,
-                          paddingLeft: 12,
-                          paddingRight: 12,
-                          height: 44,
-                          fontSize: 14,
-                          backgroundColor: '#f8fafc',
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          fontFamily: 'inherit',
-                          outline: 'none',
-                        }}
-                      />
-                    ) : (
-                      <TextInput
-                        style={styles.input}
-                        value={startDate}
-                        onChangeText={setStartDate}
-                        placeholder="YYYY-MM-DD"
-                      />
-                    )}
-                  </View>
-                  <View style={[styles.formGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>도착일 *</Text>
-                    {Platform.OS === 'web' ? (
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        style={{
-                          borderWidth: 1,
-                          borderStyle: 'solid',
-                          borderColor: '#cbd5e1',
-                          borderRadius: 10,
-                          paddingLeft: 12,
-                          paddingRight: 12,
-                          height: 44,
-                          fontSize: 14,
-                          backgroundColor: '#f8fafc',
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          fontFamily: 'inherit',
-                          outline: 'none',
-                        }}
-                      />
-                    ) : (
-                      <TextInput
-                        style={styles.input}
-                        value={endDate}
-                        onChangeText={setEndDate}
-                        placeholder="YYYY-MM-DD"
-                      />
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>동행인원 (명) *</Text>
-                  <View style={styles.memberCounter}>
-                    <TouchableOpacity
-                      onPress={() => setMemberCount(Math.max(1, memberCount - 1))}
-                      style={styles.counterBtn}
-                    >
-                      <Ionicons name="remove" size={18} color="#0f172a" />
+              <TripForm
+                values={createForm}
+                onChange={setCreateForm}
+                footer={
+                  <View style={styles.modalFooter}>
+                    <TouchableOpacity onPress={() => setStep(1)} style={styles.btnBackStep}>
+                      <Ionicons name="arrow-back" size={16} color="#64748b" />
+                      <Text style={styles.btnBackStepText}>이전으로</Text>
                     </TouchableOpacity>
-                    <Text style={styles.counterText}>{memberCount}명</Text>
-                    <TouchableOpacity
-                      onPress={() => setMemberCount(memberCount + 1)}
-                      style={styles.counterBtn}
-                    >
-                      <Ionicons name="add" size={18} color="#0f172a" />
+                    <TouchableOpacity onPress={handleCreateSubmit} style={styles.btnSubmit}>
+                      <Text style={styles.btnSubmitText}>일정 만들기</Text>
                     </TouchableOpacity>
                   </View>
-                </View>
-
-                {/* Footer Buttons */}
-                <View style={styles.modalFooter}>
-                  <TouchableOpacity onPress={() => setStep(1)} style={styles.btnBackStep}>
-                    <Ionicons name="arrow-back" size={16} color="#64748b" />
-                    <Text style={styles.btnBackStepText}>이전으로</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleCreateSubmit} style={styles.btnSubmit}>
-                    <Text style={styles.btnSubmitText}>일정 만들기 🚀</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+                }
+              />
             )}
           </View>
         </View>
       </Modal>
 
-      {/* EDIT TRIP METADATA MODAL */}
       <Modal
         visible={editModalVisible}
         animationType="fade"
@@ -404,120 +324,96 @@ export default function MyTripsScreen({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>여행 일정 수정 ✏️</Text>
+              <Text style={styles.modalTitle}>여행 일정 수정</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#64748b" />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.stepContainer}>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>여행 제목 *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={editTitle}
-                  onChangeText={setEditTitle}
-                />
-              </View>
-
-              <View style={styles.formRow}>
-                <View style={[styles.formGroup, { flex: 1 }]}>
-                  <Text style={styles.label}>출발일 *</Text>
-                  {Platform.OS === 'web' ? (
-                    <input
-                      type="date"
-                      value={editStart}
-                      onChange={(e) => setEditStart(e.target.value)}
-                      style={{
-                        borderWidth: 1,
-                        borderStyle: 'solid',
-                        borderColor: '#cbd5e1',
-                        borderRadius: 10,
-                        paddingLeft: 12,
-                        paddingRight: 12,
-                        height: 44,
-                        fontSize: 14,
-                        backgroundColor: '#f8fafc',
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        fontFamily: 'inherit',
-                        outline: 'none',
-                      }}
-                    />
-                  ) : (
-                    <TextInput
-                      style={styles.input}
-                      value={editStart}
-                      onChangeText={setEditStart}
-                      placeholder="YYYY-MM-DD"
-                    />
-                  )}
-                </View>
-                <View style={[styles.formGroup, { flex: 1 }]}>
-                  <Text style={styles.label}>도착일 *</Text>
-                  {Platform.OS === 'web' ? (
-                    <input
-                      type="date"
-                      value={editEnd}
-                      onChange={(e) => setEditEnd(e.target.value)}
-                      style={{
-                        borderWidth: 1,
-                        borderStyle: 'solid',
-                        borderColor: '#cbd5e1',
-                        borderRadius: 10,
-                        paddingLeft: 12,
-                        paddingRight: 12,
-                        height: 44,
-                        fontSize: 14,
-                        backgroundColor: '#f8fafc',
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        fontFamily: 'inherit',
-                        outline: 'none',
-                      }}
-                    />
-                  ) : (
-                    <TextInput
-                      style={styles.input}
-                      value={editEnd}
-                      onChangeText={setEditEnd}
-                      placeholder="YYYY-MM-DD"
-                    />
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>동행인원 (명) *</Text>
-                <View style={styles.memberCounter}>
-                  <TouchableOpacity
-                    onPress={() => setEditMember(Math.max(1, editMember - 1))}
-                    style={styles.counterBtn}
-                  >
-                    <Ionicons name="remove" size={18} color="#0f172a" />
-                  </TouchableOpacity>
-                  <Text style={styles.counterText}>{editMember}명</Text>
-                  <TouchableOpacity
-                    onPress={() => setEditMember(editMember + 1)}
-                    style={styles.counterBtn}
-                  >
-                    <Ionicons name="add" size={18} color="#0f172a" />
+            <TripForm
+              values={editForm}
+              onChange={setEditForm}
+              footer={
+                <View style={styles.modalFooterOnly}>
+                  <TouchableOpacity onPress={handleEditSubmit} style={[styles.btnSubmit, styles.btnFull]}>
+                    <Text style={styles.btnSubmitText}>저장하기</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-
-              <View style={styles.modalFooterOnly}>
-                <TouchableOpacity onPress={handleEditSubmit} style={[styles.btnSubmit, { width: '100%' }]}>
-                  <Text style={styles.btnSubmitText}>저장하기</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+              }
+            />
           </View>
         </View>
       </Modal>
     </ScrollView>
   );
 }
+
+function TripForm({
+  values,
+  onChange,
+  footer,
+}: {
+  values: TripFormValues;
+  onChange: (values: TripFormValues | ((prev: TripFormValues) => TripFormValues)) => void;
+  footer: React.ReactNode;
+}) {
+  return (
+    <View style={styles.stepContainer}>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>여행 제목 *</Text>
+        <TextInput
+          style={styles.input}
+          value={values.title}
+          onChangeText={(title) => onChange((prev) => ({ ...prev, title }))}
+          placeholder="예: 삿포로 여름 휴가"
+        />
+      </View>
+
+      <View style={styles.formRow}>
+        <View style={[styles.formGroup, styles.formColumn]}>
+          <Text style={styles.label}>출발일 *</Text>
+          <DateField
+            value={values.startDate}
+            onChangeText={(startDate) => onChange((prev) => ({ ...prev, startDate }))}
+          />
+        </View>
+        <View style={[styles.formGroup, styles.formColumn]}>
+          <Text style={styles.label}>도착일 *</Text>
+          <DateField
+            value={values.endDate}
+            onChangeText={(endDate) => onChange((prev) => ({ ...prev, endDate }))}
+          />
+        </View>
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>동행 인원 *</Text>
+        <MemberCounter
+          value={values.memberCount}
+          onChange={(memberCount) => onChange((prev) => ({ ...prev, memberCount }))}
+        />
+      </View>
+
+      {footer}
+    </View>
+  );
+}
+
+const webDateInputStyle = {
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: '#cbd5e1',
+  borderRadius: 10,
+  paddingLeft: 12,
+  paddingRight: 12,
+  height: 44,
+  fontSize: 14,
+  backgroundColor: '#f8fafc',
+  width: '100%',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+  outline: 'none',
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -563,7 +459,7 @@ const styles = StyleSheet.create({
   card: {
     width: isTablet ? (width - 56) / 2 : width - 40,
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 1.5,
     borderColor: '#e2e8f0',
@@ -574,7 +470,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardActive: {
-    borderColor: '#a29bfe',
+    borderColor: '#6c5ce7',
     borderWidth: 2,
   },
   cardHeader: {
@@ -590,7 +486,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.92)',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 8,
     fontSize: 11,
     fontWeight: '800',
     color: '#1e293b',
@@ -611,10 +507,13 @@ const styles = StyleSheet.create({
   cardActionBtn: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 8,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  cardDeleteBtn: {
+    backgroundColor: 'rgba(255, 76, 76, 0.65)',
   },
   cardBody: {
     padding: 16,
@@ -624,6 +523,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: '#0f172a',
+  },
+  cardCity: {
+    fontSize: 12,
+    color: '#6c5ce7',
+    fontWeight: '700',
   },
   cardMetaRow: {
     flexDirection: 'row',
@@ -638,7 +542,7 @@ const styles = StyleSheet.create({
   newCard: {
     width: isTablet ? (width - 56) / 2 : width - 40,
     height: 160,
-    borderRadius: 20,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: 'rgba(108, 92, 231, 0.3)',
     borderStyle: 'dashed',
@@ -661,7 +565,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 8,
     width: '100%',
     maxWidth: 400,
     padding: 24,
@@ -691,7 +595,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#cbd5e1',
     gap: 14,
@@ -720,6 +624,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  formColumn: {
+    flex: 1,
+  },
   label: {
     fontSize: 13,
     fontWeight: '700',
@@ -728,7 +635,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: 10,
+    borderRadius: 8,
     paddingHorizontal: 12,
     height: 44,
     fontSize: 14,
@@ -739,7 +646,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: 10,
+    borderRadius: 8,
     height: 44,
     width: 140,
     overflow: 'hidden',
@@ -782,9 +689,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#6c5ce7',
     paddingHorizontal: 16,
     height: 44,
-    borderRadius: 10,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  btnFull: {
+    width: '100%',
   },
   btnSubmitText: {
     fontSize: 13.5,

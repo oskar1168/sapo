@@ -1,74 +1,24 @@
-export interface ActivityItem {
-  id: number;
-  type: string;
-  name: string;
-  time: string;
-  memo: string;
-  cost?: number;
-  currency?: string;
-  address?: string;
-}
+import type {
+  ActivityItem,
+  AffiliateDealItem,
+  ChecklistItem,
+  CityExploreItem,
+  CityTemplate,
+  GuidebookItem,
+  ShoppingItem,
+  SpotItem,
+} from '../types/travelData';
 
-export interface ChecklistItem {
-  id: number;
-  text: string;
-  checked: boolean;
-}
-
-export interface ShoppingItem {
-  id: number;
-  name: string;
-  category: string;
-  qty: number;
-  cost: number;
-  currency: string;
-  memo: string;
-  checked: boolean;
-}
-
-export interface CityExploreItem {
-  emoji: string;
-  name: string;
-  desc: string;
-  filter: string;
-}
-
-export interface AffiliateDealItem {
-  emoji: string;
-  color: string;
-  title: string;
-  desc: string;
-}
-
-export interface GuidebookItem {
-  emoji: string;
-  title: string;
-  content: string;
-}
-
-export interface CityTemplate {
-  cityCode: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  memberCount: number;
-  mapCenter: [number, number];
-  mapZoom: number;
-  days: {
-    [key: string]: ActivityItem[];
-  };
-  checklist: ChecklistItem[];
-  shoppingList: ShoppingItem[];
-  explore: {
-    welcomeSubtitle: string;
-    bannerTitle: string;
-    bannerDesc: string;
-    cities: CityExploreItem[];
-    deals: AffiliateDealItem[];
-    guidebook: GuidebookItem[];
-  };
-}
-
+export type {
+  ActivityItem,
+  AffiliateDealItem,
+  ChecklistItem,
+  CityExploreItem,
+  CityTemplate,
+  GuidebookItem,
+  ShoppingItem,
+  SpotItem,
+} from '../types/travelData';
 export const CITY_TEMPLATES: { [key: string]: CityTemplate } = {
   sapporo: {
     cityCode: "sapporo",
@@ -287,238 +237,10 @@ export const FOOD_CATEGORIES: { [key: string]: { label: string; icon: string } }
   dessert: { label: "🍰 디저트 / 카페", icon: "cafe" }
 };
 
-export interface SpotItem {
-  name: string;
-  category: string;
-  rating: string;
-  menu: string;
-  tips: string;
-  address: string;
-  openTime: string;
-  closeTime: string;
-}
-
-export const SAPPORO_FOOD_LIST: SpotItem[] = [
-  {
-    name: "오도리 공원 (Odori Park)",
-    category: "spot",
-    rating: "4.5",
-    menu: "공원 산책 및 구운 옥수수 맛보기 🌽",
-    tips: "삿포로 TV타워를 배경으로 완벽한 인생샷을 남길 수 있는 최고 명소입니다! 공원 내 포장마차(토키비 웨건)에서 파는 노릇노릇한 구운 옥수수와 버터 감자는 삿포로 여름의 상징이니 벤치에 앉아 꼭 드셔보세요.",
-    address: "Odori Park, Sapporo",
-    openTime: "00:00",
-    closeTime: "24:00"
-  },
-  {
-    name: "모이와야마 전망대 (Mt. Moiwa Ropeway)",
-    category: "spot",
-    rating: "4.7",
-    menu: "일본 3대 야경 로프웨이 탑승 🚡",
-    tips: "해발 531m 정상에서 감상하는 삿포로 시내의 360도 은하수 야경은 압도적입니다. 산 정상의 '사랑의 종'에서 하트 자물쇠를 걸거나 종을 함께 울리며 황홀하고 로맨틱한 삿포로의 밤을 연출해보세요.",
-    address: "Mt. Moiwa Ropeway, Sapporo",
-    openTime: "10:30",
-    closeTime: "22:00"
-  },
-  {
-    name: "스프카레 스아게플러스 (Suage+)",
-    category: "noodle",
-    rating: "4.5",
-    menu: "닭꼬치(시레토코도리) 스프카레 (약 1,400엔)",
-    tips: "가라쿠(GARAKU)의 줄이 너무 길어 포기해야 할 때 1티어 대안지! 숯불에 구운 닭고기가 꼬치에 꽂혀 나와 먹기 편하고 국물이 대단히 깊고 얼큰합니다. 가라쿠 바로 근처에 본점과 2호점이 붙어있어 웨이팅 분산이 빠릅니다.",
-    address: "Suage+, South 4 West 5, Sapporo",
-    openTime: "11:30",
-    closeTime: "21:30"
-  },
-  {
-    name: "스프카레 트레져 (TREASURE)",
-    category: "noodle",
-    rating: "4.4",
-    menu: "함바그 스프카레 (약 1,350엔)",
-    tips: "스프카레 맛집 가라쿠(GARAKU)의 자매 브랜드 식당입니다. 비법 베이스 스프와 맛이 매우 유사하여 가라쿠 웨이팅이 감당이 안 될 때 바로 갈 수 있는 훌륭한 대안입니다. 철판 함바그 토핑이 대단히 잘 어울립니다.",
-    address: "스프카레 TREASURE, Sapporo",
-    openTime: "11:30",
-    closeTime: "20:30"
-  },
-  {
-    name: "징기스칸 아루코 (Alco)",
-    category: "meat",
-    rating: "4.6",
-    menu: "생양고기 어깨살 & 양갈비 (약 1,200엔)",
-    tips: "다루마 본점과 스스키노 골목의 다른 지점에 줄이 수십 미터 서 있을 때 갈 수 있는 숨겨진 골목 생양고기 최강 대안! 고기 질이 다루마만큼 훌륭하고 가격도 착합니다. 아늑한 다찌석 위주로 조용히 맥주와 곁들이기 좋습니다.",
-    address: "Arco Jingisukan, Sapporo",
-    openTime: "17:00",
-    closeTime: "22:00"
-  },
-  {
-    name: "라멘 요시야마 쇼텐 (Yoshiyama Shouten)",
-    category: "noodle",
-    rating: "4.3",
-    menu: "매운 참깨 미소 라멘 (약 950엔)",
-    tips: "라멘 신겐의 1~2시간 이상 웨이팅이 부담스러우시다면 삿포로역 ESTA 공화국이나 스스키노 빌딩 지하의 요시야마 쇼텐으로 가세요! 볶은 참깨의 고소함 and 삿포로 정통 미소의 감칠맛이 폭발하는 국물이 웨이팅 타협 이상의 맛을 선사합니다.",
-    address: "Yoshiyama Shouten, Sapporo",
-    openTime: "11:00",
-    closeTime: "21:00"
-  },
-  {
-    name: "스시잔마이 스스키노점 (Sushizanmai)",
-    category: "seafood",
-    rating: "4.1",
-    menu: "참치 세트 & 단품 초밥 (세트 약 2,500엔)",
-    tips: "삿포로 유명 스시야들이 대부분 사전 예약제이거나 대기가 일찍 마감됩니다. 스시잔마이는 24시간 영업하여 늦은 밤 야식으로도 웨이팅 없이 신선한 홋카이도 해산물 스시를 맛볼 수 있는 최고의 전천후 대체지입니다.",
-    address: "Sushizanmai Susukino, Sapporo",
-    openTime: "00:00",
-    closeTime: "24:00"
-  }
-];
-
-export const OTARU_FOOD_LIST: SpotItem[] = [
-  {
-    name: "오타루 운하 (Otaru Canal)",
-    category: "spot",
-    rating: "4.6",
-    menu: "운하 가스등 산책 및 크루즈 탑승 🛥️",
-    tips: "일몰 30분 전부터 붉은 노을과 함께 가스등 노란 불빛이 운하를 따라 켜지는 순간이 가장 환상적으로 아름답습니다. 낮보다 밤이 훨씬 아름다운 스팟으로, 옛 벽돌 창고를 개조한 비어홀이나 카페도 함께 둘러보세요.",
-    address: "Otaru Canal, Otaru",
-    openTime: "00:00",
-    closeTime: "24:00"
-  },
-  {
-    name: "오타루 오르골당 (Otaru Music Box Museum)",
-    category: "spot",
-    rating: "4.6",
-    menu: "천상의 오르골 선율 감상 🎶",
-    tips: "약 3만여 점에 달하는 아기자기한 오르골이 빛나는 세계 최대 규모의 오르골 전시장입니다. 입구의 상징적인 스팀 증기시계는 15분마다 아름다운 멜로디를 연주하며 증기를 뿜어내니 타이밍에 맞춰 인증샷을 찰칵!",
-    address: "Otaru Music Box Museum",
-    openTime: "09:00",
-    closeTime: "18:00"
-  },
-  {
-    name: "오타루 도야마 (Otaru Toyama)",
-    category: "seafood",
-    rating: "4.5",
-    menu: "도야마 특선 카이센동 (약 3,500엔)",
-    tips: "오타루역 삼각시장 내부의 타키나미 식당 웨이팅이 시장 밖까지 가득 차 있을 때 탈출할 수 있는 최고의 1선 대체지입니다! 삼각시장 바로 뒤쪽에 위치하며, 재료 신선도와 우니, 게살 토핑 양이 전혀 밀리지 않는 숨은 로컬 강자입니다.",
-    address: "Otaru Toyama Kaisendon",
-    openTime: "11:00",
-    closeTime: "18:00"
-  },
-  {
-    name: "오타루 마사즈시 운하점 (Masazushi)",
-    category: "seafood",
-    rating: "4.4",
-    menu: "타쿠미 스시 코스 (약 6,500엔)",
-    tips: "미스터 초밥왕의 고향 오타루에서 가장 전통 있고 상징적인 대표 스시야입니다. 본관 웨이팅이 길다면 운하점의 아름다운 운하 전망 창가 자리를 노려보는 것을 적극 추천합니다. 이세즈시 대비 예약 난이도가 낮고 캐주얼합니다.",
-    address: "Otaru Masazushi Zenan",
-    openTime: "11:00",
-    closeTime: "21:00"
-  },
-  {
-    name: "롯카테이 오타루점 (Rokkatei)",
-    category: "dessert",
-    rating: "4.4",
-    menu: "슈크림 빵 & 유키콘치즈 (약 150엔~300엔)",
-    tips: "사카이마치 거리의 르타오(LeTAO) 카페 테이블 웨이팅 대기가 50팀이 넘어갈 때, 바로 옆에 있는 롯카테이 2층 카페 스탠딩석으로 가세요! 갓 구운 바삭한 슈크림 빵을 사면 무료로 원두커피 한 잔을 제공하는 혜택이 있어 가성비 쉼터로 제격입니다.",
-    address: "Rokkatei Otaru",
-    openTime: "09:00",
-    closeTime: "18:00"
-  },
-  {
-    name: "기타카로 오타루 본점 (Kitakaro)",
-    category: "dessert",
-    rating: "4.3",
-    menu: "홋카이도 우유 소프트 아이스크림 (약 400엔)",
-    tips: "르타오 본점 웨이팅 타협을 위한 두 번째 대안! 기타카로 본관 안쪽의 조용하고 고풍스러운 정원에서 아주 진한 정통 홋카이도 목장 우유 맛 아이스크림과 달콤한 바움쿠헨 한 조각을 시켜서 벤치에 앉아 여유롭게 쉴 수 있습니다.",
-    address: "Kitakaro Otaru",
-    openTime: "09:00",
-    closeTime: "18:00"
-  }
-];
-
-export const TOKYO_FOOD_LIST: SpotItem[] = [
-  {
-    name: "도쿄 타워 (Tokyo Tower)",
-    category: "spot",
-    rating: "4.7",
-    menu: "도쿄의 상징 전망대 관람 🗼",
-    tips: "도쿄의 오랜 랜드마크입니다. 시바 공원에서 도쿄 타워를 배경으로 돗자리를 펴고 피크닉 사진을 찍으면 인생샷을 쉽게 남길 수 있습니다.",
-    address: "Tokyo Tower, Tokyo",
-    openTime: "09:00",
-    closeTime: "23:00"
-  },
-  {
-    name: "아사쿠사 센소지 (Senso-ji)",
-    category: "spot",
-    rating: "4.6",
-    menu: "전통 사찰 산책 & 나카미세도리 길거리 간식",
-    tips: "도쿄에서 가장 오래된 절입니다. 입구의 붉은 거대 등(카미나리몬) 아래서 인증샷을 찍고 사찰 앞 상점가에서 화과자와 모찌를 즐겨보세요.",
-    address: "Sensoji Temple, Tokyo",
-    openTime: "06:00",
-    closeTime: "17:00"
-  },
-  {
-    name: "시부야 스카이 (Shibuya Sky)",
-    category: "spot",
-    rating: "4.8",
-    menu: "전망대 옥상 시부야 스크램블 뷰",
-    tips: "시부야 스크램블 스퀘어 빌딩 옥상에 있는 전망대입니다. 일몰 시간대 예약이 가장 인기가 많으며, 바람을 맞으며 360도로 펼쳐진 야경은 장관입니다.",
-    address: "Shibuya Sky, Tokyo",
-    openTime: "10:00",
-    closeTime: "22:30"
-  },
-  {
-    name: "이치란 라멘 신주쿠점",
-    category: "noodle",
-    rating: "4.3",
-    menu: "천연 돈코츠 라멘 (약 980엔)",
-    tips: "한국인 입맛에 가장 잘 맞는 1인 독서실 형태의 유명 돈코츠 라멘집입니다. 매운맛 소스 레벨을 4~5단계 정도로 올리면 느끼함 없이 맛있게 드실 수 있습니다.",
-    address: "Ichiran Shinjuku, Tokyo",
-    openTime: "10:00",
-    closeTime: "23:00"
-  }
-];
-
-export const OSAKA_FOOD_LIST: SpotItem[] = [
-  {
-    name: "도톤보리 (Dotonbori)",
-    category: "spot",
-    rating: "4.6",
-    menu: "글리코상 인증샷 & 타코야키 투어 🐙",
-    tips: "오사카의 심장 같은 중심가입니다. 거대하고 화려한 입체 간판들을 배경으로 야경을 즐기고, 다리 밑 노점에서 파는 따끈한 타코야키를 맥주와 함께 즐겨보세요.",
-    address: "Dotonbori, Osaka",
-    openTime: "00:00",
-    closeTime: "24:00"
-  },
-  {
-    name: "유니버설 스튜디오 재팬 (USJ)",
-    category: "spot",
-    rating: "4.8",
-    menu: "해리포터 & 닌텐도 월드 어트랙션 🎢",
-    tips: "아시아 최고의 테마파크 중 하나입니다. 슈퍼 닌텐도 월드에 입장하려면 앱으로 정리권을 꼭 발급받거나 익스프레스 패스를 사전 구매해야 합니다.",
-    address: "Universal Studios Japan, Osaka",
-    openTime: "08:30",
-    closeTime: "21:00"
-  },
-  {
-    name: "교토 기요미즈데라 (청수사)",
-    category: "spot",
-    rating: "4.7",
-    menu: "산등성이에 세워진 목조 사찰 관람 ⛩️",
-    tips: "오사카에서 당일치기로 다녀오기 좋은 유네스코 세계유산 사찰입니다. 올라가는 언덕길(니넨자카, 산넨자카)의 고즈넉한 목조 건물들과 녹차 아이스크림이 필수 코스입니다.",
-    address: "Kiyomizu-dera, Kyoto",
-    openTime: "06:00",
-    closeTime: "18:00"
-  },
-  {
-    name: "치보 오사카 도톤보리본점",
-    category: "meat",
-    rating: "4.4",
-    menu: "치보 도톤보리 오코노미야키 (약 1,650엔)",
-    tips: "철판에 즉석으로 구워주는 도톤보리 정통 오코노미야키 & 야키소바 전문점입니다. 마요네즈 쇼를 눈앞에서 볼 수 있어 눈과 입이 모두 즐겁습니다.",
-    address: "Chibo Dotonbori, Osaka",
-    openTime: "11:00",
-    closeTime: "22:00"
-  }
-];
+export { SAPPORO_FOOD_LIST } from '../data/spots/sapporo';
+export { OTARU_FOOD_LIST } from '../data/spots/otaru';
+export { TOKYO_FOOD_LIST } from '../data/spots/tokyo';
+export { OSAKA_FOOD_LIST } from '../data/spots/osaka';
 
 export const LOCATION_COORDINATES: { [key: string]: [number, number] } = {
   "도쿄역": [35.6812, 139.7671],
