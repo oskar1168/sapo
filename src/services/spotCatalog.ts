@@ -16,12 +16,26 @@ type SpotCatalogRow = {
   city_code: string;
   category: string;
   name: string;
+  name_ko: string | null;
+  name_ja: string | null;
+  name_en: string | null;
+  name_ko_auto: string | null;
+  name_ko_status: 'auto' | 'reviewed' | 'rejected' | null;
+  search_keywords: string[] | null;
+  wikidata_id: string | null;
+  source_name: string | null;
+  source_url: string | null;
+  source_license: string | null;
   rating: string | null;
   menu: string | null;
   tips: string | null;
   address: string | null;
   open_time: string | null;
   close_time: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  google_place_id: string | null;
+  google_maps_url: string | null;
   thumbnail_url: string | null;
   image_url: string | null;
   image_blurhash: string | null;
@@ -54,9 +68,17 @@ function emptySpotLists(): Record<CityCode, SpotItem[]> {
 }
 
 function spotFromSupabaseRow(row: SpotCatalogRow): SpotItem {
+  const displayName = row.name_ko || row.name_ko_auto || row.name;
+
   return {
     id: row.id,
-    name: row.name,
+    name: displayName,
+    nameKo: row.name_ko || undefined,
+    nameJa: row.name_ja || undefined,
+    nameEn: row.name_en || undefined,
+    nameKoAuto: row.name_ko_auto || undefined,
+    nameKoStatus: row.name_ko_status || undefined,
+    searchKeywords: row.search_keywords || undefined,
     category: row.category,
     rating: row.rating || '',
     menu: row.menu || '',
@@ -64,6 +86,14 @@ function spotFromSupabaseRow(row: SpotCatalogRow): SpotItem {
     address: row.address || '',
     openTime: row.open_time || '',
     closeTime: row.close_time || '',
+    latitude: row.latitude ?? undefined,
+    longitude: row.longitude ?? undefined,
+    googlePlaceId: row.google_place_id || undefined,
+    googleMapsUrl: row.google_maps_url || undefined,
+    wikidataId: row.wikidata_id || undefined,
+    sourceName: row.source_name || undefined,
+    sourceUrl: row.source_url || undefined,
+    sourceLicense: row.source_license || undefined,
     thumbnailUrl: row.thumbnail_url || undefined,
     imageUrl: row.image_url || undefined,
     imageBlurhash: row.image_blurhash || undefined,
@@ -96,7 +126,7 @@ export async function loadSpotCatalog() {
     const { data, error } = await supabase
       .from('spots')
       .select(
-        'id, city_code, category, name, rating, menu, tips, address, open_time, close_time, thumbnail_url, image_url, image_blurhash',
+        'id, city_code, category, name, name_ko, name_ja, name_en, name_ko_auto, name_ko_status, search_keywords, wikidata_id, source_name, source_url, source_license, rating, menu, tips, address, open_time, close_time, latitude, longitude, google_place_id, google_maps_url, thumbnail_url, image_url, image_blurhash',
       )
       .eq('is_active', true)
       .order('city_code', { ascending: true })

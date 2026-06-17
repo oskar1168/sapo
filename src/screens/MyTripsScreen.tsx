@@ -51,14 +51,17 @@ const emptyForm: TripFormValues = {
 function DateField({
   value,
   onChangeText,
+  min,
 }: {
   value: string;
   onChangeText: (value: string) => void;
+  min?: string;
 }) {
   if (Platform.OS === 'web') {
     return React.createElement('input', {
       type: 'date',
       value,
+      min,
       onChange: (event: any) => onChangeText(event.target.value),
       style: webDateInputStyle,
     });
@@ -73,6 +76,21 @@ function DateField({
     />
   );
 }
+
+const addDaysToDateString = (dateString: string, days: number) => {
+  if (!dateString) return '';
+
+  const date = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return '';
+
+  date.setDate(date.getDate() + days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getMinEndDate = (startDate: string) => addDaysToDateString(startDate, 1);
 
 function MemberCounter({
   value,
@@ -357,6 +375,22 @@ function TripForm({
   onChange: (values: TripFormValues | ((prev: TripFormValues) => TripFormValues)) => void;
   footer: React.ReactNode;
 }) {
+  const minEndDate = getMinEndDate(values.startDate);
+
+  const handleStartDateChange = (startDate: string) => {
+    onChange((prev) => {
+      const nextMinEndDate = getMinEndDate(startDate);
+      const shouldMoveEndDate =
+        nextMinEndDate && (!prev.endDate || prev.endDate <= startDate);
+
+      return {
+        ...prev,
+        startDate,
+        endDate: shouldMoveEndDate ? nextMinEndDate : prev.endDate,
+      };
+    });
+  };
+
   return (
     <View style={styles.stepContainer}>
       <View style={styles.formGroup}>
@@ -374,13 +408,14 @@ function TripForm({
           <Text style={styles.label}>출발일 *</Text>
           <DateField
             value={values.startDate}
-            onChangeText={(startDate) => onChange((prev) => ({ ...prev, startDate }))}
+            onChangeText={handleStartDateChange}
           />
         </View>
         <View style={[styles.formGroup, styles.formColumn]}>
           <Text style={styles.label}>도착일 *</Text>
           <DateField
             value={values.endDate}
+            min={minEndDate || undefined}
             onChangeText={(endDate) => onChange((prev) => ({ ...prev, endDate }))}
           />
         </View>

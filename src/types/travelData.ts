@@ -72,6 +72,12 @@ export interface CityTemplate {
 export interface SpotItem {
   id: string;
   name: string;
+  nameKo?: string;
+  nameJa?: string;
+  nameEn?: string;
+  nameKoAuto?: string;
+  nameKoStatus?: 'auto' | 'reviewed' | 'rejected';
+  searchKeywords?: string[];
   category: string;
   rating: string;
   menu: string;
@@ -79,6 +85,14 @@ export interface SpotItem {
   address: string;
   openTime: string;
   closeTime: string;
+  latitude?: number;
+  longitude?: number;
+  googlePlaceId?: string;
+  googleMapsUrl?: string;
+  wikidataId?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+  sourceLicense?: string;
   thumbnailKey?: string;
   imageKey?: string;
   thumbnailUrl?: string;

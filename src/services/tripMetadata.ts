@@ -56,5 +56,5 @@ export const buildDefaultTripTitle = (cityName: string) => {
 };
 
 export const isTripMetadataFormValid = (title: string, startDate: string, endDate: string) => {
-  return Boolean(title.trim() && startDate && endDate);
+  return Boolean(title.trim() && startDate && endDate && endDate > startDate);
 };

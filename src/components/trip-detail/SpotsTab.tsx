@@ -46,10 +46,21 @@ export default function SpotsTab({
 }: SpotsTabProps) {
   const filteredSpots = getRecommendedSpots(cityCode, cityFilter).filter((spot) => {
     const normalizedQuery = spotSearchQuery.toLowerCase();
+    const searchText = [
+      spot.name,
+      spot.nameKo,
+      spot.nameJa,
+      spot.nameEn,
+      ...(spot.searchKeywords || []),
+      spot.menu,
+      spot.tips,
+      spot.address,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
     const matchesSearch =
-      spot.name.toLowerCase().includes(normalizedQuery) ||
-      spot.menu.toLowerCase().includes(normalizedQuery) ||
-      spot.tips.toLowerCase().includes(normalizedQuery);
+      normalizedQuery.length === 0 || searchText.includes(normalizedQuery);
     const matchesCategory = spotCategoryFilter === 'all' || spot.category === spotCategoryFilter;
 
     return matchesSearch && matchesCategory;

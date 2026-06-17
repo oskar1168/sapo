@@ -43,12 +43,26 @@ create table if not exists public.spots (
   city_code text not null references public.cities(code) on delete restrict,
   category text not null references public.spot_categories(code) on delete restrict,
   name text not null,
+  name_ko text,
+  name_ja text,
+  name_en text,
+  name_ko_auto text,
+  name_ko_status text not null default 'reviewed',
+  search_keywords text[] not null default '{}'::text[],
+  wikidata_id text,
+  source_name text,
+  source_url text,
+  source_license text,
   rating text not null default '',
   menu text not null default '',
   tips text not null default '',
   address text not null default '',
   open_time text not null default '',
   close_time text not null default '',
+  latitude double precision,
+  longitude double precision,
+  google_place_id text,
+  google_maps_url text,
   thumbnail_url text,
   image_url text,
   image_blurhash text,
@@ -57,6 +71,33 @@ create table if not exists public.spots (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.spots add column if not exists latitude double precision;
+alter table public.spots add column if not exists longitude double precision;
+alter table public.spots add column if not exists google_place_id text;
+alter table public.spots add column if not exists google_maps_url text;
+alter table public.spots add column if not exists name_ko text;
+alter table public.spots add column if not exists name_ja text;
+alter table public.spots add column if not exists name_en text;
+alter table public.spots add column if not exists name_ko_auto text;
+alter table public.spots add column if not exists name_ko_status text not null default 'reviewed';
+alter table public.spots add column if not exists search_keywords text[] not null default '{}'::text[];
+alter table public.spots add column if not exists wikidata_id text;
+alter table public.spots add column if not exists source_name text;
+alter table public.spots add column if not exists source_url text;
+alter table public.spots add column if not exists source_license text;
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'spots_name_ko_status_check'
+      and conrelid = 'public.spots'::regclass
+  ) then
+    alter table public.spots add constraint spots_name_ko_status_check
+      check (name_ko_status in ('auto', 'reviewed', 'rejected'));
+  end if;
+end $$;
 
 insert into public.cities (code, name, country_code, sort_order)
 values

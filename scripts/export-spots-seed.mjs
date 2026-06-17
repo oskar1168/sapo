@@ -16,6 +16,9 @@ function readStringLiteral(node) {
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
     return node.text;
   }
+  if (ts.isNumericLiteral(node)) {
+    return Number(node.text);
+  }
   return '';
 }
 
@@ -57,18 +60,47 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
+function sqlTextArray(values) {
+  const filteredValues = values.filter((value) => value !== undefined && value !== null && value !== '');
+  if (filteredValues.length === 0) return "'{}'::text[]";
+
+  const arrayValues = filteredValues
+    .map((value) => `"${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`)
+    .join(',');
+  return `'${`{${arrayValues}}`}'::text[]`;
+}
+
 function spotToValues(cityCode, spot, index) {
+  const nameKo = spot.nameKo || spot.name;
+  const searchKeywords = Array.isArray(spot.searchKeywords)
+    ? spot.searchKeywords
+    : [spot.name, spot.menu, spot.address];
+
   return [
     sqlString(spot.id),
     sqlString(cityCode),
     sqlString(spot.category),
     sqlString(spot.name),
+    sqlString(nameKo),
+    sqlString(spot.nameJa),
+    sqlString(spot.nameEn),
+    sqlString(spot.nameKoAuto),
+    sqlString(spot.nameKoStatus || 'reviewed'),
+    sqlTextArray(searchKeywords),
+    sqlString(spot.wikidataId),
+    sqlString(spot.sourceName || 'sapo-curated'),
+    sqlString(spot.sourceUrl),
+    sqlString(spot.sourceLicense),
     sqlString(spot.rating),
     sqlString(spot.menu),
     sqlString(spot.tips),
     sqlString(spot.address),
     sqlString(spot.openTime),
     sqlString(spot.closeTime),
+    spot.latitude === '' ? 'null' : String(spot.latitude ?? 'null'),
+    spot.longitude === '' ? 'null' : String(spot.longitude ?? 'null'),
+    sqlString(spot.googlePlaceId),
+    sqlString(spot.googleMapsUrl),
     String((index + 1) * 10),
   ].join(', ');
 }
@@ -95,12 +127,26 @@ console.log(`insert into public.spots (
   city_code,
   category,
   name,
+  name_ko,
+  name_ja,
+  name_en,
+  name_ko_auto,
+  name_ko_status,
+  search_keywords,
+  wikidata_id,
+  source_name,
+  source_url,
+  source_license,
   rating,
   menu,
   tips,
   address,
   open_time,
   close_time,
+  latitude,
+  longitude,
+  google_place_id,
+  google_maps_url,
   sort_order
 )
 values
@@ -109,12 +155,26 @@ on conflict (id) do update set
   city_code = excluded.city_code,
   category = excluded.category,
   name = excluded.name,
+  name_ko = excluded.name_ko,
+  name_ja = excluded.name_ja,
+  name_en = excluded.name_en,
+  name_ko_auto = excluded.name_ko_auto,
+  name_ko_status = excluded.name_ko_status,
+  search_keywords = excluded.search_keywords,
+  wikidata_id = excluded.wikidata_id,
+  source_name = excluded.source_name,
+  source_url = excluded.source_url,
+  source_license = excluded.source_license,
   rating = excluded.rating,
   menu = excluded.menu,
   tips = excluded.tips,
   address = excluded.address,
   open_time = excluded.open_time,
   close_time = excluded.close_time,
+  latitude = excluded.latitude,
+  longitude = excluded.longitude,
+  google_place_id = excluded.google_place_id,
+  google_maps_url = excluded.google_maps_url,
   sort_order = excluded.sort_order,
   is_active = true,
   updated_at = now();

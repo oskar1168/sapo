@@ -19,6 +19,77 @@ export interface SeasonGuide {
   tips: string;
 }
 
+type CityWeatherConfig = {
+  lat: number;
+  lon: number;
+  currentFallback: WeatherInfo;
+  forecastFallback: ForecastInfo[];
+};
+
+const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPENWEATHER_API_KEY || "";
+
+const CITY_WEATHER_CONFIG: { [city: string]: CityWeatherConfig } = {
+  sapporo: {
+    lat: 43.06,
+    lon: 141.35,
+    currentFallback: { temp: 18, desc: "구름 조금", icon: "☁️" },
+    forecastFallback: [
+      { day: "내일", temp: 19, desc: "맑음", icon: "☀️" },
+      { day: "모레", temp: 17, desc: "흐림", icon: "☁️" },
+      { day: "3일 뒤", temp: 20, desc: "구름조금", icon: "🌤️" },
+      { day: "4일 뒤", temp: 18, desc: "소나기", icon: "🌦️" },
+    ],
+  },
+  otaru: {
+    lat: 43.19,
+    lon: 140.99,
+    currentFallback: { temp: 17, desc: "해안 바람", icon: "🌊" },
+    forecastFallback: [
+      { day: "내일", temp: 18, desc: "맑음", icon: "☀️" },
+      { day: "모레", temp: 16, desc: "흐림", icon: "☁️" },
+      { day: "3일 뒤", temp: 17, desc: "바람", icon: "🌊" },
+      { day: "4일 뒤", temp: 16, desc: "약한 비", icon: "🌦️" },
+    ],
+  },
+  tokyo: {
+    lat: 35.6812,
+    lon: 139.7671,
+    currentFallback: { temp: 22, desc: "대체로 맑음", icon: "☀️" },
+    forecastFallback: [
+      { day: "내일", temp: 23, desc: "맑음", icon: "☀️" },
+      { day: "모레", temp: 24, desc: "구름조금", icon: "🌤️" },
+      { day: "3일 뒤", temp: 22, desc: "흐림", icon: "☁️" },
+      { day: "4일 뒤", temp: 23, desc: "맑음", icon: "☀️" },
+    ],
+  },
+  osaka: {
+    lat: 34.6937,
+    lon: 135.5023,
+    currentFallback: { temp: 24, desc: "한때 소나기", icon: "🌦️" },
+    forecastFallback: [
+      { day: "내일", temp: 25, desc: "소나기", icon: "🌦️" },
+      { day: "모레", temp: 26, desc: "구름조금", icon: "🌤️" },
+      { day: "3일 뒤", temp: 24, desc: "흐림", icon: "☁️" },
+      { day: "4일 뒤", temp: 27, desc: "맑음", icon: "☀️" },
+    ],
+  },
+  kyoto: {
+    lat: 35.0116,
+    lon: 135.7681,
+    currentFallback: { temp: 23, desc: "온화함", icon: "🌤️" },
+    forecastFallback: [
+      { day: "내일", temp: 24, desc: "맑음", icon: "☀️" },
+      { day: "모레", temp: 25, desc: "구름조금", icon: "🌤️" },
+      { day: "3일 뒤", temp: 23, desc: "흐림", icon: "☁️" },
+      { day: "4일 뒤", temp: 24, desc: "소나기", icon: "🌦️" },
+    ],
+  },
+};
+
+function getCityWeatherConfig(cityCode: string) {
+  return CITY_WEATHER_CONFIG[cityCode] || CITY_WEATHER_CONFIG.sapporo;
+}
+
 export const CITY_SEASON_WEATHER: {
   [city: string]: {
     [season: string]: { temp: number; desc: string; icon: string; tips: string };
@@ -52,27 +123,17 @@ export function getSeason(month: number): string {
 }
 
 export async function getWeatherData(cityCode: string): Promise<WeatherInfo> {
-  const OPENWEATHER_API_KEY = ""; // OpenWeather API Key
+  const cityWeather = getCityWeatherConfig(cityCode);
   
   if (!OPENWEATHER_API_KEY) {
-    // Return dummy data in case API key is empty
     return new Promise((resolve) => {
       setTimeout(() => {
-        let dummy = { temp: 18, desc: "구름 조금", icon: "☁️" };
-        if (cityCode === "tokyo") dummy = { temp: 22, desc: "대체로 맑음", icon: "☀️" };
-        else if (cityCode === "osaka") dummy = { temp: 24, desc: "한때 소나기", icon: "🌦️" };
-        resolve(dummy);
+        resolve(cityWeather.currentFallback);
       }, 150);
     });
   }
 
-  const cityCoords: { [key: string]: { lat: number; lon: number } } = {
-    sapporo: { lat: 43.06, lon: 141.35 },
-    tokyo: { lat: 35.6812, lon: 139.7671 },
-    osaka: { lat: 34.6937, lon: 135.5023 }
-  };
-  const coords = cityCoords[cityCode] || cityCoords.sapporo;
-  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=kr`;
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${cityWeather.lat}&lon=${cityWeather.lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=kr`;
 
   try {
     const res = await fetch(url);
@@ -92,37 +153,22 @@ export async function getWeatherData(cityCode: string): Promise<WeatherInfo> {
     return { temp, desc, icon };
   } catch (err) {
     console.warn("Weather fetch failed, fallback to dummy:", err);
-    let dummy = { temp: 18, desc: "구름 조금", icon: "☁️" };
-    if (cityCode === "tokyo") dummy = { temp: 22, desc: "맑음", icon: "☀️" };
-    else if (cityCode === "osaka") dummy = { temp: 24, desc: "소나기", icon: "🌦️" };
-    return dummy;
+    return cityWeather.currentFallback;
   }
 }
 
 export async function getForecastData(cityCode: string): Promise<ForecastInfo[]> {
-  const OPENWEATHER_API_KEY = "";
+  const cityWeather = getCityWeatherConfig(cityCode);
   
   if (!OPENWEATHER_API_KEY) {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const dummyForecast = [
-          { day: "내일", temp: 19, desc: "맑음", icon: "☀️" },
-          { day: "모레", temp: 17, desc: "흐림", icon: "☁️" },
-          { day: "글쎄", temp: 20, desc: "구름조금", icon: "🌤️" },
-          { day: "그글쎄", temp: 18, desc: "소나기", icon: "🌦️" }
-        ];
-        resolve(dummyForecast);
+        resolve(cityWeather.forecastFallback);
       }, 150);
     });
   }
 
-  const cityCoords: { [key: string]: { lat: number; lon: number } } = {
-    sapporo: { lat: 43.06, lon: 141.35 },
-    tokyo: { lat: 35.6812, lon: 139.7671 },
-    osaka: { lat: 34.6937, lon: 135.5023 }
-  };
-  const coords = cityCoords[cityCode] || cityCoords.sapporo;
-  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=kr`;
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${cityWeather.lat}&lon=${cityWeather.lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=kr`;
 
   try {
     const res = await fetch(url);
@@ -154,12 +200,7 @@ export async function getForecastData(cityCode: string): Promise<ForecastInfo[]>
     });
   } catch (err) {
     console.warn("Forecast fetch failed, fallback to dummy:", err);
-    return [
-      { day: "내일", temp: 19, desc: "맑음", icon: "☀️" },
-      { day: "모레", temp: 17, desc: "흐림", icon: "☁️" },
-      { day: "글쎄", temp: 20, desc: "구름조금", icon: "🌤️" },
-      { day: "그글쎄", temp: 18, desc: "소나기", icon: "🌦️" }
-    ];
+    return cityWeather.forecastFallback;
   }
 }
 

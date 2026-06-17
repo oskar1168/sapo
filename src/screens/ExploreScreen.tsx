@@ -8,11 +8,15 @@ import {
   Dimensions,
   Alert,
   Platform,
+  Linking,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CITY_TEMPLATES } from '../constants/travelData';
 import ExploreGuideModal from '../components/ExploreGuideModal';
 import SpotThumbnail from '../components/SpotThumbnail';
+import { getPartnerProductsForCity, PartnerProduct } from '../data/partnerProducts';
+import { recordPartnerProductClick } from '../services/partnerTracking';
 import { getSpotDetail, getSpotDetailById } from '../services/spotCatalog';
 import { SpotRef } from '../types/spot';
 
@@ -39,6 +43,7 @@ export default function ExploreScreen({
   const activeCity = cityCode || 'sapporo';
   const template = CITY_TEMPLATES[activeCity] || CITY_TEMPLATES.sapporo;
   const exp = template.explore;
+  const partnerProducts = getPartnerProductsForCity(activeCity);
 
   const activeLikedSpots = likedSpots
     .map((s) => (s.spotId ? getSpotDetailById(s.city, s.spotId) : getSpotDetail(s.city, s.originalIndex)))
@@ -58,6 +63,11 @@ export default function ExploreScreen({
     } else {
       Alert.alert('안내', `🎟️ '${dealTitle}' 제휴 페이지 연결을 준비 중입니다!`);
     }
+  };
+
+  const handlePartnerProductPress = async (product: PartnerProduct) => {
+    await recordPartnerProductClick(product);
+    await Linking.openURL(product.targetUrl);
   };
 
   return (
@@ -157,6 +167,47 @@ export default function ExploreScreen({
           ))}
         </View>
       </View>
+
+      {partnerProducts.length > 0 ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleOnly}>예약하면 편한 인기 상품</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.productSliderContent}
+          >
+            {partnerProducts.map((product) => (
+              <TouchableOpacity
+                key={product.id}
+                style={styles.productCard}
+                onPress={() => handlePartnerProductPress(product)}
+                activeOpacity={0.82}
+              >
+                {product.imageUrl ? (
+                  <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
+                ) : (
+                  <View style={[styles.productIconBox, { backgroundColor: `${product.color}1f` }]}>
+                    <Ionicons name={product.icon as any} size={22} color={product.color} />
+                  </View>
+                )}
+                <View style={styles.productInfo}>
+                  <Text style={styles.productProvider}>MYREALTRIP</Text>
+                  <Text style={styles.productTitle} numberOfLines={2}>
+                    {product.title}
+                  </Text>
+                  <Text style={styles.productDesc} numberOfLines={2}>
+                    {product.desc}
+                  </Text>
+                </View>
+                <View style={styles.productCta}>
+                  <Text style={styles.productCtaText}>보기</Text>
+                  <Ionicons name="open-outline" size={14} color="#ffffff" />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       {/* Specials/Deals List */}
       <View style={styles.section}>
@@ -412,6 +463,71 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontWeight: '600',
     textAlign: 'center',
+  },
+  productSliderContent: {
+    gap: 12,
+    paddingRight: 20,
+  },
+  productCard: {
+    width: 230,
+    minHeight: 180,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+  },
+  productImage: {
+    width: '100%',
+    height: 86,
+    borderRadius: 10,
+    backgroundColor: '#e2e8f0',
+  },
+  productIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  productInfo: {
+    gap: 4,
+    flex: 1,
+  },
+  productProvider: {
+    fontSize: 9.5,
+    fontWeight: '900',
+    color: '#94a3b8',
+    letterSpacing: 0,
+  },
+  productTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+    lineHeight: 18,
+  },
+  productDesc: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '600',
+    lineHeight: 16,
+  },
+  productCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#6c5ce7',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 30,
+    gap: 4,
+  },
+  productCtaText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#ffffff',
   },
   dealsList: {
     gap: 10,
