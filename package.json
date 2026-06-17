@@ -52,6 +52,7 @@
     "build:dev:ios": "eas build --profile development --platform ios",
     "build:preview:android": "eas build --profile preview --platform android",
     "build:prod:android": "eas build --profile production --platform android",
+    "spots:seed-sql": "node scripts/export-spots-seed.mjs",
     "lint": "expo lint"
   },
   "private": true

@@ -12,7 +12,7 @@ import {
   updateActiveTripDetail,
   updateTripMetadata,
 } from '../services/tripRepository';
-import { getSpotDetail, isSameSpotRef } from '../services/spotCatalog';
+import { getSpotDetail, isSameSpotRef, loadSpotCatalog } from '../services/spotCatalog';
 import { SpotRef } from '../types/spot';
 import { TripMetadata } from '../types/trip';
 
@@ -34,6 +34,7 @@ export default function AppIndex() {
   useEffect(() => {
     const loadSavedData = async () => {
       try {
+        await loadSpotCatalog();
         const snapshot = await loadInitialTripSnapshot();
         setTripsList(snapshot.tripsList);
         setLikedSpots(snapshot.likedSpots);
