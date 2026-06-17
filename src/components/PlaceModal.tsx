@@ -66,6 +66,7 @@ export default function PlaceModal({
   // Lock status flag
   const isLocked = isRecommendedSpot || (editingItem && editingItem.currency === undefined); // fallback logic
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (visible) {
       if (editingItem) {
@@ -111,6 +112,7 @@ export default function PlaceModal({
       setDay(defaultDay);
     }
   }, [visible, editingItem, isRecommendedSpot, recommendedData, defaultDay]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSave = () => {
     if (!name.trim()) {

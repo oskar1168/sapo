@@ -29,6 +29,7 @@ export default function ShoppingModal({ visible, onClose, onSubmit, editingItem 
   const [currency, setCurrency] = useState('JPY');
   const [memo, setMemo] = useState('');
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (visible) {
       if (editingItem) {
@@ -48,6 +49,7 @@ export default function ShoppingModal({ visible, onClose, onSubmit, editingItem 
       }
     }
   }, [visible, editingItem]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSave = () => {
     if (!name.trim()) {

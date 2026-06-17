@@ -1,13 +1,4 @@
-import type {
-  ActivityItem,
-  AffiliateDealItem,
-  ChecklistItem,
-  CityExploreItem,
-  CityTemplate,
-  GuidebookItem,
-  ShoppingItem,
-  SpotItem,
-} from '../types/travelData';
+import type { CityTemplate } from '../types/travelData';
 
 export type {
   ActivityItem,

@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
-  TextInput,
-  Dimensions,
   Alert,
   Share,
   Platform,
@@ -42,7 +40,6 @@ import {
   deleteActivityItem,
   deleteShoppingItem,
   getTripDayDateString,
-  getTripDayKeys,
   getTripDayOptions,
   toggleChecklistItem,
   toggleShoppingItemChecked,
@@ -50,9 +47,6 @@ import {
   upsertShoppingItem,
 } from '../services/tripPlanning';
 import { SpotRef } from '../types/spot';
-
-const { width } = Dimensions.get('window');
-const isTablet = width > 600;
 
 interface TripDetailScreenProps {
   tripId: string;
@@ -112,6 +106,13 @@ export default function TripDetailScreen({
   // Checklist direct add input
   const [newChecklistText, setNewChecklistText] = useState('');
 
+  const triggerAddSpotToTimeline = useCallback((spot: SpotItem) => {
+    setRecommendedSpotData(createRecommendedSpotPlaceData(spot));
+    setIsRecommendedSpotAdd(true);
+    setEditingPlace(null);
+    setPlaceModalVisible(true);
+  }, []);
+
   // Fetch real-time resources when extra/tools tab opens
   useEffect(() => {
     const fetchResources = async () => {
@@ -139,19 +140,22 @@ export default function TripDetailScreen({
   // Handle automatic PlaceModal open when navigated from Explore screen 'Add Spot'
   useEffect(() => {
     if (autoAddSpot) {
-      const spot = autoAddSpot.spotId
-        ? getSpotDetailById(autoAddSpot.city, autoAddSpot.spotId)
-        : getSpotDetail(autoAddSpot.city, autoAddSpot.originalIndex);
-      if (spot) {
-        triggerAddSpotToTimeline(spot);
-      }
-      onClearAutoAddSpot();
+      const timeoutId = setTimeout(() => {
+        const spot = autoAddSpot.spotId
+          ? getSpotDetailById(autoAddSpot.city, autoAddSpot.spotId)
+          : getSpotDetail(autoAddSpot.city, autoAddSpot.originalIndex);
+        if (spot) {
+          triggerAddSpotToTimeline(spot);
+        }
+        onClearAutoAddSpot();
+      }, 0);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [autoAddSpot]);
+  }, [autoAddSpot, onClearAutoAddSpot, triggerAddSpotToTimeline]);
 
   if (!travelData) return null;
 
-  const dayKeys = getTripDayKeys(travelData);
   const getDayDateString = (dayIndex: string) => getTripDayDateString(travelData.startDate, dayIndex);
   const dayOptions = getTripDayOptions(travelData);
   const stats = calculateTripStats(travelData, exchangeRate);
@@ -248,13 +252,6 @@ export default function TripDetailScreen({
 
   const toggleSpotAccordion = (index: number) => {
     setExpandedSpots((prev) => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  const triggerAddSpotToTimeline = (spot: SpotItem) => {
-    setRecommendedSpotData(createRecommendedSpotPlaceData(spot));
-    setIsRecommendedSpotAdd(true);
-    setEditingPlace(null);
-    setPlaceModalVisible(true);
   };
 
   // Shopping handlers

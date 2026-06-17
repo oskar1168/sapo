@@ -195,7 +195,7 @@ export const generateBudgetHtml = (travelData: any, _stats: TripStats, exchangeR
   const totalDays = dayKeys.length;
   const nights = totalDays > 1 ? `${totalDays - 1}박 ${totalDays}일` : '당일 일정';
 
-  const jointDetailedList: Array<{ name: string; categoryName: string; costText: string; totalKRW: number }> = [];
+  const jointDetailedList: { name: string; categoryName: string; costText: string; totalKRW: number }[] = [];
   let jointCostKRW = 0;
 
   dayKeys.forEach((dayKey) => {
@@ -214,7 +214,7 @@ export const generateBudgetHtml = (travelData: any, _stats: TripStats, exchangeR
     });
   });
 
-  const personalShoppingList: Array<{ name: string; categoryName: string; costPerUnit: string; qtyText: string; totalKRW: number }> = [];
+  const personalShoppingList: { name: string; categoryName: string; costPerUnit: string; qtyText: string; totalKRW: number }[] = [];
   let personalShoppingCostKRW = 0;
 
   (travelData.shoppingList || []).forEach((item: ShoppingItem) => {

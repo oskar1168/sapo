@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, Image, Modal } from 'react-native';
-
-const walkingSummerGif = require('../../assets/walking_summer.gif');
 import ExploreScreen from '../screens/ExploreScreen';
 import MyTripsScreen from '../screens/MyTripsScreen';
 import TripDetailScreen from '../screens/TripDetailScreen';
@@ -17,6 +15,8 @@ import {
 import { getSpotDetail, isSameSpotRef } from '../services/spotCatalog';
 import { SpotRef } from '../types/spot';
 import { TripMetadata } from '../types/trip';
+
+const walkingSummerGif = require('../../assets/walking_summer.gif');
 
 export default function AppIndex() {
   const [loading, setLoading] = useState(true);
