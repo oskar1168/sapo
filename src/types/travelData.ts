@@ -78,6 +78,7 @@ export interface SpotItem {
   nameKoAuto?: string;
   nameKoStatus?: 'auto' | 'reviewed' | 'rejected';
   searchKeywords?: string[];
+  tags?: string[];
   category: string;
   rating: string;
   menu: string;

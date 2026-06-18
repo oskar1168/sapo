@@ -57,6 +57,8 @@ interface TripDetailScreenProps {
   onBackToExplore: () => void;
   autoAddSpot: SpotRef | null;
   onClearAutoAddSpot: () => void;
+  onRefreshSpots?: (cityCode: string) => Promise<void>;
+  isRefreshing?: boolean;
 }
 
 export default function TripDetailScreen({
@@ -68,6 +70,8 @@ export default function TripDetailScreen({
   onBackToExplore,
   autoAddSpot,
   onClearAutoAddSpot,
+  onRefreshSpots,
+  isRefreshing,
 }: TripDetailScreenProps) {
   // Navigation tabs
   const [activeTab, setActiveTab] = useState('timeline'); // 'timeline', 'spots', 'shopping', 'extra'
@@ -429,6 +433,12 @@ export default function TripDetailScreen({
             onToggleSpotAccordion={toggleSpotAccordion}
             onToggleLike={onToggleLike}
             onAddSpotToTimeline={triggerAddSpotToTimeline}
+            onRefresh={async () => {
+              if (onRefreshSpots) {
+                await onRefreshSpots(travelData.cityCode || 'sapporo');
+              }
+            }}
+            refreshing={isRefreshing}
           />
         )}
         {/* ==================== 3. SHOPPING TAB ==================== */}

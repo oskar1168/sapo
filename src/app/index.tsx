@@ -12,7 +12,7 @@ import {
   updateActiveTripDetail,
   updateTripMetadata,
 } from '../services/tripRepository';
-import { getSpotDetail, isSameSpotRef, loadSpotCatalog } from '../services/spotCatalog';
+import { getSpotDetail, isSameSpotRef, loadSpotCatalog, loadCitySpots } from '../services/spotCatalog';
 import { SpotRef } from '../types/spot';
 import { TripMetadata } from '../types/trip';
 
@@ -29,17 +29,35 @@ export default function AppIndex() {
   const [travelData, setTravelData] = useState<any>(null); // Detail data of active trip
   const [likedSpots, setLikedSpots] = useState<SpotRef[]>([]);
   const [autoAddSpot, setAutoAddSpot] = useState<SpotRef | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // 1. Initial State Load from storage
+  // 1. Initial State Load from storage & lazy load required spots
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-        await loadSpotCatalog();
         const snapshot = await loadInitialTripSnapshot();
         setTripsList(snapshot.tripsList);
         setLikedSpots(snapshot.likedSpots);
         setActiveTripId(snapshot.activeTripId);
         setTravelData(snapshot.travelData);
+
+        // 로드해야 할 도시 집합 수집 (과금 방지를 위해 필요한 것들만)
+        const citiesToLoad = new Set<string>();
+        if (snapshot.travelData?.cityCode) {
+          citiesToLoad.add(snapshot.travelData.cityCode);
+        }
+        snapshot.tripsList.forEach((t: any) => {
+          if (t.cityCode) citiesToLoad.add(t.cityCode);
+        });
+        snapshot.likedSpots.forEach((s: any) => {
+          if (s.city) citiesToLoad.add(s.city);
+        });
+
+        if (citiesToLoad.size === 0) {
+          citiesToLoad.add('sapporo'); // Fallback 기본값
+        }
+
+        await loadSpotCatalog(Array.from(citiesToLoad) as any);
       } catch (e) {
         console.warn('Failed to load initial data:', e);
       } finally {
@@ -67,6 +85,10 @@ export default function AppIndex() {
       setTripsList(result.tripsList);
       setActiveTripId(result.tripId);
       setTravelData(result.travelData);
+
+      if (newTripMeta.cityCode) {
+        await loadCitySpots(newTripMeta.cityCode as any);
+      }
     } catch (e) {
       console.warn('Failed to save trip detail:', e);
     }
@@ -122,12 +144,16 @@ export default function AppIndex() {
       const detail = await selectTrip(tripId);
       if (detail) {
         setTravelData(detail);
+        if (detail.cityCode) {
+          await loadCitySpots(detail.cityCode as any);
+        }
       }
     } catch (e) {
       console.warn('Failed to select trip:', e);
     }
     setCurrentView('detail');
   };
+
   // Toggle liked spot
   const handleToggleLike = (city: string, originalIndex: number) => {
     const spot = getSpotDetail(city, originalIndex);
@@ -153,6 +179,23 @@ export default function AppIndex() {
     setAutoAddSpot({ city, spotId: spot?.id, originalIndex });
     setCurrentView('detail');
   };
+
+  // Pull-to-refresh handler to invalidate cache and fetch fresh spots
+  const handleRefreshSpots = async (cityCode: string) => {
+    setIsRefreshing(true);
+    try {
+      await loadCitySpots(cityCode as any, true);
+      // Trigger state update/re-render by copying travelData object
+      if (travelData) {
+        setTravelData({ ...travelData });
+      }
+    } catch (e) {
+      console.warn('Failed to refresh spots:', e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -199,6 +242,8 @@ export default function AppIndex() {
           onBackToExplore={() => setCurrentView('explore')}
           autoAddSpot={autoAddSpot}
           onClearAutoAddSpot={() => setAutoAddSpot(null)}
+          onRefreshSpots={handleRefreshSpots}
+          isRefreshing={isRefreshing}
         />
       ) : null}
 
@@ -217,6 +262,7 @@ export default function AppIndex() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,

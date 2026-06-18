@@ -220,12 +220,22 @@ export const CITY_TEMPLATES: { [key: string]: CityTemplate } = {
   }
 };
 
-export const FOOD_CATEGORIES: { [key: string]: { label: string; icon: string } } = {
+export const SPOT_CATEGORIES: { [key: string]: { label: string; icon: string; dbCategories?: string[] } } = {
+  spot: { label: "🏞️ 명소 / 관광지", icon: "landscape", dbCategories: ["spot"] },
+  food: { label: "🍽️ 맛집 / 식당", icon: "restaurant", dbCategories: ["meat", "seafood", "noodle"] },
+  dessert: { label: "🍰 디저트 / 카페", icon: "cafe", dbCategories: ["dessert", "cafe"] },
+  shopping: { label: "🛍️ 쇼핑 / 소품샵", icon: "bag", dbCategories: ["shopping"] }
+};
+
+export const DETAILED_CATEGORIES: { [key: string]: { label: string; icon: string } } = {
   spot: { label: "🏞️ 명소 / 관광지", icon: "landscape" },
   meat: { label: "🥩 고기 / 육류", icon: "restaurant" },
   seafood: { label: "🐟 해산물 / 스시", icon: "water" },
   noodle: { label: "🍛 면 / 스프카레", icon: "soup" },
-  dessert: { label: "🍰 디저트 / 카페", icon: "cafe" }
+  dessert: { label: "🍰 디저트 / 카페", icon: "cafe" },
+  cafe: { label: "☕ 카페 / 음료", icon: "cafe" },
+  shopping: { label: "🛍️ 쇼핑 / 소품샵", icon: "bag" },
+  etc: { label: "⚙️ 기타", icon: "ellipsis" }
 };
 
 export { SAPPORO_FOOD_LIST } from '../data/spots/sapporo';

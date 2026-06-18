@@ -8,6 +8,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { getSpotImageKey, getSpotThumbnailKey } from './imageStorage';
 import { CityCode, SpotRef } from '../types/spot';
 import { SpotItem } from '../types/travelData';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type SpotWithSource = SpotItem & SpotRef;
 
@@ -22,6 +23,7 @@ type SpotCatalogRow = {
   name_ko_auto: string | null;
   name_ko_status: 'auto' | 'reviewed' | 'rejected' | null;
   search_keywords: string[] | null;
+  tags: string[] | null;
   wikidata_id: string | null;
   source_name: string | null;
   source_url: string | null;
@@ -79,6 +81,7 @@ function spotFromSupabaseRow(row: SpotCatalogRow): SpotItem {
     nameKoAuto: row.name_ko_auto || undefined,
     nameKoStatus: row.name_ko_status || undefined,
     searchKeywords: row.search_keywords || undefined,
+    tags: row.tags || undefined,
     category: row.category,
     rating: row.rating || '',
     menu: row.menu || '',
@@ -116,32 +119,72 @@ function setActiveSpotLists(rows: SpotCatalogRow[]) {
   };
 }
 
-export async function loadSpotCatalog() {
+const CACHE_PREFIX = 'sapo_cache_spots_';
+const CACHE_EXPIRY = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+
+export async function loadCitySpots(cityCode: CityCode, forceRefresh = false): Promise<SpotItem[]> {
   if (!isSupabaseConfigured || !supabase) {
-    activeSpotLists = LOCAL_SPOT_LISTS;
-    return activeSpotLists;
+    activeSpotLists[cityCode] = LOCAL_SPOT_LISTS[cityCode];
+    return activeSpotLists[cityCode];
   }
 
+  const cacheKey = `${CACHE_PREFIX}${cityCode}`;
+
   try {
+    const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+    if (!forceRefresh && !isDev) {
+      const cachedDataStr = await AsyncStorage.getItem(cacheKey);
+      if (cachedDataStr) {
+        const { timestamp, data } = JSON.parse(cachedDataStr);
+        const isExpired = Date.now() - timestamp > CACHE_EXPIRY;
+        if (!isExpired && Array.isArray(data) && data.length > 0) {
+          console.log(`[Cache] Using cached spots for ${cityCode}`);
+          activeSpotLists[cityCode] = data;
+          return data;
+        }
+      }
+    }
+
+    console.log(`[Supabase] Fetching spots for ${cityCode} from database...`);
     const { data, error } = await supabase
       .from('spots')
       .select(
-        'id, city_code, category, name, name_ko, name_ja, name_en, name_ko_auto, name_ko_status, search_keywords, wikidata_id, source_name, source_url, source_license, rating, menu, tips, address, open_time, close_time, latitude, longitude, google_place_id, google_maps_url, thumbnail_url, image_url, image_blurhash',
+        'id, city_code, category, name, name_ko, name_ja, name_en, name_ko_auto, name_ko_status, search_keywords, tags, wikidata_id, source_name, source_url, source_license, rating, menu, tips, address, open_time, close_time, latitude, longitude, google_place_id, google_maps_url, thumbnail_url, image_url, image_blurhash',
       )
+      .eq('city_code', cityCode)
       .eq('is_active', true)
-      .order('city_code', { ascending: true })
       .order('sort_order', { ascending: true });
 
     if (error) throw error;
-    if (!data || data.length === 0) return activeSpotLists;
 
-    setActiveSpotLists(data as SpotCatalogRow[]);
-    return activeSpotLists;
+    if (data && data.length > 0) {
+      const parsedSpots = data.map((row) => spotFromSupabaseRow(row as SpotCatalogRow));
+      activeSpotLists[cityCode] = parsedSpots;
+
+      const cacheObj = {
+        timestamp: Date.now(),
+        data: parsedSpots,
+      };
+      await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheObj));
+      return parsedSpots;
+    }
   } catch (error) {
-    console.warn('Supabase spot catalog load failed, using bundled catalog:', error);
-    activeSpotLists = LOCAL_SPOT_LISTS;
-    return activeSpotLists;
+    console.warn(`[Supabase] Failed to load spots for city ${cityCode}, falling back to bundle:`, error);
   }
+
+  if (!activeSpotLists[cityCode] || activeSpotLists[cityCode].length === 0) {
+    activeSpotLists[cityCode] = LOCAL_SPOT_LISTS[cityCode];
+  }
+  return activeSpotLists[cityCode];
+}
+
+export async function loadSpotCatalog(cities: CityCode[] = ['sapporo', 'otaru', 'tokyo', 'osaka']) {
+  try {
+    await Promise.all(cities.map((city) => loadCitySpots(city)));
+  } catch (error) {
+    console.warn('Failed to load spot catalog completely:', error);
+  }
+  return activeSpotLists;
 }
 
 export function getSpotDetail(city: string, originalIndex: number): SpotWithSource | null {

@@ -49,6 +49,7 @@ create table if not exists public.spots (
   name_ko_auto text,
   name_ko_status text not null default 'reviewed',
   search_keywords text[] not null default '{}'::text[],
+  tags text[] not null default '{}'::text[],
   wikidata_id text,
   source_name text,
   source_url text,
@@ -86,6 +87,7 @@ alter table public.spots add column if not exists wikidata_id text;
 alter table public.spots add column if not exists source_name text;
 alter table public.spots add column if not exists source_url text;
 alter table public.spots add column if not exists source_license text;
+alter table public.spots add column if not exists tags text[] not null default '{}'::text[];
 do $$
 begin
   if not exists (

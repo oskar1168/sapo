@@ -29,7 +29,12 @@ function readSpotObject(node) {
     if (!ts.isPropertyAssignment(property)) return;
     const key = property.name?.text;
     if (!key) return;
-    spot[key] = readStringLiteral(property.initializer);
+
+    if (ts.isArrayLiteralExpression(property.initializer)) {
+      spot[key] = property.initializer.elements.map(readStringLiteral);
+    } else {
+      spot[key] = readStringLiteral(property.initializer);
+    }
   });
 
   return spot;
@@ -87,6 +92,7 @@ function spotToValues(cityCode, spot, index) {
     sqlString(spot.nameKoAuto),
     sqlString(spot.nameKoStatus || 'reviewed'),
     sqlTextArray(searchKeywords),
+    sqlTextArray(spot.tags || []),
     sqlString(spot.wikidataId),
     sqlString(spot.sourceName || 'sapo-curated'),
     sqlString(spot.sourceUrl),
@@ -133,6 +139,7 @@ console.log(`insert into public.spots (
   name_ko_auto,
   name_ko_status,
   search_keywords,
+  tags,
   wikidata_id,
   source_name,
   source_url,
@@ -161,6 +168,7 @@ on conflict (id) do update set
   name_ko_auto = excluded.name_ko_auto,
   name_ko_status = excluded.name_ko_status,
   search_keywords = excluded.search_keywords,
+  tags = excluded.tags,
   wikidata_id = excluded.wikidata_id,
   source_name = excluded.source_name,
   source_url = excluded.source_url,

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FlatList,
   ScrollView,
@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import SpotThumbnail from '../SpotThumbnail';
-import { FOOD_CATEGORIES, SpotItem } from '../../constants/travelData';
+import { SPOT_CATEGORIES, DETAILED_CATEGORIES, SpotItem } from '../../constants/travelData';
 import { getRecommendedSpots, getSpotSource, isSameSpotRef } from '../../services/spotCatalog';
 import { SpotRef } from '../../types/spot';
 
@@ -28,7 +28,16 @@ interface SpotsTabProps {
   onToggleSpotAccordion: (index: number) => void;
   onToggleLike: (city: string, originalIndex: number) => void;
   onAddSpotToTimeline: (spot: SpotItem) => void;
+  onRefresh?: () => Promise<void>;
+  refreshing?: boolean;
 }
+
+const COMPANION_TAGS = [
+  { value: 'all', label: '전체' },
+  { value: '가족', label: '👨‍👩‍👧‍👦 가족과 함께' },
+  { value: '연인', label: '👩‍❤️‍👨 연인과 함께' },
+  { value: '혼자', label: '🎒 혼자서도 좋아요' },
+];
 
 export default function SpotsTab({
   cityCode,
@@ -43,7 +52,11 @@ export default function SpotsTab({
   onToggleSpotAccordion,
   onToggleLike,
   onAddSpotToTimeline,
+  onRefresh,
+  refreshing,
 }: SpotsTabProps) {
+  const [spotCompanionFilter, setSpotCompanionFilter] = useState<string>('all');
+
   const filteredSpots = getRecommendedSpots(cityCode, cityFilter).filter((spot) => {
     const normalizedQuery = spotSearchQuery.toLowerCase();
     const searchText = [
@@ -61,9 +74,14 @@ export default function SpotsTab({
       .toLowerCase();
     const matchesSearch =
       normalizedQuery.length === 0 || searchText.includes(normalizedQuery);
-    const matchesCategory = spotCategoryFilter === 'all' || spot.category === spotCategoryFilter;
+    const categoryMeta = SPOT_CATEGORIES[spotCategoryFilter];
+    const matchesCategory =
+      spotCategoryFilter === 'all' ||
+      (categoryMeta && categoryMeta.dbCategories?.includes(spot.category));
+    const matchesCompanion =
+      spotCompanionFilter === 'all' || (spot.tags && spot.tags.includes(spotCompanionFilter));
 
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesCompanion;
   });
 
   const renderSpot = ({ item: spot, index }: { item: SpotItem; index: number }) => {
@@ -93,9 +111,14 @@ export default function SpotsTab({
             <View style={styles.spotCardBadgeRow}>
               <View style={styles.spotBadge}>
                 <Text style={styles.spotBadgeText}>
-                  {FOOD_CATEGORIES[spot.category]?.label || '추천 스팟'}
+                  {DETAILED_CATEGORIES[spot.category]?.label || '추천 스팟'}
                 </Text>
               </View>
+              {spot.tags && spot.tags.map((tag, idx) => (
+                <View key={idx} style={[styles.spotBadge, styles.tagBadge]}>
+                  <Text style={styles.tagBadgeText}>#{tag}</Text>
+                </View>
+              ))}
             </View>
           </View>
           <Ionicons
@@ -179,6 +202,24 @@ export default function SpotsTab({
         </View>
       ) : null}
 
+      <View style={styles.companionChipsWrapper}>
+        <Text style={styles.companionTitle}>누구와 함께 가나요?</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.companionScroll}>
+          {COMPANION_TAGS.map((tag) => (
+            <TouchableOpacity
+              key={tag.value}
+              style={[styles.companionChip, spotCompanionFilter === tag.value && styles.companionChipActive]}
+              onPress={() => setSpotCompanionFilter(tag.value)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.companionChipText, spotCompanionFilter === tag.value && styles.companionChipTextActive]}>
+                {tag.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       <View style={styles.categoryChipsWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catScroll}>
           <TouchableOpacity
@@ -189,14 +230,14 @@ export default function SpotsTab({
               전체
             </Text>
           </TouchableOpacity>
-          {Object.keys(FOOD_CATEGORIES).map((catKey) => (
+          {Object.keys(SPOT_CATEGORIES).map((catKey) => (
             <TouchableOpacity
               key={catKey}
               style={[styles.filterChip, spotCategoryFilter === catKey && styles.filterChipActive]}
               onPress={() => onSetSpotCategoryFilter(catKey)}
             >
               <Text style={[styles.filterChipText, spotCategoryFilter === catKey && styles.filterChipTextActive]}>
-                {FOOD_CATEGORIES[catKey].label}
+                {SPOT_CATEGORIES[catKey].label}
               </Text>
             </TouchableOpacity>
           ))}
@@ -205,7 +246,7 @@ export default function SpotsTab({
 
       <FlatList
         data={filteredSpots}
-        keyExtractor={(item, index) => `${item.name}-${index}`}
+        keyExtractor={(item) => item.id}
         renderItem={renderSpot}
         contentContainerStyle={styles.spotsScroll}
         ListEmptyComponent={
@@ -215,6 +256,8 @@ export default function SpotsTab({
         maxToRenderPerBatch={8}
         windowSize={5}
         removeClippedSubviews
+        refreshing={refreshing}
+        onRefresh={onRefresh}
       />
     </View>
   );
@@ -420,5 +463,49 @@ const styles = StyleSheet.create({
   },
   btnSpotLikeTextActive: {
     color: '#ffffff',
+  },
+  companionChipsWrapper: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    gap: 6,
+  },
+  companionTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#64748b',
+    marginLeft: 4,
+  },
+  companionScroll: {
+    gap: 8,
+    alignItems: 'center',
+  },
+  companionChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  companionChipActive: {
+    backgroundColor: '#6c5ce7',
+    borderColor: '#6c5ce7',
+  },
+  companionChipText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  companionChipTextActive: {
+    color: '#ffffff',
+  },
+  tagBadge: {
+    backgroundColor: '#f1f2f6',
+    marginLeft: 6,
+  },
+  tagBadgeText: {
+    fontSize: 9.5,
+    color: '#57606f',
+    fontWeight: '700',
   },
 });
