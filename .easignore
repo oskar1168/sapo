@@ -1,0 +1,7 @@
+# Ignore local native folders so EAS Build performs clean prebuild in the cloud
+android/
+ios/
+node_modules/
+.expo/
+dist/
+web-build/
