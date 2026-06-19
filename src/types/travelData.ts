@@ -7,6 +7,9 @@ export interface ActivityItem {
   cost?: number;
   currency?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
+  googleMapsUrl?: string;
 }
 
 export interface ChecklistItem {

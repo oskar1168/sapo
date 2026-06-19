@@ -138,6 +138,9 @@ export const createRecommendedSpotPlaceData = (spot: SpotItem) => {
     name: spot.name,
     category: spot.category,
     address: spot.address,
+    latitude: spot.latitude,
+    longitude: spot.longitude,
+    googleMapsUrl: spot.googleMapsUrl,
     menu: spot.menu,
     tips: spot.tips,
   };

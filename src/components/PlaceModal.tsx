@@ -36,7 +36,16 @@ interface PlaceModalProps {
   defaultDay: string;
   exchangeRate: number; // 1 JPY to KRW
   isRecommendedSpot?: boolean; // If triggered from Liked spot (locks fields)
-  recommendedData?: { name: string; category: string; address?: string; menu?: string; tips?: string };
+  recommendedData?: {
+    name: string;
+    category: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    googleMapsUrl?: string;
+    menu?: string;
+    tips?: string;
+  };
 }
 
 export default function PlaceModal({
@@ -132,6 +141,9 @@ export default function PlaceModal({
       cost: cost ? parseFloat(cost) : undefined,
       currency: cost ? currency : undefined,
       address: address ? address.trim() : undefined,
+      latitude: editingItem?.latitude ?? recommendedData?.latitude,
+      longitude: editingItem?.longitude ?? recommendedData?.longitude,
+      googleMapsUrl: editingItem?.googleMapsUrl || recommendedData?.googleMapsUrl,
       ...(editingItem?.id ? { id: editingItem.id } : {}),
     }, day);
     onClose();

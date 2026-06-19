@@ -73,6 +73,12 @@ create table if not exists public.spots (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.spot_catalog_versions (
+  city_code text primary key references public.cities(code) on delete cascade,
+  version bigint not null default 1,
+  updated_at timestamptz not null default now()
+);
+
 alter table public.spots add column if not exists latitude double precision;
 alter table public.spots add column if not exists longitude double precision;
 alter table public.spots add column if not exists google_place_id text;
@@ -106,7 +112,10 @@ values
   ('sapporo', 'Sapporo', 'JP', 10),
   ('otaru', 'Otaru', 'JP', 20),
   ('tokyo', 'Tokyo', 'JP', 30),
-  ('osaka', 'Osaka', 'JP', 40)
+  ('osaka', 'Osaka', 'JP', 40),
+  ('fukuoka', 'Fukuoka', 'JP', 50),
+  ('okinawa', 'Okinawa', 'JP', 60),
+  ('nagoya', 'Nagoya', 'JP', 70)
 on conflict (code) do update set
   name = excluded.name,
   country_code = excluded.country_code,
@@ -149,11 +158,111 @@ create table if not exists public.partner_products_cache (
   updated_at timestamptz not null default now()
 );
 
+create index if not exists trips_user_updated_idx
+  on public.trips (user_id, updated_at desc);
+
+create index if not exists spots_active_city_sort_idx
+  on public.spots (city_code, sort_order)
+  where is_active;
+
+create index if not exists spot_catalog_versions_updated_idx
+  on public.spot_catalog_versions (updated_at desc);
+
+create index if not exists partner_clicks_user_created_idx
+  on public.partner_clicks (user_id, created_at desc);
+
+create index if not exists partner_clicks_created_idx
+  on public.partner_clicks (created_at);
+
+create index if not exists partner_products_cache_expires_idx
+  on public.partner_products_cache (expires_at);
+
+create or replace function public.delete_old_partner_clicks(retention_days integer default 90)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  deleted_count integer;
+begin
+  delete from public.partner_clicks
+  where created_at < now() - make_interval(days => retention_days);
+
+  get diagnostics deleted_count = row_count;
+  return deleted_count;
+end;
+$$;
+
+revoke all on function public.delete_old_partner_clicks(integer) from public;
+revoke all on function public.delete_old_partner_clicks(integer) from anon;
+revoke all on function public.delete_old_partner_clicks(integer) from authenticated;
+
+create or replace function public.touch_spot_catalog_version(target_city_code text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.spot_catalog_versions (city_code, version, updated_at)
+  values (target_city_code, 1, now())
+  on conflict (city_code) do update set
+    version = public.spot_catalog_versions.version + 1,
+    updated_at = now();
+end;
+$$;
+
+create or replace function public.touch_spot_catalog_version_from_spot()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'DELETE' then
+    perform public.touch_spot_catalog_version(old.city_code);
+    return old;
+  end if;
+
+  perform public.touch_spot_catalog_version(new.city_code);
+
+  if tg_op = 'UPDATE' and old.city_code <> new.city_code then
+    perform public.touch_spot_catalog_version(old.city_code);
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists spots_touch_catalog_version on public.spots;
+create trigger spots_touch_catalog_version
+after insert or update or delete on public.spots
+for each row execute function public.touch_spot_catalog_version_from_spot();
+
+insert into public.spot_catalog_versions (city_code, version, updated_at)
+select
+  cities.code,
+  1,
+  coalesce(max(spots.updated_at), now())
+from public.cities
+left join public.spots on spots.city_code = cities.code
+group by cities.code
+on conflict (city_code) do nothing;
+
+revoke all on function public.touch_spot_catalog_version(text) from public;
+revoke all on function public.touch_spot_catalog_version(text) from anon;
+revoke all on function public.touch_spot_catalog_version(text) from authenticated;
+revoke all on function public.touch_spot_catalog_version_from_spot() from public;
+revoke all on function public.touch_spot_catalog_version_from_spot() from anon;
+revoke all on function public.touch_spot_catalog_version_from_spot() from authenticated;
+
 alter table public.trips enable row level security;
 alter table public.liked_spots enable row level security;
 alter table public.cities enable row level security;
 alter table public.spot_categories enable row level security;
 alter table public.spots enable row level security;
+alter table public.spot_catalog_versions enable row level security;
 alter table public.partner_clicks enable row level security;
 alter table public.partner_products_cache enable row level security;
 
@@ -162,6 +271,7 @@ drop policy if exists "Users can manage own liked spots" on public.liked_spots;
 drop policy if exists "Anyone can read active cities" on public.cities;
 drop policy if exists "Anyone can read active spot categories" on public.spot_categories;
 drop policy if exists "Anyone can read active spots" on public.spots;
+drop policy if exists "Anyone can read spot catalog versions" on public.spot_catalog_versions;
 drop policy if exists "Users can create own partner clicks" on public.partner_clicks;
 drop policy if exists "Users can read own partner clicks" on public.partner_clicks;
 
@@ -191,6 +301,11 @@ create policy "Anyone can read active spots"
   on public.spots
   for select
   using (is_active);
+
+create policy "Anyone can read spot catalog versions"
+  on public.spot_catalog_versions
+  for select
+  using (true);
 
 create policy "Users can create own partner clicks"
   on public.partner_clicks

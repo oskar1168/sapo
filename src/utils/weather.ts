@@ -73,6 +73,39 @@ const CITY_WEATHER_CONFIG: { [city: string]: CityWeatherConfig } = {
       { day: "4일 뒤", temp: 27, desc: "맑음", icon: "☀️" },
     ],
   },
+  fukuoka: {
+    lat: 33.5902,
+    lon: 130.4017,
+    currentFallback: { temp: 24, desc: "구름 조금", icon: "🌤️" },
+    forecastFallback: [
+      { day: "내일", temp: 25, desc: "맑음", icon: "☀️" },
+      { day: "모레", temp: 24, desc: "구름조금", icon: "🌤️" },
+      { day: "3일 뒤", temp: 23, desc: "흐림", icon: "☁️" },
+      { day: "4일 뒤", temp: 25, desc: "소나기", icon: "🌦️" },
+    ],
+  },
+  okinawa: {
+    lat: 26.2124,
+    lon: 127.6809,
+    currentFallback: { temp: 27, desc: "따뜻하고 습함", icon: "🌤️" },
+    forecastFallback: [
+      { day: "내일", temp: 28, desc: "맑음", icon: "☀️" },
+      { day: "모레", temp: 27, desc: "구름조금", icon: "🌤️" },
+      { day: "3일 뒤", temp: 27, desc: "소나기", icon: "🌦️" },
+      { day: "4일 뒤", temp: 28, desc: "맑음", icon: "☀️" },
+    ],
+  },
+  nagoya: {
+    lat: 35.1815,
+    lon: 136.9066,
+    currentFallback: { temp: 23, desc: "대체로 맑음", icon: "☀️" },
+    forecastFallback: [
+      { day: "내일", temp: 24, desc: "맑음", icon: "☀️" },
+      { day: "모레", temp: 25, desc: "구름조금", icon: "🌤️" },
+      { day: "3일 뒤", temp: 23, desc: "흐림", icon: "☁️" },
+      { day: "4일 뒤", temp: 24, desc: "소나기", icon: "🌦️" },
+    ],
+  },
   kyoto: {
     lat: 35.0116,
     lon: 135.7681,
@@ -112,6 +145,24 @@ export const CITY_SEASON_WEATHER: {
     summer: { temp: 28, desc: "무덥고 습함", icon: "☀️", tips: "한국의 한여름과 비슷하게 매우 고온다습합니다. 땀 흡수가 잘 되는 얇은 반팔과 잦은 수분 섭취가 필수적입니다." },
     autumn: { temp: 19, desc: "선선하고 청명", icon: "🍁", tips: "가을 단풍과 함께 선선한 바람이 붑니다. 자켓이나 맨투맨, 셔츠 차림이 어울립니다." },
     winter: { temp: 7, desc: "추운 바람", icon: "❄️", tips: "바람이 불어 체감 온도가 낮을 수 있습니다. 따뜻한 울 코트나 패딩자켓을 착용하세요." }
+  },
+  fukuoka: {
+    spring: { temp: 15, desc: "포근하고 산뜻", icon: "🌸", tips: "다자이후나 오호리공원 산책에 좋은 계절입니다. 얇은 자켓과 걷기 편한 신발을 준비하세요." },
+    summer: { temp: 28, desc: "덥고 습함", icon: "☀️", tips: "하카타와 텐진 도심 이동이 많다면 물과 양산, 통풍 좋은 옷이 필요합니다. 실내 쇼핑 동선을 섞으면 좋습니다." },
+    autumn: { temp: 19, desc: "선선하고 맑음", icon: "🍁", tips: "이토시마와 근교 당일치기에 좋은 날씨입니다. 낮과 밤 온도 차이를 고려해 가벼운 겉옷을 챙기세요." },
+    winter: { temp: 7, desc: "비교적 온화", icon: "❄️", tips: "눈은 드물지만 바람이 차게 느껴질 수 있습니다. 코트와 머플러 정도면 도심 여행에 충분합니다." }
+  },
+  okinawa: {
+    spring: { temp: 22, desc: "따뜻하고 쾌적", icon: "🌸", tips: "해변 산책과 드라이브에 좋은 시기입니다. 얇은 긴팔과 자외선 차단제를 함께 챙기세요." },
+    summer: { temp: 29, desc: "무덥고 습함", icon: "☀️", tips: "강한 햇빛과 갑작스러운 비에 대비하세요. 수분 보충, 모자, 선크림, 가벼운 우비가 유용합니다." },
+    autumn: { temp: 25, desc: "따뜻하고 바람 있음", icon: "🍁", tips: "해양 액티비티와 북부 드라이브가 좋지만 태풍 정보를 확인해야 합니다. 얇은 겉옷도 하나 준비하세요." },
+    winter: { temp: 17, desc: "온화하고 선선", icon: "🌤️", tips: "두꺼운 패딩보다는 바람막이나 가벼운 자켓이 잘 맞습니다. 바닷가에서는 체감 온도가 내려갈 수 있습니다." }
+  },
+  nagoya: {
+    spring: { temp: 14, desc: "온화하고 맑음", icon: "🌸", tips: "나고야성과 근교 산책에 좋은 계절입니다. 얇은 니트나 자켓을 준비하세요." },
+    summer: { temp: 28, desc: "덥고 습함", icon: "☀️", tips: "도심은 더위가 강하게 느껴질 수 있습니다. 실내 명소와 쇼핑 동선을 섞고 수분 보충을 신경 쓰세요." },
+    autumn: { temp: 18, desc: "선선하고 쾌적", icon: "🍁", tips: "이누야마, 다카야마, 시라카와고 근교 여행에 좋습니다. 산간 지역은 도심보다 쌀쌀할 수 있습니다." },
+    winter: { temp: 5, desc: "건조하고 추움", icon: "❄️", tips: "나고야 도심은 눈이 잦지 않지만 다카야마와 시라카와고는 방한 장비가 필요합니다. 일정에 따라 패딩을 준비하세요." }
   }
 };
 

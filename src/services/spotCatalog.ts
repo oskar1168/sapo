@@ -24,23 +24,29 @@ type SpotCatalogRow = {
   name_ko_status: 'auto' | 'reviewed' | 'rejected' | null;
   search_keywords: string[] | null;
   tags: string[] | null;
-  wikidata_id: string | null;
-  source_name: string | null;
-  source_url: string | null;
-  source_license: string | null;
+  wikidata_id?: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
+  source_license?: string | null;
   rating: string | null;
   menu: string | null;
-  tips: string | null;
-  address: string | null;
-  open_time: string | null;
-  close_time: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  google_place_id: string | null;
-  google_maps_url: string | null;
+  tips?: string | null;
+  address?: string | null;
+  open_time?: string | null;
+  close_time?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  google_place_id?: string | null;
+  google_maps_url?: string | null;
   thumbnail_url: string | null;
-  image_url: string | null;
-  image_blurhash: string | null;
+  image_url?: string | null;
+  image_blurhash?: string | null;
+};
+
+type SpotCachePayload = {
+  timestamp: number;
+  version?: number;
+  data: SpotItem[];
 };
 
 const LOCAL_SPOT_LISTS: Record<CityCode, SpotItem[]> = {
@@ -48,6 +54,9 @@ const LOCAL_SPOT_LISTS: Record<CityCode, SpotItem[]> = {
   otaru: withImageKeys('otaru', OTARU_FOOD_LIST),
   tokyo: withImageKeys('tokyo', TOKYO_FOOD_LIST),
   osaka: withImageKeys('osaka', OSAKA_FOOD_LIST),
+  fukuoka: [],
+  okinawa: [],
+  nagoya: [],
 };
 
 let activeSpotLists: Record<CityCode, SpotItem[]> = LOCAL_SPOT_LISTS;
@@ -58,15 +67,6 @@ function withImageKeys(city: CityCode, spots: SpotItem[]): SpotItem[] {
     thumbnailKey: getSpotThumbnailKey(spot, city),
     imageKey: getSpotImageKey(spot, city),
   }));
-}
-
-function emptySpotLists(): Record<CityCode, SpotItem[]> {
-  return {
-    sapporo: [],
-    otaru: [],
-    tokyo: [],
-    osaka: [],
-  };
 }
 
 function spotFromSupabaseRow(row: SpotCatalogRow): SpotItem {
@@ -103,24 +103,75 @@ function spotFromSupabaseRow(row: SpotCatalogRow): SpotItem {
   };
 }
 
-function setActiveSpotLists(rows: SpotCatalogRow[]) {
-  const nextSpotLists = emptySpotLists();
-
-  rows.forEach((row) => {
-    if (!isCityCode(row.city_code)) return;
-    nextSpotLists[row.city_code].push(spotFromSupabaseRow(row));
-  });
-
-  activeSpotLists = {
-    sapporo: nextSpotLists.sapporo.length > 0 ? nextSpotLists.sapporo : LOCAL_SPOT_LISTS.sapporo,
-    otaru: nextSpotLists.otaru.length > 0 ? nextSpotLists.otaru : LOCAL_SPOT_LISTS.otaru,
-    tokyo: nextSpotLists.tokyo.length > 0 ? nextSpotLists.tokyo : LOCAL_SPOT_LISTS.tokyo,
-    osaka: nextSpotLists.osaka.length > 0 ? nextSpotLists.osaka : LOCAL_SPOT_LISTS.osaka,
-  };
-}
-
 const CACHE_PREFIX = 'sapo_cache_spots_';
 const CACHE_EXPIRY = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+const SPOT_LIST_FIELDS = [
+  'id',
+  'city_code',
+  'category',
+  'name',
+  'name_ko',
+  'name_ja',
+  'name_en',
+  'name_ko_auto',
+  'name_ko_status',
+  'search_keywords',
+  'tags',
+  'rating',
+  'menu',
+  'thumbnail_url',
+];
+const SPOT_DETAIL_FIELDS = [
+  ...SPOT_LIST_FIELDS,
+  'tips',
+  'address',
+  'open_time',
+  'close_time',
+  'latitude',
+  'longitude',
+  'google_maps_url',
+  'wikidata_id',
+  'source_name',
+  'source_url',
+  'source_license',
+  'google_place_id',
+  'image_url',
+  'image_blurhash',
+];
+const SPOT_LIST_SELECT = SPOT_LIST_FIELDS.join(', ');
+const SPOT_DETAIL_SELECT = SPOT_DETAIL_FIELDS.join(', ');
+const spotDetailCache = new Map<string, SpotItem>();
+
+function getSpotDetailCacheKey(cityCode: CityCode, spotId: string) {
+  return `${cityCode}:${spotId}`;
+}
+
+function clearSpotDetailCacheForCity(cityCode: CityCode) {
+  const prefix = `${cityCode}:`;
+  for (const key of spotDetailCache.keys()) {
+    if (key.startsWith(prefix)) {
+      spotDetailCache.delete(key);
+    }
+  }
+}
+
+async function loadSpotCatalogVersion(cityCode: CityCode) {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('spot_catalog_versions')
+      .select('version')
+      .eq('city_code', cityCode)
+      .maybeSingle();
+
+    if (error) throw error;
+    return typeof data?.version === 'number' ? data.version : null;
+  } catch (error) {
+    console.warn(`[Supabase] Failed to load spot catalog version for ${cityCode}:`, error);
+    return null;
+  }
+}
 
 export async function loadCitySpots(cityCode: CityCode, forceRefresh = false): Promise<SpotItem[]> {
   if (!isSupabaseConfigured || !supabase) {
@@ -131,14 +182,18 @@ export async function loadCitySpots(cityCode: CityCode, forceRefresh = false): P
   const cacheKey = `${CACHE_PREFIX}${cityCode}`;
 
   try {
-    const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
-    if (!forceRefresh && !isDev) {
+    const remoteVersion = forceRefresh ? null : await loadSpotCatalogVersion(cityCode);
+
+    if (!forceRefresh) {
       const cachedDataStr = await AsyncStorage.getItem(cacheKey);
       if (cachedDataStr) {
-        const { timestamp, data } = JSON.parse(cachedDataStr);
+        const { timestamp, version, data } = JSON.parse(cachedDataStr) as SpotCachePayload;
         const isExpired = Date.now() - timestamp > CACHE_EXPIRY;
-        if (!isExpired && Array.isArray(data) && data.length > 0) {
-          console.log(`[Cache] Using cached spots for ${cityCode}`);
+        const isSameVersion = remoteVersion !== null && version === remoteVersion;
+        const canUseCache = Array.isArray(data) && data.length > 0 && (isSameVersion || (!remoteVersion && !isExpired));
+
+        if (canUseCache) {
+          console.log(`[Cache] Using cached spots for ${cityCode}${isSameVersion ? ' by version' : ''}`);
           activeSpotLists[cityCode] = data;
           return data;
         }
@@ -148,9 +203,7 @@ export async function loadCitySpots(cityCode: CityCode, forceRefresh = false): P
     console.log(`[Supabase] Fetching spots for ${cityCode} from database...`);
     const { data, error } = await supabase
       .from('spots')
-      .select(
-        'id, city_code, category, name, name_ko, name_ja, name_en, name_ko_auto, name_ko_status, search_keywords, tags, wikidata_id, source_name, source_url, source_license, rating, menu, tips, address, open_time, close_time, latitude, longitude, google_place_id, google_maps_url, thumbnail_url, image_url, image_blurhash',
-      )
+      .select(SPOT_LIST_SELECT)
       .eq('city_code', cityCode)
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
@@ -158,11 +211,13 @@ export async function loadCitySpots(cityCode: CityCode, forceRefresh = false): P
     if (error) throw error;
 
     if (data && data.length > 0) {
-      const parsedSpots = data.map((row) => spotFromSupabaseRow(row as SpotCatalogRow));
+      const parsedSpots = data.map((row) => spotFromSupabaseRow(row as unknown as SpotCatalogRow));
       activeSpotLists[cityCode] = parsedSpots;
+      clearSpotDetailCacheForCity(cityCode);
 
       const cacheObj = {
         timestamp: Date.now(),
+        version: remoteVersion ?? undefined,
         data: parsedSpots,
       };
       await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheObj));
@@ -199,11 +254,65 @@ export function getSpotDetail(city: string, originalIndex: number): SpotWithSour
 export function getSpotDetailById(city: string, spotId: string): SpotWithSource | null {
   if (!isCityCode(city)) return null;
 
+  const cachedDetail = spotDetailCache.get(getSpotDetailCacheKey(city, spotId));
+  if (cachedDetail) {
+    const cachedIndex = activeSpotLists[city].findIndex((item) => item.id === spotId);
+    return { ...cachedDetail, city, spotId: cachedDetail.id, originalIndex: Math.max(cachedIndex, 0) };
+  }
+
   const originalIndex = activeSpotLists[city].findIndex((item) => item.id === spotId);
   if (originalIndex < 0) return null;
 
   const item = activeSpotLists[city][originalIndex];
   return { ...item, city, spotId: item.id, originalIndex };
+}
+
+export async function loadSpotDetailById(city: string, spotId: string): Promise<SpotWithSource | null> {
+  if (!isCityCode(city)) return null;
+
+  const cacheKey = getSpotDetailCacheKey(city, spotId);
+  const cachedDetail = spotDetailCache.get(cacheKey);
+  if (cachedDetail) {
+    const cachedIndex = activeSpotLists[city].findIndex((item) => item.id === spotId);
+    return { ...cachedDetail, city, spotId: cachedDetail.id, originalIndex: Math.max(cachedIndex, 0) };
+  }
+
+  if (!isSupabaseConfigured || !supabase) {
+    return getSpotDetailById(city, spotId);
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('spots')
+      .select(SPOT_DETAIL_SELECT)
+      .eq('city_code', city)
+      .eq('id', spotId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return getSpotDetailById(city, spotId);
+
+    const parsedSpot = spotFromSupabaseRow(data as unknown as SpotCatalogRow);
+    const originalIndex = activeSpotLists[city].findIndex((item) => item.id === parsedSpot.id);
+
+    if (originalIndex > -1) {
+      activeSpotLists[city][originalIndex] = { ...activeSpotLists[city][originalIndex], ...parsedSpot };
+    } else {
+      activeSpotLists[city] = [...activeSpotLists[city], parsedSpot];
+    }
+
+    spotDetailCache.set(cacheKey, parsedSpot);
+    return {
+      ...parsedSpot,
+      city,
+      spotId: parsedSpot.id,
+      originalIndex: originalIndex > -1 ? originalIndex : activeSpotLists[city].length - 1,
+    };
+  } catch (error) {
+    console.warn(`[Supabase] Failed to load spot detail for ${city}/${spotId}:`, error);
+    return getSpotDetailById(city, spotId);
+  }
 }
 
 export function getSpotSource(spot: SpotItem, fallbackCity = 'sapporo'): SpotRef {
@@ -227,6 +336,9 @@ export function isSameSpotRef(left: SpotRef, right: SpotRef) {
 export function getRecommendedSpots(cityCode: string, subCityFilter = 'all'): SpotItem[] {
   if (cityCode === 'tokyo') return activeSpotLists.tokyo;
   if (cityCode === 'osaka') return activeSpotLists.osaka;
+  if (cityCode === 'fukuoka') return activeSpotLists.fukuoka;
+  if (cityCode === 'okinawa') return activeSpotLists.okinawa;
+  if (cityCode === 'nagoya') return activeSpotLists.nagoya;
 
   if (subCityFilter === 'sapporo') return activeSpotLists.sapporo;
   if (subCityFilter === 'otaru') return activeSpotLists.otaru;

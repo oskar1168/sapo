@@ -1,4 +1,5 @@
 import { CITY_TEMPLATES } from '../constants/travelData';
+import { buildPresetTripDays, hasItineraryPreset } from '../data/itineraryPresets';
 import { SpotRef } from '../types/spot';
 import { TripDetail, TripMetadata } from '../types/trip';
 import {
@@ -23,37 +24,100 @@ export type AppTripSnapshot = {
 
 const createTripId = () => `trip-${Date.now()}`;
 
-const metadataFromDetail = (id: string, detail: any): TripMetadata => ({
-  id,
-  cityCode: detail.cityCode,
-  title: detail.title,
-  startDate: detail.startDate,
-  endDate: detail.endDate,
-  memberCount: detail.memberCount,
+const parseDateOnly = (dateString: string) => {
+  const date = new Date(`${dateString}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const getInclusiveTripDayCount = (startDate: string, endDate: string) => {
+  const start = parseDateOnly(startDate);
+  const end = parseDateOnly(endDate);
+
+  if (!start || !end || end < start) {
+    return 1;
+  }
+
+  const millisecondsPerDay = 1000 * 60 * 60 * 24;
+  return Math.floor((end.getTime() - start.getTime()) / millisecondsPerDay) + 1;
+};
+
+const cloneTripDays = (days: any = {}) => {
+  return Object.keys(days).reduce<Record<string, any[]>>((acc, dayKey) => {
+    acc[dayKey] = (days[dayKey] || []).map((item: any) => ({ ...item }));
+    return acc;
+  }, {});
+};
+
+const buildTripDaysForDateRange = (templateDays: any, startDate: string, endDate: string) => {
+  const dayCount = getInclusiveTripDayCount(startDate, endDate);
+  const clonedTemplateDays = cloneTripDays(templateDays);
+
+  return Array.from({ length: dayCount }).reduce<Record<string, any[]>>((acc, _, index) => {
+    const dayKey = `day${index + 1}`;
+    acc[dayKey] = clonedTemplateDays[dayKey] || [];
+    return acc;
+  }, {});
+};
+
+const buildCityTripDaysForDateRange = (
+  cityCode: string,
+  templateDays: any,
+  startDate: string,
+  endDate: string,
+) => {
+  const dayCount = getInclusiveTripDayCount(startDate, endDate);
+
+  if (hasItineraryPreset(cityCode)) {
+    return buildPresetTripDays(cityCode, dayCount);
+  }
+
+  return buildTripDaysForDateRange(templateDays, startDate, endDate);
+};
+
+const ensureTripDaysForDateRange = (days: any, startDate: string, endDate: string) => {
+  const dayCount = getInclusiveTripDayCount(startDate, endDate);
+  const updatedDays = cloneTripDays(days);
+
+  for (let index = 1; index <= dayCount; index += 1) {
+    const dayKey = `day${index}`;
+    if (!updatedDays[dayKey]) {
+      updatedDays[dayKey] = [];
+    }
+  }
+
+  return updatedDays;
+};
+
+const normalizeTripDetailDays = (detail: any) => ({
+  ...detail,
+  days: ensureTripDaysForDateRange(detail.days, detail.startDate, detail.endDate),
 });
 
 export async function loadInitialTripSnapshot(): Promise<AppTripSnapshot> {
-  let tripsList = await loadTripsList();
+  const tripsList = await loadTripsList();
   const likedSpots = await loadLikedSpots();
   let activeTripId = await loadActiveTripId();
   let travelData: TripDetail | null = null;
 
   if (tripsList.length === 0) {
-    const defaultDetail = CITY_TEMPLATES.sapporo;
-    const defaultTripId = createTripId();
+    if (activeTripId) {
+      await clearActiveTripId();
+      activeTripId = '';
+    }
+  } else {
+    const activeTripExists = tripsList.some((trip) => trip.id === activeTripId);
+    if (!activeTripExists) {
+      activeTripId = tripsList[0].id;
+      await saveActiveTripId(activeTripId);
+    }
 
-    tripsList = [metadataFromDetail(defaultTripId, defaultDetail)];
-    activeTripId = defaultTripId;
-    travelData = defaultDetail;
-
-    await saveTripDetail(defaultTripId, defaultDetail);
-    await saveTripsList(tripsList);
-    await saveActiveTripId(defaultTripId);
-  } else if (activeTripId) {
     travelData = await loadTripDetail(activeTripId);
 
     if (!travelData) {
       travelData = CITY_TEMPLATES.sapporo;
+      await saveTripDetail(activeTripId, travelData, { remoteSync: 'immediate' });
+    } else {
+      travelData = normalizeTripDetailDays(travelData);
       await saveTripDetail(activeTripId, travelData);
     }
   }
@@ -84,15 +148,24 @@ export async function createTrip(
   const template = CITY_TEMPLATES[newTripMeta.cityCode] || CITY_TEMPLATES.sapporo;
   const travelData = {
     ...template,
+    cityCode: newTripMeta.cityCode,
     title: newTripMeta.title,
     startDate: newTripMeta.startDate,
     endDate: newTripMeta.endDate,
     memberCount: newTripMeta.memberCount,
+    days: buildCityTripDaysForDateRange(
+      newTripMeta.cityCode,
+      template.days,
+      newTripMeta.startDate,
+      newTripMeta.endDate,
+    ),
+    checklist: template.checklist.map((item) => ({ ...item })),
+    shoppingList: template.shoppingList.map((item) => ({ ...item })),
   };
 
-  await saveTripDetail(newId, travelData);
+  await saveTripDetail(newId, travelData, { remoteSync: 'immediate' });
   await saveActiveTripId(newId);
-  await saveTripsList(tripsList);
+  await saveTripsList(tripsList, { includeDetails: false });
 
   return {
     tripId: newId,
@@ -106,7 +179,6 @@ export async function updateTripMetadata(
   updatedMeta: TripMetadata,
 ) {
   const tripsList = currentTrips.map((trip) => (trip.id === updatedMeta.id ? updatedMeta : trip));
-  await saveTripsList(tripsList);
 
   const detail = await loadTripDetail<any>(updatedMeta.id);
   if (detail) {
@@ -116,12 +188,15 @@ export async function updateTripMetadata(
       startDate: updatedMeta.startDate,
       endDate: updatedMeta.endDate,
       memberCount: updatedMeta.memberCount,
+      days: ensureTripDaysForDateRange(detail.days, updatedMeta.startDate, updatedMeta.endDate),
     };
 
-    await saveTripDetail(updatedMeta.id, updatedDetail);
+    await saveTripDetail(updatedMeta.id, updatedDetail, { remoteSync: 'immediate' });
+    await saveTripsList(tripsList, { includeDetails: false });
     return { tripsList, travelData: updatedDetail };
   }
 
+  await saveTripsList(tripsList);
   return { tripsList, travelData: null };
 }
 
@@ -131,8 +206,8 @@ export async function deleteTrip(
   activeTripId: string,
 ) {
   const tripsList = currentTrips.filter((trip) => trip.id !== tripId);
-  await saveTripsList(tripsList);
   await deleteTripDetail(tripId);
+  await saveTripsList(tripsList, { includeDetails: false });
 
   if (tripId !== activeTripId) {
     return {
@@ -181,11 +256,19 @@ export async function updateActiveTripDetail(
     return trip;
   });
 
-  await saveTripsList(updatedTripsList);
+  await saveTripsList(updatedTripsList, { includeDetails: false });
   return updatedTripsList;
 }
 
 export async function selectTrip(tripId: string) {
   await saveActiveTripId(tripId);
-  return loadTripDetail(tripId);
+  const detail = await loadTripDetail(tripId);
+
+  if (!detail) {
+    return detail;
+  }
+
+  const normalizedDetail = normalizeTripDetailDays(detail);
+  await saveTripDetail(tripId, normalizedDetail);
+  return normalizedDetail;
 }

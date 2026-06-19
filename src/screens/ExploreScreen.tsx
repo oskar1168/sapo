@@ -5,30 +5,54 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   Alert,
   Platform,
   Linking,
   Image,
+  LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CITY_TEMPLATES } from '../constants/travelData';
-import ExploreGuideModal from '../components/ExploreGuideModal';
+import RegionExploreModal from '../components/RegionExploreModal';
 import SpotThumbnail from '../components/SpotThumbnail';
+import { SUPPORTED_CITIES, getSupportedCity } from '../data/supportedCities';
 import { getPartnerProductsForCity, PartnerProduct } from '../data/partnerProducts';
+import { getRegionGuide, RegionGuide } from '../data/regionGuides';
 import { recordPartnerProductClick } from '../services/partnerTracking';
 import { getSpotDetail, getSpotDetailById } from '../services/spotCatalog';
 import { SpotRef } from '../types/spot';
+import { CityExploreItem } from '../types/travelData';
 
-const { width } = Dimensions.get('window');
-const isTablet = width > 600;
+const GRID_GAP = 12;
+
+const getRegionGridColumns = (containerWidth: number) => {
+  if (containerWidth >= 1024) {
+    return 4;
+  }
+  if (containerWidth >= 720) {
+    return 3;
+  }
+  if (containerWidth >= 340) {
+    return 2;
+  }
+  return 1;
+};
+
+const shoppingCouponProductIds = new Set(['myrealtrip-japan-donki-coupon']);
+const productCategoryLabels: Record<PartnerProduct['category'], string> = {
+  tour: '투어',
+  ticket: '입장권',
+  transport: '교통',
+  pass: '교통패스',
+};
 
 interface ExploreScreenProps {
   likedSpots: SpotRef[];
   onToggleLike: (city: string, originalIndex: number) => void;
   onAddSpotToTimeline: (city: string, originalIndex: number) => void;
   onNavigateToMyTrips: () => void;
-  cityCode: string;
+  onStartTripPlanning: (cityCode: string) => void;
+  cityCode?: string;
 }
 
 export default function ExploreScreen({
@@ -36,24 +60,129 @@ export default function ExploreScreen({
   onToggleLike,
   onAddSpotToTimeline,
   onNavigateToMyTrips,
+  onStartTripPlanning,
   cityCode,
 }: ExploreScreenProps) {
-  const [guideVisible, setGuideVisible] = useState(false);
+  const [selectedRegionGuide, setSelectedRegionGuide] = useState<RegionGuide | null>(null);
+  const [regionGridWidth, setRegionGridWidth] = useState(0);
+  const [showAllRegions, setShowAllRegions] = useState(false);
 
-  const activeCity = cityCode || 'sapporo';
-  const template = CITY_TEMPLATES[activeCity] || CITY_TEMPLATES.sapporo;
-  const exp = template.explore;
+  const hasActiveTrip = Boolean(cityCode);
+  const activeCity = cityCode || SUPPORTED_CITIES[0].code;
+  const cityMeta = getSupportedCity(activeCity);
+  const hasCityTemplate = Object.prototype.hasOwnProperty.call(CITY_TEMPLATES, activeCity);
+  const template = hasCityTemplate ? CITY_TEMPLATES[activeCity] : null;
+  const exp = template?.explore || {
+    welcomeSubtitle: `${cityMeta.name} 여행 데이터를 준비하고 있어요.`,
+    bannerTitle: `${cityMeta.name} 추천 가이드를 준비 중입니다`,
+    bannerDesc: '스팟, 일정, 지역 가이드는 순차적으로 업데이트됩니다.',
+    cities: cityMeta.regions.map((region) => ({
+      emoji: cityMeta.emoji,
+      name: region,
+      desc: '추천 코스 준비 중',
+      filter: region,
+    })),
+    deals: [],
+    guidebook: [],
+  };
   const partnerProducts = getPartnerProductsForCity(activeCity);
+  const mainBookingProducts = partnerProducts.filter((product) => !shoppingCouponProductIds.has(product.id));
+  const [activeProductCategory, setActiveProductCategory] = useState<'all' | PartnerProduct['category']>('all');
+  const productCategories = Array.from(new Set(mainBookingProducts.map((product) => product.category)));
+  const effectiveProductCategory =
+    activeProductCategory === 'all' || productCategories.includes(activeProductCategory)
+      ? activeProductCategory
+      : 'all';
+  const visibleBookingProducts =
+    effectiveProductCategory === 'all'
+      ? mainBookingProducts
+      : mainBookingProducts.filter((product) => product.category === effectiveProductCategory);
+  const regionGridColumns = getRegionGridColumns(regionGridWidth);
+  const regionGridCardWidth =
+    regionGridWidth > 0
+      ? (regionGridWidth - GRID_GAP * (regionGridColumns - 1)) / regionGridColumns
+      : undefined;
+  const visibleRegions = showAllRegions ? exp.cities : exp.cities.slice(0, 4);
+  const hasMoreRegions = exp.cities.length > 4;
 
   const activeLikedSpots = likedSpots
     .map((s) => (s.spotId ? getSpotDetailById(s.city, s.spotId) : getSpotDetail(s.city, s.originalIndex)))
     .filter((s): s is Exclude<typeof s, null> => s !== null);
 
-  const handleCityPress = (cityName: string) => {
+  const handleRegionGridLayout = (event: LayoutChangeEvent) => {
+    const nextWidth = Math.round(event.nativeEvent.layout.width);
+    setRegionGridWidth((currentWidth) => (currentWidth === nextWidth ? currentWidth : nextWidth));
+  };
+
+  if (!hasActiveTrip) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <View style={styles.welcomeGroup}>
+            <Text style={styles.welcomeTitle}>안녕하세요, 민상님!</Text>
+            <Text style={styles.welcomeSubtitle}>첫 여행 일정을 만들 도시를 선택해 주세요.</Text>
+          </View>
+          <TouchableOpacity onPress={onNavigateToMyTrips} style={styles.btnMyTrips} activeOpacity={0.8}>
+            <Ionicons name="calendar-outline" size={22} color="#ffffff" />
+            <View style={styles.badgePlus}>
+              <Text style={styles.badgePlusText}>+</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.emptyHero}>
+          <View style={styles.emptyHeroIcon}>
+            <Ionicons name="map-outline" size={28} color="#6c5ce7" />
+          </View>
+          <Text style={styles.emptyHeroTitle}>어디로 떠나볼까요?</Text>
+          <Text style={styles.emptyHeroDesc}>
+            아직 등록된 여행 일정이 없습니다. 도시를 고르면 날짜와 인원을 입력해 첫 일정을 만들 수 있어요.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleOnly}>추천 여행지</Text>
+          <View style={styles.gridContainer} onLayout={handleRegionGridLayout}>
+            {SUPPORTED_CITIES.map((city) => (
+              <TouchableOpacity
+                key={city.code}
+                style={[styles.gridCard, regionGridCardWidth ? { width: regionGridCardWidth } : null]}
+                onPress={() => onStartTripPlanning(city.code)}
+                activeOpacity={0.78}
+              >
+                <Text style={styles.gridCardEmoji}>{city.emoji}</Text>
+                <Text style={styles.gridCardName} numberOfLines={1}>
+                  {city.name}
+                </Text>
+                <Text style={styles.gridCardDesc} numberOfLines={2}>
+                  {city.desc}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.emptyTripsButton} onPress={onNavigateToMyTrips} activeOpacity={0.8}>
+          <Ionicons name="add-circle-outline" size={18} color="#ffffff" />
+          <Text style={styles.emptyTripsButtonText}>직접 일정 만들기</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  }
+
+  const handleCityPress = (city: CityExploreItem) => {
+    const regionGuide = getRegionGuide(activeCity, city.filter);
+
+    if (regionGuide) {
+      setSelectedRegionGuide(regionGuide);
+      return;
+    }
+
+    const message = `'${city.name}' 지역 가이드를 준비 중입니다.`;
     if (Platform.OS === 'web') {
-      alert(`🧭 '${cityName}' 가이드 서비스는 현재 삿포로/오타루 위주로 제공 중입니다!`);
+      alert(message);
     } else {
-      Alert.alert('알림', `🧭 '${cityName}' 가이드 서비스는 현재 삿포로/오타루 위주로 제공 중입니다!`);
+      Alert.alert('알림', message);
     }
   };
 
@@ -76,7 +205,7 @@ export default function ExploreScreen({
       <View style={styles.header}>
         <View style={styles.welcomeGroup}>
           <Text style={styles.welcomeTitle}>
-            안녕하세요, 민상님! {activeCity === 'sapporo' ? '❄️' : activeCity === 'tokyo' ? '🗼' : '🐙'}
+            안녕하세요, 민상님! {cityMeta.emoji}
           </Text>
           <Text style={styles.welcomeSubtitle}>{exp.welcomeSubtitle}</Text>
         </View>
@@ -88,20 +217,108 @@ export default function ExploreScreen({
         </TouchableOpacity>
       </View>
 
-      {/* Main visual Promotion Banner */}
-      <TouchableOpacity
-        style={styles.bannerContainer}
-        activeOpacity={0.9}
-        onPress={() => setGuideVisible(true)}
-      >
-        <View style={styles.bannerOverlay}>
-          <View style={styles.bannerBadge}>
-            <Text style={styles.bannerBadgeText}>HOT 추천 가이드</Text>
-          </View>
-          <Text style={styles.bannerTitle}>{exp.bannerTitle}</Text>
-          <Text style={styles.bannerDesc}>{exp.bannerDesc}</Text>
+      {mainBookingProducts.length > 0 ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleOnly}>미리 준비하면 편한 예약</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.productCategoryContent}
+          >
+            {(['all', ...productCategories] as ('all' | PartnerProduct['category'])[]).map((category) => {
+              const isActive = effectiveProductCategory === category;
+              return (
+                <TouchableOpacity
+                  key={category}
+                  style={[styles.productCategoryChip, isActive && styles.productCategoryChipActive]}
+                  onPress={() => setActiveProductCategory(category)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.productCategoryText, isActive && styles.productCategoryTextActive]}>
+                    {category === 'all' ? '전체' : productCategoryLabels[category]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.productSliderContent}
+          >
+            {visibleBookingProducts.map((product) => (
+              <TouchableOpacity
+                key={product.id}
+                style={styles.productCard}
+                onPress={() => handlePartnerProductPress(product)}
+                activeOpacity={0.82}
+              >
+                {product.imageUrl ? (
+                  <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
+                ) : (
+                  <View style={[styles.productIconBox, { backgroundColor: `${product.color}1f` }]}>
+                    <Ionicons name={product.icon as any} size={22} color={product.color} />
+                  </View>
+                )}
+                <View style={styles.productInfo}>
+                  <Text style={styles.productProvider}>MYREALTRIP</Text>
+                  <Text style={styles.productTitle} numberOfLines={2}>
+                    {product.title}
+                  </Text>
+                  <Text style={styles.productDesc} numberOfLines={2}>
+                    {product.desc}
+                  </Text>
+                </View>
+                <View style={styles.productCta}>
+                  <Text style={styles.productCtaText}>보기</Text>
+                  <Ionicons name="open-outline" size={14} color="#ffffff" />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
-      </TouchableOpacity>
+      ) : null}
+
+      {/* Recommended Cities Grid */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeaderBetween}>
+          <Text style={[styles.sectionTitleOnly, styles.sectionTitleInline]}>
+            🗺️ {cityMeta.exploreLabel} 추천 지역 탐색
+          </Text>
+          {hasMoreRegions ? (
+            <TouchableOpacity
+              style={styles.regionToggleButton}
+              onPress={() => setShowAllRegions((current) => !current)}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.regionToggleText}>{showAllRegions ? '접기' : '더보기'}</Text>
+              <Ionicons
+                name={showAllRegions ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color="#6c5ce7"
+              />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <View style={styles.gridContainer} onLayout={handleRegionGridLayout}>
+          {visibleRegions.map((city, idx) => (
+            <TouchableOpacity
+              key={`${city.filter}-${idx}`}
+              style={[styles.gridCard, regionGridCardWidth ? { width: regionGridCardWidth } : null]}
+              onPress={() => handleCityPress(city)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.gridCardEmoji}>{city.emoji}</Text>
+              <Text style={styles.gridCardName} numberOfLines={1}>
+                {city.name}
+              </Text>
+              <Text style={styles.gridCardDesc} numberOfLines={2}>
+                {city.desc}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       {/* Liked Spots horizontal slider */}
       {activeLikedSpots.length > 0 ? (
@@ -147,68 +364,6 @@ export default function ExploreScreen({
         </View>
       ) : null}
 
-      {/* Recommended Cities Grid */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitleOnly}>
-          🗺️ {activeCity === 'sapporo' ? '홋카이도' : activeCity === 'tokyo' ? '도쿄' : '오사카'} 추천 지역 탐색
-        </Text>
-        <View style={styles.gridContainer}>
-          {exp.cities.map((city, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={styles.gridCard}
-              onPress={() => handleCityPress(city.name)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.gridCardEmoji}>{city.emoji}</Text>
-              <Text style={styles.gridCardName}>{city.name}</Text>
-              <Text style={styles.gridCardDesc}>{city.desc}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {partnerProducts.length > 0 ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitleOnly}>예약하면 편한 인기 상품</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.productSliderContent}
-          >
-            {partnerProducts.map((product) => (
-              <TouchableOpacity
-                key={product.id}
-                style={styles.productCard}
-                onPress={() => handlePartnerProductPress(product)}
-                activeOpacity={0.82}
-              >
-                {product.imageUrl ? (
-                  <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
-                ) : (
-                  <View style={[styles.productIconBox, { backgroundColor: `${product.color}1f` }]}>
-                    <Ionicons name={product.icon as any} size={22} color={product.color} />
-                  </View>
-                )}
-                <View style={styles.productInfo}>
-                  <Text style={styles.productProvider}>MYREALTRIP</Text>
-                  <Text style={styles.productTitle} numberOfLines={2}>
-                    {product.title}
-                  </Text>
-                  <Text style={styles.productDesc} numberOfLines={2}>
-                    {product.desc}
-                  </Text>
-                </View>
-                <View style={styles.productCta}>
-                  <Text style={styles.productCtaText}>보기</Text>
-                  <Ionicons name="open-outline" size={14} color="#ffffff" />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      ) : null}
-
       {/* Specials/Deals List */}
       <View style={styles.section}>
         <Text style={styles.sectionTitleOnly}>🛍️ 여행 필수품 & 특가 상품</Text>
@@ -242,11 +397,11 @@ export default function ExploreScreen({
         </View>
       </View>
 
-      {/* Guidebook Modal */}
-      <ExploreGuideModal
-        visible={guideVisible}
-        cityCode={cityCode}
-        onClose={() => setGuideVisible(false)}
+      <RegionExploreModal
+        visible={Boolean(selectedRegionGuide)}
+        guide={selectedRegionGuide}
+        products={partnerProducts}
+        onClose={() => setSelectedRegionGuide(null)}
       />
     </ScrollView>
   );
@@ -315,48 +470,49 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '900',
   },
-  bannerContainer: {
-    height: 140,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 24,
-    backgroundColor: '#6c5ce7',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  bannerOverlay: {
-    flex: 1,
+  emptyHero: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
     padding: 20,
-    justifyContent: 'center',
-    backgroundColor: 'rgba(108, 92, 231, 0.9)',
+    marginBottom: 24,
+    alignItems: 'flex-start',
+    gap: 10,
   },
-  bannerBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+  emptyHeroIcon: {
+    width: 48,
+    height: 48,
     borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
+    backgroundColor: 'rgba(108, 92, 231, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  bannerBadgeText: {
-    fontSize: 10,
-    color: '#ffffff',
-    fontWeight: '800',
+  emptyHeroTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0f172a',
   },
-  bannerTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#ffffff',
+  emptyHeroDesc: {
+    fontSize: 13,
     lineHeight: 20,
-  },
-  bannerDesc: {
-    fontSize: 11,
-    color: '#e0e0ff',
+    color: '#64748b',
     fontWeight: '600',
-    marginTop: 4,
+  },
+  emptyTripsButton: {
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#6c5ce7',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  emptyTripsButtonText: {
+    fontSize: 14,
+    color: '#ffffff',
+    fontWeight: '800',
   },
   section: {
     marginBottom: 24,
@@ -377,6 +533,33 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1e293b',
     marginBottom: 12,
+  },
+  sectionTitleInline: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  sectionHeaderBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  regionToggleButton: {
+    height: 30,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(108, 92, 231, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(108, 92, 231, 0.16)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  regionToggleText: {
+    fontSize: 11.5,
+    fontWeight: '900',
+    color: '#6c5ce7',
   },
   likedSliderContent: {
     gap: 12,
@@ -438,10 +621,11 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: GRID_GAP,
   },
   gridCard: {
-    width: isTablet ? (width - 64) / 4 : (width - 52) / 2,
+    width: '100%',
+    minHeight: 116,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#cbd5e1',
@@ -463,6 +647,32 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontWeight: '600',
     textAlign: 'center',
+  },
+  productCategoryContent: {
+    gap: 8,
+    paddingRight: 20,
+    marginBottom: 12,
+  },
+  productCategoryChip: {
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    justifyContent: 'center',
+  },
+  productCategoryChipActive: {
+    backgroundColor: '#0f172a',
+    borderColor: '#0f172a',
+  },
+  productCategoryText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#64748b',
+  },
+  productCategoryTextActive: {
+    color: '#ffffff',
   },
   productSliderContent: {
     gap: 12,

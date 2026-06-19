@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CITY_TEMPLATES, GuidebookItem } from '../constants/travelData';
+import { getSupportedCity } from '../data/supportedCities';
 
 interface ExploreGuideModalProps {
   visible: boolean;
@@ -24,12 +25,11 @@ const isTablet = width > 600;
 export default function ExploreGuideModal({ visible, cityCode, onClose }: ExploreGuideModalProps) {
   const [activeAccordion, setActiveAccordion] = useState<number | null>(null);
 
-  const template = CITY_TEMPLATES[cityCode] || CITY_TEMPLATES.sapporo;
-  const guidebook: GuidebookItem[] = template.explore.guidebook || [];
+  const hasCityTemplate = Object.prototype.hasOwnProperty.call(CITY_TEMPLATES, cityCode);
+  const template = hasCityTemplate ? CITY_TEMPLATES[cityCode] : null;
+  const guidebook: GuidebookItem[] = template?.explore.guidebook || [];
 
-  let cityName = "삿포로 & 오타루";
-  if (cityCode === "tokyo") cityName = "도쿄";
-  else if (cityCode === "osaka") cityName = "오사카 & 교토";
+  const cityName = getSupportedCity(cityCode).name;
 
   const toggleAccordion = (index: number) => {
     setActiveAccordion(activeAccordion === index ? null : index);

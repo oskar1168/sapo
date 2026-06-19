@@ -30,6 +30,7 @@ export default function AppIndex() {
   const [likedSpots, setLikedSpots] = useState<SpotRef[]>([]);
   const [autoAddSpot, setAutoAddSpot] = useState<SpotRef | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [initialCreateCity, setInitialCreateCity] = useState<string | null>(null);
 
   // 1. Initial State Load from storage & lazy load required spots
   useEffect(() => {
@@ -52,10 +53,6 @@ export default function AppIndex() {
         snapshot.likedSpots.forEach((s: any) => {
           if (s.city) citiesToLoad.add(s.city);
         });
-
-        if (citiesToLoad.size === 0) {
-          citiesToLoad.add('sapporo'); // Fallback 기본값
-        }
 
         await loadSpotCatalog(Array.from(citiesToLoad) as any);
       } catch (e) {
@@ -175,9 +172,19 @@ export default function AppIndex() {
 
   // Add recommended spot directly from explore screen
   const handleAddSpotToTimeline = (city: string, originalIndex: number) => {
+    if (!travelData) {
+      setCurrentView('myTrips');
+      return;
+    }
+
     const spot = getSpotDetail(city, originalIndex);
     setAutoAddSpot({ city, spotId: spot?.id, originalIndex });
     setCurrentView('detail');
+  };
+
+  const handleStartTripPlanning = (cityCode: string) => {
+    setInitialCreateCity(cityCode);
+    setCurrentView('myTrips');
   };
 
   // Pull-to-refresh handler to invalidate cache and fetch fresh spots
@@ -214,7 +221,8 @@ export default function AppIndex() {
           onToggleLike={handleToggleLike}
           onAddSpotToTimeline={handleAddSpotToTimeline}
           onNavigateToMyTrips={() => setCurrentView('myTrips')}
-          cityCode={travelData?.cityCode || 'sapporo'}
+          onStartTripPlanning={handleStartTripPlanning}
+          cityCode={travelData?.cityCode}
         />
       ) : null}
 
@@ -228,6 +236,8 @@ export default function AppIndex() {
           onEditTrip={handleEditTripMetadata}
           onDeleteTrip={handleDeleteTrip}
           onBackToExplore={() => setCurrentView('explore')}
+          initialCreateCity={initialCreateCity}
+          onInitialCreateCityHandled={() => setInitialCreateCity(null)}
         />
       ) : null}
 

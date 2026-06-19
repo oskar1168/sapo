@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,8 +13,14 @@ import {
 } from 'react-native';
 
 import SpotThumbnail from '../SpotThumbnail';
-import { SPOT_CATEGORIES, DETAILED_CATEGORIES, SpotItem } from '../../constants/travelData';
-import { getRecommendedSpots, getSpotSource, isSameSpotRef } from '../../services/spotCatalog';
+import { DETAILED_CATEGORIES, SPOT_CATEGORIES, SpotItem } from '../../constants/travelData';
+import { getGoogleMapsUrl } from '../../services/mapLinks';
+import {
+  getRecommendedSpots,
+  getSpotSource,
+  isSameSpotRef,
+  loadSpotDetailById,
+} from '../../services/spotCatalog';
 import { SpotRef } from '../../types/spot';
 
 interface SpotsTabProps {
@@ -34,9 +42,9 @@ interface SpotsTabProps {
 
 const COMPANION_TAGS = [
   { value: 'all', label: '전체' },
-  { value: '가족', label: '👨‍👩‍👧‍👦 가족과 함께' },
-  { value: '연인', label: '👩‍❤️‍👨 연인과 함께' },
-  { value: '혼자', label: '🎒 혼자서도 좋아요' },
+  { value: '가족', label: '가족과 함께' },
+  { value: '연인', label: '연인과 함께' },
+  { value: '혼자', label: '혼자 여행' },
 ];
 
 export default function SpotsTab({
@@ -56,30 +64,65 @@ export default function SpotsTab({
   refreshing,
 }: SpotsTabProps) {
   const [spotCompanionFilter, setSpotCompanionFilter] = useState<string>('all');
+  const [hydratedSpots, setHydratedSpots] = useState<Record<string, SpotItem>>({});
+  const [loadingSpotDetails, setLoadingSpotDetails] = useState<Record<string, boolean>>({});
+
+  const handleMapOpen = async (spot: SpotItem) => {
+    await Linking.openURL(getGoogleMapsUrl(spot));
+  };
+
+  const hydrateSpotDetail = async (source: SpotRef) => {
+    if (!source.spotId || hydratedSpots[source.spotId] || loadingSpotDetails[source.spotId]) {
+      return;
+    }
+
+    const spotId = source.spotId;
+    setLoadingSpotDetails((prev) => ({ ...prev, [spotId]: true }));
+
+    try {
+      const detail = await loadSpotDetailById(source.city, spotId);
+      if (detail) {
+        setHydratedSpots((prev) => ({ ...prev, [detail.id]: detail }));
+      }
+    } catch (error) {
+      console.warn(`[SpotCatalog] Failed to hydrate spot detail for ${source.city}/${spotId}:`, error);
+    } finally {
+      setLoadingSpotDetails((prev) => ({ ...prev, [spotId]: false }));
+    }
+  };
+
+  const handleToggleSpot = (index: number, source: SpotRef, isExpanded: boolean) => {
+    onToggleSpotAccordion(index);
+
+    if (!isExpanded) {
+      hydrateSpotDetail(source);
+    }
+  };
 
   const filteredSpots = getRecommendedSpots(cityCode, cityFilter).filter((spot) => {
     const normalizedQuery = spotSearchQuery.toLowerCase();
+    const hydratedSpot = hydratedSpots[spot.id] || spot;
     const searchText = [
-      spot.name,
-      spot.nameKo,
-      spot.nameJa,
-      spot.nameEn,
-      ...(spot.searchKeywords || []),
-      spot.menu,
-      spot.tips,
-      spot.address,
+      hydratedSpot.name,
+      hydratedSpot.nameKo,
+      hydratedSpot.nameJa,
+      hydratedSpot.nameEn,
+      ...(hydratedSpot.searchKeywords || []),
+      hydratedSpot.menu,
+      hydratedSpot.tips,
+      hydratedSpot.address,
     ]
       .filter(Boolean)
       .join(' ')
       .toLowerCase();
-    const matchesSearch =
-      normalizedQuery.length === 0 || searchText.includes(normalizedQuery);
+    const matchesSearch = normalizedQuery.length === 0 || searchText.includes(normalizedQuery);
     const categoryMeta = SPOT_CATEGORIES[spotCategoryFilter];
     const matchesCategory =
       spotCategoryFilter === 'all' ||
-      (categoryMeta && categoryMeta.dbCategories?.includes(spot.category));
+      (categoryMeta && categoryMeta.dbCategories?.includes(hydratedSpot.category));
     const matchesCompanion =
-      spotCompanionFilter === 'all' || (spot.tags && spot.tags.includes(spotCompanionFilter));
+      spotCompanionFilter === 'all' ||
+      (hydratedSpot.tags && hydratedSpot.tags.includes(spotCompanionFilter));
 
     return matchesSearch && matchesCategory && matchesCompanion;
   });
@@ -87,35 +130,37 @@ export default function SpotsTab({
   const renderSpot = ({ item: spot, index }: { item: SpotItem; index: number }) => {
     const isExpanded = !!expandedSpots[index];
     const spotSource = getSpotSource(spot, cityCode || 'sapporo');
+    const detailSpot = spotSource.spotId ? hydratedSpots[spotSource.spotId] || spot : spot;
+    const isDetailLoading = !!(spotSource.spotId && loadingSpotDetails[spotSource.spotId]);
     const isLiked = likedSpots.some((likedSpot) => isSameSpotRef(likedSpot, spotSource));
 
     return (
       <View style={styles.spotCard}>
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => onToggleSpotAccordion(index)}
+          onPress={() => handleToggleSpot(index, spotSource, isExpanded)}
           style={styles.spotHeader}
         >
-          <SpotThumbnail spot={spot} style={styles.spotThumb} />
+          <SpotThumbnail spot={detailSpot} style={styles.spotThumb} />
           <View style={styles.spotInfo}>
             <View style={styles.spotTitleRow}>
-              <Text style={styles.spotName}>{spot.name}</Text>
+              <Text style={styles.spotName}>{detailSpot.name}</Text>
               <View style={styles.ratingRow}>
                 <Ionicons name="star" size={13} color="#f1c40f" />
-                <Text style={styles.ratingText}>{spot.rating}</Text>
+                <Text style={styles.ratingText}>{detailSpot.rating}</Text>
               </View>
             </View>
             <Text style={styles.spotMenu} numberOfLines={1}>
-              {spot.menu}
+              {detailSpot.menu}
             </Text>
             <View style={styles.spotCardBadgeRow}>
               <View style={styles.spotBadge}>
                 <Text style={styles.spotBadgeText}>
-                  {DETAILED_CATEGORIES[spot.category]?.label || '추천 스팟'}
+                  {DETAILED_CATEGORIES[detailSpot.category]?.label || '추천 스팟'}
                 </Text>
               </View>
-              {spot.tags && spot.tags.map((tag, idx) => (
-                <View key={idx} style={[styles.spotBadge, styles.tagBadge]}>
+              {detailSpot.tags?.map((tag, idx) => (
+                <View key={`${tag}-${idx}`} style={[styles.spotBadge, styles.tagBadge]}>
                   <Text style={styles.tagBadgeText}>#{tag}</Text>
                 </View>
               ))}
@@ -131,19 +176,37 @@ export default function SpotsTab({
 
         {isExpanded ? (
           <View style={styles.spotDetails}>
-            <Text style={styles.spotTipsTitle}>현지 꿀팁</Text>
-            <Text style={styles.spotTips}>{spot.tips}</Text>
-            <Text style={styles.spotTimeText}>
-              운영: {spot.openTime} ~ {spot.closeTime}
-            </Text>
+            {isDetailLoading ? (
+              <View style={styles.spotLoadingRow}>
+                <ActivityIndicator size="small" color="#6c5ce7" />
+                <Text style={styles.spotLoadingText}>상세 정보를 불러오는 중...</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.spotTipsTitle}>추천 포인트</Text>
+                <Text style={styles.spotTips}>{detailSpot.tips || '등록된 상세 설명이 없습니다.'}</Text>
+                <Text style={styles.spotTimeText}>
+                  운영: {detailSpot.openTime || '-'} ~ {detailSpot.closeTime || '-'}
+                </Text>
+              </>
+            )}
 
             <View style={styles.spotActionRow}>
               <TouchableOpacity
                 style={styles.btnSpotSchedule}
-                onPress={() => onAddSpotToTimeline(spot)}
+                onPress={() => onAddSpotToTimeline(detailSpot)}
+                disabled={isDetailLoading}
               >
                 <Ionicons name="calendar" size={16} color="#ffffff" />
                 <Text style={styles.btnSpotScheduleText}>일정에 추가</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.btnSpotMap}
+                onPress={() => handleMapOpen(detailSpot)}
+                disabled={isDetailLoading}
+              >
+                <Ionicons name="map-outline" size={17} color="#6c5ce7" />
+                <Text style={styles.btnSpotMapText}>지도보기</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.btnSpotLike, isLiked && styles.btnSpotLikeActive]}
@@ -173,7 +236,7 @@ export default function SpotsTab({
           style={styles.searchInput}
           value={spotSearchQuery}
           onChangeText={onSetSpotSearchQuery}
-          placeholder="스팟 이름, 추천 메뉴, 꿀팁 검색..."
+          placeholder="스팟 이름, 추천 메뉴, 키워드 검색..."
         />
         {spotSearchQuery ? (
           <TouchableOpacity onPress={() => onSetSpotSearchQuery('')}>
@@ -203,7 +266,7 @@ export default function SpotsTab({
       ) : null}
 
       <View style={styles.companionChipsWrapper}>
-        <Text style={styles.companionTitle}>누구와 함께 가나요?</Text>
+        <Text style={styles.companionTitle}>누구와 함께 가세요?</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.companionScroll}>
           {COMPANION_TAGS.map((tag) => (
             <TouchableOpacity
@@ -421,13 +484,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 2,
   },
+  spotLoadingRow: {
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  spotLoadingText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748b',
+  },
   spotActionRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
     marginTop: 10,
   },
   btnSpotSchedule: {
     flex: 1.2,
+    minWidth: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -441,8 +517,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
   },
+  btnSpotMap: {
+    flex: 1,
+    minWidth: 104,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(108, 92, 231, 0.32)',
+    borderRadius: 8,
+    height: 38,
+    gap: 4,
+    backgroundColor: 'rgba(108, 92, 231, 0.08)',
+  },
+  btnSpotMapText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6c5ce7',
+  },
   btnSpotLike: {
     flex: 1,
+    minWidth: 104,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

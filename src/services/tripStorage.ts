@@ -12,6 +12,18 @@ const STORAGE_KEYS = {
 };
 
 const tripDetailKey = (tripId: string) => `sapo_trip_detail_${tripId}`;
+const REMOTE_DETAIL_SAVE_DEBOUNCE_MS = 1200;
+
+type SaveTripDetailOptions = {
+  remoteSync?: 'debounced' | 'immediate';
+};
+
+type PendingTripDetailSave = {
+  detail: unknown;
+  timer: ReturnType<typeof setTimeout>;
+};
+
+const pendingTripDetailSaves = new Map<string, PendingTripDetailSave>();
 
 const metadataFromSupabaseRow = (row: any): TripMetadata => ({
   id: row.id,
@@ -63,6 +75,53 @@ async function deleteLocalTripDetail(tripId: string) {
   await AsyncStorage.removeItem(tripDetailKey(tripId));
 }
 
+async function syncTripDetailToSupabase(tripId: string, detail: unknown) {
+  if (!isSupabaseConfigured || !supabase) return;
+
+  try {
+    const user = await ensureSupabaseSession();
+    if (!user) return;
+
+    const typedDetail = detail as Partial<CityTemplate>;
+    const { error } = await supabase.from('trips').upsert({
+      id: tripId,
+      user_id: user.id,
+      city_code: typedDetail.cityCode || 'sapporo',
+      title: typedDetail.title || 'SAPO Trip',
+      start_date: typedDetail.startDate || '',
+      end_date: typedDetail.endDate || '',
+      member_count: typedDetail.memberCount || 1,
+      detail,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+  } catch (error) {
+    console.warn('Supabase trip detail save failed, local copy kept:', error);
+  }
+}
+
+function cancelPendingTripDetailSave(tripId: string) {
+  const pendingSave = pendingTripDetailSaves.get(tripId);
+  if (!pendingSave) return;
+
+  clearTimeout(pendingSave.timer);
+  pendingTripDetailSaves.delete(tripId);
+}
+
+function queueTripDetailSupabaseSync(tripId: string, detail: unknown) {
+  cancelPendingTripDetailSave(tripId);
+
+  const timer = setTimeout(() => {
+    const pendingSave = pendingTripDetailSaves.get(tripId);
+    if (!pendingSave) return;
+
+    pendingTripDetailSaves.delete(tripId);
+    void syncTripDetailToSupabase(tripId, pendingSave.detail);
+  }, REMOTE_DETAIL_SAVE_DEBOUNCE_MS);
+
+  pendingTripDetailSaves.set(tripId, { detail, timer });
+}
+
 async function migrateLocalTripsToSupabase(userId: string) {
   if (!supabase) return false;
 
@@ -112,7 +171,13 @@ export async function loadTripsList(): Promise<TripMetadata[]> {
   }
 }
 
-export async function saveTripsList(trips: TripMetadata[]) {
+type SaveTripsListOptions = {
+  includeDetails?: boolean;
+};
+
+export async function saveTripsList(trips: TripMetadata[], options: SaveTripsListOptions = {}) {
+  const { includeDetails = true } = options;
+
   await saveLocalTripsList(trips);
 
   if (!isSupabaseConfigured || !supabase) return;
@@ -123,11 +188,19 @@ export async function saveTripsList(trips: TripMetadata[]) {
 
     if (trips.length > 0) {
       const rows = await Promise.all(
-        trips.map(async (trip) => ({
-          ...metadataToSupabaseRow(trip),
-          user_id: user.id,
-          detail: (await loadLocalTripDetail(trip.id)) || {},
-        })),
+        trips.map(async (trip) => {
+          const row = {
+            ...metadataToSupabaseRow(trip),
+            user_id: user.id,
+          };
+
+          return includeDetails
+            ? {
+                ...row,
+                detail: (await loadLocalTripDetail(trip.id)) || {},
+              }
+            : row;
+        }),
       );
       const { error } = await supabase.from('trips').upsert(rows);
       if (error) throw error;
@@ -230,35 +303,27 @@ export async function loadTripDetail<T = CityTemplate>(tripId: string): Promise<
   }
 }
 
-export async function saveTripDetail(tripId: string, detail: unknown) {
+export async function saveTripDetail(
+  tripId: string,
+  detail: unknown,
+  options: SaveTripDetailOptions = {},
+) {
   await saveLocalTripDetail(tripId, detail);
 
   if (!isSupabaseConfigured || !supabase) return;
 
-  try {
-    const user = await ensureSupabaseSession();
-    if (!user) return;
-
-    const typedDetail = detail as Partial<CityTemplate>;
-    const { error } = await supabase.from('trips').upsert({
-      id: tripId,
-      user_id: user.id,
-      city_code: typedDetail.cityCode || 'sapporo',
-      title: typedDetail.title || 'SAPO Trip',
-      start_date: typedDetail.startDate || '',
-      end_date: typedDetail.endDate || '',
-      member_count: typedDetail.memberCount || 1,
-      detail,
-      updated_at: new Date().toISOString(),
-    });
-    if (error) throw error;
-  } catch (error) {
-    console.warn('Supabase trip detail save failed, local copy kept:', error);
+  if (options.remoteSync === 'immediate') {
+    cancelPendingTripDetailSave(tripId);
+    await syncTripDetailToSupabase(tripId, detail);
+    return;
   }
+
+  queueTripDetailSupabaseSync(tripId, detail);
 }
 
 export async function deleteTripDetail(tripId: string) {
   await deleteLocalTripDetail(tripId);
+  cancelPendingTripDetailSave(tripId);
 
   if (!isSupabaseConfigured || !supabase) return;
 

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { ActivityItem } from '../../constants/travelData';
+import { getGoogleMapsUrl } from '../../services/mapLinks';
 
 interface DayOption {
   label: string;
@@ -32,6 +33,10 @@ export default function TimelineTab({
   onDeletePlace,
   getDayDateString,
 }: TimelineTabProps) {
+  const openDirections = async (item: ActivityItem) => {
+    await Linking.openURL(getGoogleMapsUrl(item));
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.dayTabsWrapper}>
@@ -99,6 +104,15 @@ export default function TimelineTab({
                   </View>
 
                   {item.memo ? <Text style={styles.timelineCardMemo}>{item.memo}</Text> : null}
+
+                  <TouchableOpacity
+                    style={styles.directionButton}
+                    onPress={() => openDirections(item)}
+                    activeOpacity={0.82}
+                  >
+                    <Ionicons name="navigate-outline" size={14} color="#6c5ce7" />
+                    <Text style={styles.directionButtonText}>길찾기</Text>
+                  </TouchableOpacity>
 
                   {item.cost ? (
                     <View style={styles.costBadge}>
@@ -296,6 +310,24 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginTop: 6,
   },
+  directionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    height: 30,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(108, 92, 231, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(108, 92, 231, 0.18)',
+    gap: 4,
+    marginTop: 8,
+  },
+  directionButtonText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#6c5ce7',
+  },
   costBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -317,4 +349,3 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
 });
-

@@ -13,7 +13,7 @@ export type {
 export const CITY_TEMPLATES: { [key: string]: CityTemplate } = {
   sapporo: {
     cityCode: "sapporo",
-    title: "삿포로 & 오타루 초여름 여행 ✈️",
+    title: "홋카이도 초여름 여행 ✈️",
     startDate: "2026-06-13",
     endDate: "2026-06-16",
     memberCount: 2,
@@ -66,7 +66,9 @@ export const CITY_TEMPLATES: { [key: string]: CityTemplate } = {
         { emoji: "🧭", name: "삿포로", desc: "식당 & 도심 야경", filter: "sapporo" },
         { emoji: "🌊", name: "오타루", desc: "오르골 & 감성 운하", filter: "otaru" },
         { emoji: "✨", name: "하코다테", desc: "세계 3대 로프웨이 야경", filter: "hakodate" },
-        { emoji: "🌸", name: "비에이/후라노", desc: "청의 호수 & 패치워크", filter: "biei" }
+        { emoji: "🌸", name: "비에이/후라노", desc: "청의 호수 & 패치워크", filter: "biei" },
+        { emoji: "♨️", name: "노보리베츠/도야", desc: "온천 & 호수 드라이브", filter: "noboribetsu" },
+        { emoji: "🐧", name: "아사히카와", desc: "동물원 & 라멘", filter: "asahikawa" }
       ],
       deals: [
         { emoji: "coupon", color: "#fd79a8", title: "돈키호테 할인 쿠폰 15% 받기", desc: "10% 면세 + 최대 5% 추가 즉시할인 바코드 연동" },
@@ -135,7 +137,10 @@ export const CITY_TEMPLATES: { [key: string]: CityTemplate } = {
         { emoji: "🗼", name: "신주쿠/시부야", desc: "쇼핑 & 메인 거리", filter: "shinjuku" },
         { emoji: "⛩️", name: "아사쿠사", desc: "도쿄의 오랜 정취", filter: "asakusa" },
         { emoji: "🎢", name: "마이하마", desc: "디즈니랜드 리조트", filter: "maihama" },
-        { emoji: "🛍️", name: "긴자", desc: "명품관 & 고급 식당", filter: "ginza" }
+        { emoji: "🛍️", name: "긴자", desc: "명품관 & 고급 식당", filter: "ginza" },
+        { emoji: "🗻", name: "하코네/후지산", desc: "온천 & 후지산 뷰", filter: "fuji_hakone" },
+        { emoji: "🌉", name: "요코하마", desc: "항구 야경 & 차이나타운", filter: "yokohama" },
+        { emoji: "🚃", name: "가마쿠라/에노시마", desc: "바다 전철 & 사찰", filter: "kamakura" }
       ],
       deals: [
         { emoji: "coupon", color: "#fd79a8", title: "도쿄 메가 돈키호테 할인 쿠폰 15%", desc: "면세 10% + 시부야/신주쿠점 추가 5% 혜택" },
@@ -157,7 +162,7 @@ export const CITY_TEMPLATES: { [key: string]: CityTemplate } = {
   },
   osaka: {
     cityCode: "osaka",
-    title: "오사카 & 교토 먹방 여행 🐙",
+    title: "오사카 먹방 여행 🐙",
     startDate: "2026-08-15",
     endDate: "2026-08-18",
     memberCount: 2,
@@ -198,7 +203,10 @@ export const CITY_TEMPLATES: { [key: string]: CityTemplate } = {
         { emoji: "🐙", name: "난바/우메다", desc: "오사카의 먹거리 & 쇼핑", filter: "namba" },
         { emoji: "🏯", name: "오사카성", desc: "역사 유적지 산책", filter: "castle" },
         { emoji: "⛩️", name: "교토", desc: "청수사 & 아라시야마", filter: "kyoto" },
-        { emoji: "🎢", name: "사쿠라지마", desc: "USJ 테마파크", filter: "usj" }
+        { emoji: "🎢", name: "USJ", desc: "닌텐도 월드 & 익스프레스", filter: "usj" },
+        { emoji: "🦌", name: "나라", desc: "사슴공원 & 도다이지", filter: "nara" },
+        { emoji: "🌃", name: "고베", desc: "항구 야경 & 아리마온천", filter: "kobe" },
+        { emoji: "🌿", name: "팀랩/나가이", desc: "야간 전시 & 공원 산책", filter: "teamlab" }
       ],
       deals: [
         { emoji: "coupon", color: "#fd79a8", title: "오사카 돈키호테 난바점 15% 쿠폰", desc: "10% 면세 + 5% 현장 추가 쿠폰 링크" },

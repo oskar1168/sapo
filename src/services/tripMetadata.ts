@@ -1,3 +1,5 @@
+import { SUPPORTED_CITIES, getSupportedCity } from '../data/supportedCities';
+
 export type CityDetails = {
   code: string;
   name: string;
@@ -6,29 +8,13 @@ export type CityDetails = {
   bg: string;
 };
 
-export const CITY_OPTIONS: CityDetails[] = [
-  {
-    code: 'sapporo',
-    name: '삿포로 & 오타루',
-    desc: '초여름 운하와 야경이 있는 감성 여행',
-    emoji: '✈️',
-    bg: '#6c5ce7',
-  },
-  {
-    code: 'tokyo',
-    name: '도쿄',
-    desc: '쇼핑, 미식, 도시 감성을 한 번에',
-    emoji: '🗼',
-    bg: '#ff7675',
-  },
-  {
-    code: 'osaka',
-    name: '오사카 & 교토',
-    desc: '먹거리와 천년 고도 산책 코스',
-    emoji: '🏯',
-    bg: '#fdcb6e',
-  },
-];
+export const CITY_OPTIONS: CityDetails[] = SUPPORTED_CITIES.map((city) => ({
+  code: city.code,
+  name: city.name,
+  desc: city.desc,
+  emoji: city.emoji,
+  bg: city.bg,
+}));
 
 export const getDday = (startDateStr: string) => {
   if (!startDateStr) return 'D-??';
@@ -48,11 +34,18 @@ export const getDday = (startDateStr: string) => {
 };
 
 export const getCityDetails = (cityCode: string) => {
-  return CITY_OPTIONS.find((city) => city.code === cityCode) || CITY_OPTIONS[0];
+  const city = getSupportedCity(cityCode);
+  return {
+    code: city.code,
+    name: city.name,
+    desc: city.desc,
+    emoji: city.emoji,
+    bg: city.bg,
+  };
 };
 
 export const buildDefaultTripTitle = (cityName: string) => {
-  return `${cityName} 힐링 여행`;
+  return `${cityName} 여행`;
 };
 
 export const isTripMetadataFormValid = (title: string, startDate: string, endDate: string) => {
