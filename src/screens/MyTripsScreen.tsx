@@ -19,7 +19,7 @@ import {
   getDday,
   isTripMetadataFormValid,
 } from '../services/tripMetadata';
-import { TripMetadata } from '../types/trip';
+import { TripMetadata, TripScheduleMode } from '../types/trip';
 
 const { width } = Dimensions.get('window');
 const isTablet = width > 600;
@@ -41,6 +41,7 @@ type TripFormValues = {
   startDate: string;
   endDate: string;
   memberCount: number;
+  scheduleMode: TripScheduleMode;
 };
 
 const emptyForm: TripFormValues = {
@@ -48,6 +49,7 @@ const emptyForm: TripFormValues = {
   startDate: '',
   endDate: '',
   memberCount: 2,
+  scheduleMode: 'recommended',
 };
 
 const formatDateString = (date: Date) => {
@@ -293,6 +295,7 @@ export default function MyTripsScreen({
       startDate: createForm.startDate,
       endDate: createForm.endDate,
       memberCount: createForm.memberCount,
+      scheduleMode: createForm.scheduleMode,
     });
 
     resetCreateForm();
@@ -305,6 +308,7 @@ export default function MyTripsScreen({
       startDate: trip.startDate,
       endDate: trip.endDate,
       memberCount: trip.memberCount,
+      scheduleMode: trip.scheduleMode || 'recommended',
     });
     setEditModalVisible(true);
   };
@@ -322,6 +326,7 @@ export default function MyTripsScreen({
       startDate: editForm.startDate,
       endDate: editForm.endDate,
       memberCount: editForm.memberCount,
+      scheduleMode: trips.find((trip) => trip.id === editingTripId)?.scheduleMode,
     });
 
     setEditModalVisible(false);
@@ -424,48 +429,56 @@ export default function MyTripsScreen({
               </TouchableOpacity>
             </View>
 
-            {step === 1 && (
-              <View style={styles.stepContainer}>
-                {CITY_OPTIONS.map((city) => (
-                  <TouchableOpacity
-                    key={city.code}
-                    style={styles.cityItem}
-                    onPress={() => {
-                      setSelectedCity(city.code);
-                      setCreateForm((prev) => ({
-                        ...prev,
-                        title: buildDefaultTripTitle(city.name),
-                      }));
-                      setStep(2);
-                    }}
-                  >
-                    <Text style={styles.cityEmoji}>{city.emoji}</Text>
-                    <View style={styles.cityInfo}>
-                      <Text style={styles.cityName}>{city.name}</Text>
-                      <Text style={styles.cityDesc}>{city.desc}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+            <ScrollView
+              style={styles.modalBody}
+              contentContainerStyle={styles.modalBodyContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {step === 1 && (
+                <View style={styles.stepContainer}>
+                  {CITY_OPTIONS.map((city) => (
+                    <TouchableOpacity
+                      key={city.code}
+                      style={styles.cityItem}
+                      onPress={() => {
+                        setSelectedCity(city.code);
+                        setCreateForm((prev) => ({
+                          ...prev,
+                          title: buildDefaultTripTitle(city.name),
+                        }));
+                        setStep(2);
+                      }}
+                    >
+                      <Text style={styles.cityEmoji}>{city.emoji}</Text>
+                      <View style={styles.cityInfo}>
+                        <Text style={styles.cityName}>{city.name}</Text>
+                        <Text style={styles.cityDesc}>{city.desc}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
 
-            {step === 2 && (
-              <TripForm
-                values={createForm}
-                onChange={setCreateForm}
-                footer={
-                  <View style={styles.modalFooter}>
-                    <TouchableOpacity onPress={() => setStep(1)} style={styles.btnBackStep}>
-                      <Ionicons name="arrow-back" size={16} color="#64748b" />
-                      <Text style={styles.btnBackStepText}>이전으로</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleCreateSubmit} style={styles.btnSubmit}>
-                      <Text style={styles.btnSubmitText}>일정 만들기</Text>
-                    </TouchableOpacity>
-                  </View>
-                }
-              />
-            )}
+              {step === 2 && (
+                <TripForm
+                  values={createForm}
+                  onChange={setCreateForm}
+                  showScheduleMode={true}
+                  footer={
+                    <View style={styles.modalFooter}>
+                      <TouchableOpacity onPress={() => setStep(1)} style={styles.btnBackStep}>
+                        <Ionicons name="arrow-back" size={16} color="#64748b" />
+                        <Text style={styles.btnBackStepText}>이전으로</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={handleCreateSubmit} style={styles.btnSubmit}>
+                        <Text style={styles.btnSubmitText}>일정 만들기</Text>
+                      </TouchableOpacity>
+                    </View>
+                  }
+                />
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -485,17 +498,24 @@ export default function MyTripsScreen({
               </TouchableOpacity>
             </View>
 
-            <TripForm
-              values={editForm}
-              onChange={setEditForm}
-              footer={
-                <View style={styles.modalFooterOnly}>
-                  <TouchableOpacity onPress={handleEditSubmit} style={[styles.btnSubmit, styles.btnFull]}>
-                    <Text style={styles.btnSubmitText}>저장하기</Text>
-                  </TouchableOpacity>
-                </View>
-              }
-            />
+            <ScrollView
+              style={styles.modalBody}
+              contentContainerStyle={styles.modalBodyContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <TripForm
+                values={editForm}
+                onChange={setEditForm}
+                footer={
+                  <View style={styles.modalFooterOnly}>
+                    <TouchableOpacity onPress={handleEditSubmit} style={[styles.btnSubmit, styles.btnFull]}>
+                      <Text style={styles.btnSubmitText}>저장하기</Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+              />
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -506,10 +526,12 @@ export default function MyTripsScreen({
 function TripForm({
   values,
   onChange,
+  showScheduleMode = false,
   footer,
 }: {
   values: TripFormValues;
   onChange: (values: TripFormValues | ((prev: TripFormValues) => TripFormValues)) => void;
+  showScheduleMode?: boolean;
   footer: React.ReactNode;
 }) {
   const minEndDate = getMinEndDate(values.startDate);
@@ -565,6 +587,56 @@ function TripForm({
           onChange={(memberCount) => onChange((prev) => ({ ...prev, memberCount }))}
         />
       </View>
+
+      {showScheduleMode && (
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>일정 시작 방식</Text>
+          <View style={styles.scheduleModeGroup}>
+            {[
+              {
+                value: 'recommended' as TripScheduleMode,
+                icon: 'sparkles-outline' as const,
+                title: '추천 일정으로 시작',
+                desc: '도시와 여행 기간에 맞춰 기본 코스를 자동으로 채워드려요.',
+              },
+              {
+                value: 'blank' as TripScheduleMode,
+                icon: 'calendar-clear-outline' as const,
+                title: '빈 일정으로 시작',
+                desc: '날짜만 만들고 장소는 직접 하나씩 추가해요.',
+              },
+            ].map((option) => {
+              const isActive = values.scheduleMode === option.value;
+
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[styles.scheduleModeCard, isActive && styles.scheduleModeCardActive]}
+                  onPress={() => onChange((prev) => ({ ...prev, scheduleMode: option.value }))}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.scheduleModeIcon, isActive && styles.scheduleModeIconActive]}>
+                    <Ionicons
+                      name={option.icon}
+                      size={18}
+                      color={isActive ? '#6c5ce7' : '#64748b'}
+                    />
+                  </View>
+                  <View style={styles.scheduleModeCopy}>
+                    <Text style={[styles.scheduleModeTitle, isActive && styles.scheduleModeTitleActive]}>
+                      {option.title}
+                    </Text>
+                    <Text style={styles.scheduleModeDesc}>{option.desc}</Text>
+                  </View>
+                  <View style={[styles.scheduleModeRadio, isActive && styles.scheduleModeRadioActive]}>
+                    {isActive && <View style={styles.scheduleModeRadioDot} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
 
       {footer}
     </View>
@@ -740,6 +812,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '100%',
     maxWidth: 400,
+    maxHeight: '88%',
     padding: 24,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
@@ -759,6 +832,13 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     flex: 1,
     paddingRight: 10,
+  },
+  modalBody: {
+    marginHorizontal: -4,
+  },
+  modalBodyContent: {
+    paddingHorizontal: 4,
+    paddingBottom: 2,
   },
   stepContainer: {
     gap: 14,
@@ -945,6 +1025,70 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#0f172a',
+  },
+  scheduleModeGroup: {
+    gap: 8,
+  },
+  scheduleModeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+  },
+  scheduleModeCardActive: {
+    borderColor: '#6c5ce7',
+    backgroundColor: 'rgba(108, 92, 231, 0.06)',
+  },
+  scheduleModeIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scheduleModeIconActive: {
+    backgroundColor: '#ffffff',
+  },
+  scheduleModeCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  scheduleModeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  scheduleModeTitleActive: {
+    color: '#5b4bd6',
+  },
+  scheduleModeDesc: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#64748b',
+    lineHeight: 16,
+  },
+  scheduleModeRadio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scheduleModeRadioActive: {
+    borderColor: '#6c5ce7',
+  },
+  scheduleModeRadioDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#6c5ce7',
   },
   modalFooter: {
     flexDirection: 'row',

@@ -1,3 +1,5 @@
+export type TripScheduleMode = 'recommended' | 'blank';
+
 export interface TripMetadata {
   id: string;
   cityCode: string;
@@ -5,6 +7,7 @@ export interface TripMetadata {
   startDate: string;
   endDate: string;
   memberCount: number;
+  scheduleMode?: TripScheduleMode;
 }
 
 export type TripDetail = any;

@@ -44,6 +44,7 @@ const productCategoryLabels: Record<PartnerProduct['category'], string> = {
   ticket: '입장권',
   transport: '교통',
   pass: '교통패스',
+  restaurant: '맛집',
 };
 
 interface ExploreScreenProps {
@@ -66,6 +67,11 @@ export default function ExploreScreen({
   const [selectedRegionGuide, setSelectedRegionGuide] = useState<RegionGuide | null>(null);
   const [regionGridWidth, setRegionGridWidth] = useState(0);
   const [showAllRegions, setShowAllRegions] = useState(false);
+  const [bookingCategorySeed] = useState(() => Math.random());
+  const [selectedProductCategory, setSelectedProductCategory] = useState<{
+    cityCode: string;
+    category: PartnerProduct['category'];
+  } | null>(null);
 
   const hasActiveTrip = Boolean(cityCode);
   const activeCity = cityCode || SUPPORTED_CITIES[0].code;
@@ -87,16 +93,19 @@ export default function ExploreScreen({
   };
   const partnerProducts = getPartnerProductsForCity(activeCity);
   const mainBookingProducts = partnerProducts.filter((product) => !shoppingCouponProductIds.has(product.id));
-  const [activeProductCategory, setActiveProductCategory] = useState<'all' | PartnerProduct['category']>('all');
   const productCategories = Array.from(new Set(mainBookingProducts.map((product) => product.category)));
-  const effectiveProductCategory =
-    activeProductCategory === 'all' || productCategories.includes(activeProductCategory)
-      ? activeProductCategory
-      : 'all';
+  const seededProductCategory = productCategories.length > 0
+    ? productCategories[Math.floor(bookingCategorySeed * productCategories.length) % productCategories.length]
+    : null;
+  const selectedCategoryForCity =
+    selectedProductCategory?.cityCode === activeCity && productCategories.includes(selectedProductCategory.category)
+      ? selectedProductCategory.category
+      : null;
+  const effectiveProductCategory = selectedCategoryForCity || seededProductCategory;
   const visibleBookingProducts =
-    effectiveProductCategory === 'all'
-      ? mainBookingProducts
-      : mainBookingProducts.filter((product) => product.category === effectiveProductCategory);
+    effectiveProductCategory
+      ? mainBookingProducts.filter((product) => product.category === effectiveProductCategory)
+      : mainBookingProducts;
   const regionGridColumns = getRegionGridColumns(regionGridWidth);
   const regionGridCardWidth =
     regionGridWidth > 0
@@ -120,7 +129,7 @@ export default function ExploreScreen({
         <View style={styles.header}>
           <View style={styles.welcomeGroup}>
             <Text style={styles.welcomeTitle}>안녕하세요, 민상님!</Text>
-            <Text style={styles.welcomeSubtitle}>첫 여행 일정을 만들 도시를 선택해 주세요.</Text>
+            <Text style={styles.welcomeSubtitle}>도시를 선택하면 바로 일정 만들기가 시작돼요.</Text>
           </View>
           <TouchableOpacity onPress={onNavigateToMyTrips} style={styles.btnMyTrips} activeOpacity={0.8}>
             <Ionicons name="calendar-outline" size={22} color="#ffffff" />
@@ -134,14 +143,18 @@ export default function ExploreScreen({
           <View style={styles.emptyHeroIcon}>
             <Ionicons name="map-outline" size={28} color="#6c5ce7" />
           </View>
-          <Text style={styles.emptyHeroTitle}>어디로 떠나볼까요?</Text>
+          <Text style={styles.emptyHeroTitle}>여행지부터 골라볼까요?</Text>
           <Text style={styles.emptyHeroDesc}>
-            아직 등록된 여행 일정이 없습니다. 도시를 고르면 날짜와 인원을 입력해 첫 일정을 만들 수 있어요.
+            아래 도시 카드 중 하나를 누르면 날짜와 인원을 입력해 첫 일정을 만들 수 있어요.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitleOnly}>추천 여행지</Text>
+          <View style={styles.sectionHeadingGroup}>
+            <Text style={styles.sectionEyebrow}>1단계</Text>
+            <Text style={styles.sectionTitleOnly}>여행지 선택</Text>
+            <Text style={styles.sectionDesc}>지금은 한국인이 많이 찾는 일본 주요 도시부터 준비했어요.</Text>
+          </View>
           <View style={styles.gridContainer} onLayout={handleRegionGridLayout}>
             {SUPPORTED_CITIES.map((city) => (
               <TouchableOpacity
@@ -163,8 +176,8 @@ export default function ExploreScreen({
         </View>
 
         <TouchableOpacity style={styles.emptyTripsButton} onPress={onNavigateToMyTrips} activeOpacity={0.8}>
-          <Ionicons name="add-circle-outline" size={18} color="#ffffff" />
-          <Text style={styles.emptyTripsButtonText}>직접 일정 만들기</Text>
+          <Ionicons name="calendar-outline" size={18} color="#6c5ce7" />
+          <Text style={styles.emptyTripsButtonText}>내 일정 화면에서 직접 만들기</Text>
         </TouchableOpacity>
       </ScrollView>
     );
@@ -219,23 +232,30 @@ export default function ExploreScreen({
 
       {mainBookingProducts.length > 0 ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitleOnly}>미리 준비하면 편한 예약</Text>
+          <View style={styles.sectionHeaderBetween}>
+            <View style={styles.sectionTitleGroup}>
+              <Text style={[styles.sectionTitleOnly, styles.sectionTitleInline]}>
+                🎒 미리 준비하면 편한 예약
+              </Text>
+              <Text style={styles.sectionDesc}>오늘은 한 가지 준비 카테고리만 먼저 추천해드려요.</Text>
+            </View>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.productCategoryContent}
           >
-            {(['all', ...productCategories] as ('all' | PartnerProduct['category'])[]).map((category) => {
+            {productCategories.map((category) => {
               const isActive = effectiveProductCategory === category;
               return (
                 <TouchableOpacity
                   key={category}
                   style={[styles.productCategoryChip, isActive && styles.productCategoryChipActive]}
-                  onPress={() => setActiveProductCategory(category)}
+                  onPress={() => setSelectedProductCategory({ cityCode: activeCity, category })}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.productCategoryText, isActive && styles.productCategoryTextActive]}>
-                    {category === 'all' ? '전체' : productCategoryLabels[category]}
+                    {productCategoryLabels[category]}
                   </Text>
                 </TouchableOpacity>
               );
@@ -502,7 +522,9 @@ const styles = StyleSheet.create({
   emptyTripsButton: {
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#6c5ce7',
+    backgroundColor: 'rgba(108, 92, 231, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(108, 92, 231, 0.18)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -511,11 +533,24 @@ const styles = StyleSheet.create({
   },
   emptyTripsButtonText: {
     fontSize: 14,
-    color: '#ffffff',
+    color: '#6c5ce7',
     fontWeight: '800',
   },
   section: {
     marginBottom: 24,
+  },
+  sectionHeadingGroup: {
+    marginBottom: 12,
+  },
+  sectionTitleGroup: {
+    flex: 1,
+    gap: 3,
+  },
+  sectionEyebrow: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#6c5ce7',
+    marginBottom: 4,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -533,6 +568,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1e293b',
     marginBottom: 12,
+  },
+  sectionDesc: {
+    fontSize: 11.5,
+    color: '#64748b',
+    fontWeight: '600',
+    lineHeight: 17,
   },
   sectionTitleInline: {
     flex: 1,

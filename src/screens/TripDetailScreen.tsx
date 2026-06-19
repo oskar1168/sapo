@@ -91,7 +91,7 @@ export default function TripDetailScreen({
   const [spotSearchQuery, setSpotSearchQuery] = useState('');
   const [cityFilter, setCityFilter] = useState('all'); // 'all', 'sapporo', 'otaru'
   const [spotCategoryFilter, setSpotCategoryFilter] = useState('all');
-  const [expandedSpots, setExpandedSpots] = useState<{ [key: number]: boolean }>({});
+  const [expandedSpots, setExpandedSpots] = useState<Record<string, boolean>>({});
 
   // Real-time API data
   const [exchangeRate, setExchangeRate] = useState(9.0);
@@ -254,8 +254,8 @@ export default function TripDetailScreen({
     }
   };
 
-  const toggleSpotAccordion = (index: number) => {
-    setExpandedSpots((prev) => ({ ...prev, [index]: !prev[index] }));
+  const toggleSpotAccordion = (spotKey: string) => {
+    setExpandedSpots((prev) => ({ ...prev, [spotKey]: !prev[spotKey] }));
   };
 
   // Shopping handlers
@@ -444,6 +444,7 @@ export default function TripDetailScreen({
         {/* ==================== 3. SHOPPING TAB ==================== */}
         {activeTab === 'shopping' && (
           <ShoppingTab
+            cityCode={travelData.cityCode || 'sapporo'}
             shoppingList={travelData.shoppingList || []}
             shoppingTotalCostKRW={stats.shoppingTotalCostKRW}
             exchangeRate={exchangeRate}

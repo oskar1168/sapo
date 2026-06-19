@@ -2,7 +2,7 @@ export type PartnerProduct = {
   id: string;
   provider: 'myrealtrip';
   cityCode: string;
-  category: 'tour' | 'ticket' | 'transport' | 'pass';
+  category: 'tour' | 'ticket' | 'transport' | 'pass' | 'restaurant';
   title: string;
   desc: string;
   keyword: string;
@@ -377,6 +377,78 @@ export const PARTNER_PRODUCTS: PartnerProduct[] = [
     icon: 'train-outline',
     color: '#f39c12',
     targetUrl: myRealTripSearchUrl('나고야 중부 교통패스 메이테츠'),
+  },
+  {
+    id: 'myrealtrip-sapporo-restaurant',
+    provider: 'myrealtrip',
+    cityCode: 'sapporo',
+    category: 'restaurant',
+    title: '삿포로 맛집 예약',
+    desc: '징기스칸, 게요리, 해산물 맛집은 인기 시간대를 미리 확인하세요',
+    keyword: '삿포로 맛집 예약 징기스칸 게요리',
+    icon: 'restaurant-outline',
+    color: '#e17055',
+    targetUrl: myRealTripSearchUrl('삿포로 맛집 예약 징기스칸 게요리'),
+  },
+  {
+    id: 'myrealtrip-tokyo-restaurant',
+    provider: 'myrealtrip',
+    cityCode: 'tokyo',
+    category: 'restaurant',
+    title: '도쿄 맛집 예약',
+    desc: '스시 오마카세, 야키니쿠, 이자카야는 여행 전 예약이 편해요',
+    keyword: '도쿄 맛집 예약 오마카세 야키니쿠',
+    icon: 'restaurant-outline',
+    color: '#e17055',
+    targetUrl: myRealTripSearchUrl('도쿄 맛집 예약 오마카세 야키니쿠'),
+  },
+  {
+    id: 'myrealtrip-osaka-restaurant',
+    provider: 'myrealtrip',
+    cityCode: 'osaka',
+    category: 'restaurant',
+    title: '오사카 맛집 예약',
+    desc: '난바 야키니쿠, 쿠시카츠, 인기 식당 대기 시간을 줄여보세요',
+    keyword: '오사카 맛집 예약 난바 야키니쿠 쿠시카츠',
+    icon: 'restaurant-outline',
+    color: '#e17055',
+    targetUrl: myRealTripSearchUrl('오사카 맛집 예약 난바 야키니쿠 쿠시카츠'),
+  },
+  {
+    id: 'myrealtrip-fukuoka-restaurant',
+    provider: 'myrealtrip',
+    cityCode: 'fukuoka',
+    category: 'restaurant',
+    title: '후쿠오카 맛집 예약',
+    desc: '모츠나베, 야타이, 하카타 인기 맛집은 미리 잡아두면 좋아요',
+    keyword: '후쿠오카 맛집 예약 모츠나베 야타이',
+    icon: 'restaurant-outline',
+    color: '#e17055',
+    targetUrl: myRealTripSearchUrl('후쿠오카 맛집 예약 모츠나베 야타이'),
+  },
+  {
+    id: 'myrealtrip-okinawa-restaurant',
+    provider: 'myrealtrip',
+    cityCode: 'okinawa',
+    category: 'restaurant',
+    title: '오키나와 맛집 예약',
+    desc: '아구돼지, 민요 이자카야, 바다 전망 식당을 미리 확인하세요',
+    keyword: '오키나와 맛집 예약 아구돼지 이자카야',
+    icon: 'restaurant-outline',
+    color: '#e17055',
+    targetUrl: myRealTripSearchUrl('오키나와 맛집 예약 아구돼지 이자카야'),
+  },
+  {
+    id: 'myrealtrip-nagoya-restaurant',
+    provider: 'myrealtrip',
+    cityCode: 'nagoya',
+    category: 'restaurant',
+    title: '나고야 맛집 예약',
+    desc: '히츠마부시, 나고야메시, 인기 장어 맛집을 미리 찾아보세요',
+    keyword: '나고야 맛집 예약 히츠마부시 나고야메시',
+    icon: 'restaurant-outline',
+    color: '#e17055',
+    targetUrl: myRealTripSearchUrl('나고야 맛집 예약 히츠마부시 나고야메시'),
   },
 ];
 

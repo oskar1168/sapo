@@ -28,12 +28,12 @@ interface SpotsTabProps {
   cityFilter: string;
   spotCategoryFilter: string;
   spotSearchQuery: string;
-  expandedSpots: { [key: number]: boolean };
+  expandedSpots: Record<string, boolean>;
   likedSpots: SpotRef[];
   onSetCityFilter: (value: string) => void;
   onSetSpotCategoryFilter: (value: string) => void;
   onSetSpotSearchQuery: (value: string) => void;
-  onToggleSpotAccordion: (index: number) => void;
+  onToggleSpotAccordion: (spotKey: string) => void;
   onToggleLike: (city: string, originalIndex: number) => void;
   onAddSpotToTimeline: (spot: SpotItem) => void;
   onRefresh?: () => Promise<void>;
@@ -91,8 +91,8 @@ export default function SpotsTab({
     }
   };
 
-  const handleToggleSpot = (index: number, source: SpotRef, isExpanded: boolean) => {
-    onToggleSpotAccordion(index);
+  const handleToggleSpot = (spotKey: string, source: SpotRef, isExpanded: boolean) => {
+    onToggleSpotAccordion(spotKey);
 
     if (!isExpanded) {
       hydrateSpotDetail(source);
@@ -127,9 +127,10 @@ export default function SpotsTab({
     return matchesSearch && matchesCategory && matchesCompanion;
   });
 
-  const renderSpot = ({ item: spot, index }: { item: SpotItem; index: number }) => {
-    const isExpanded = !!expandedSpots[index];
+  const renderSpot = ({ item: spot }: { item: SpotItem }) => {
     const spotSource = getSpotSource(spot, cityCode || 'sapporo');
+    const spotKey = spotSource.spotId || spot.id;
+    const isExpanded = !!expandedSpots[spotKey];
     const detailSpot = spotSource.spotId ? hydratedSpots[spotSource.spotId] || spot : spot;
     const isDetailLoading = !!(spotSource.spotId && loadingSpotDetails[spotSource.spotId]);
     const isLiked = likedSpots.some((likedSpot) => isSameSpotRef(likedSpot, spotSource));
@@ -138,7 +139,7 @@ export default function SpotsTab({
       <View style={styles.spotCard}>
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => handleToggleSpot(index, spotSource, isExpanded)}
+          onPress={() => handleToggleSpot(spotKey, spotSource, isExpanded)}
           style={styles.spotHeader}
         >
           <SpotThumbnail spot={detailSpot} style={styles.spotThumb} />

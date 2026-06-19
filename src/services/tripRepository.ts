@@ -59,6 +59,15 @@ const buildTripDaysForDateRange = (templateDays: any, startDate: string, endDate
   }, {});
 };
 
+const buildBlankTripDaysForDateRange = (startDate: string, endDate: string) => {
+  const dayCount = getInclusiveTripDayCount(startDate, endDate);
+
+  return Array.from({ length: dayCount }).reduce<Record<string, any[]>>((acc, _, index) => {
+    acc[`day${index + 1}`] = [];
+    return acc;
+  }, {});
+};
+
 const buildCityTripDaysForDateRange = (
   cityCode: string,
   templateDays: any,
@@ -153,12 +162,15 @@ export async function createTrip(
     startDate: newTripMeta.startDate,
     endDate: newTripMeta.endDate,
     memberCount: newTripMeta.memberCount,
-    days: buildCityTripDaysForDateRange(
-      newTripMeta.cityCode,
-      template.days,
-      newTripMeta.startDate,
-      newTripMeta.endDate,
-    ),
+    days:
+      newTripMeta.scheduleMode === 'blank'
+        ? buildBlankTripDaysForDateRange(newTripMeta.startDate, newTripMeta.endDate)
+        : buildCityTripDaysForDateRange(
+            newTripMeta.cityCode,
+            template.days,
+            newTripMeta.startDate,
+            newTripMeta.endDate,
+          ),
     checklist: template.checklist.map((item) => ({ ...item })),
     shoppingList: template.shoppingList.map((item) => ({ ...item })),
   };
