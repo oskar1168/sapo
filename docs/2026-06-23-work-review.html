@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sapo Work Review - 2026-06-23</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm;
+      }
+
+      body {
+        margin: 0;
+        color: #111827;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+        line-height: 1.58;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 25px;
+      }
+
+      h2 {
+        margin: 28px 0 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #d1d5db;
+        font-size: 16px;
+      }
+
+      h3 {
+        margin: 16px 0 6px;
+        font-size: 13px;
+      }
+
+      p,
+      li {
+        font-size: 11px;
+      }
+
+      ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+      }
+
+      code {
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: #eef2ff;
+        font-size: 10px;
+      }
+
+      .meta {
+        margin-bottom: 20px;
+        color: #6b7280;
+        font-size: 10px;
+      }
+
+      .box {
+        margin: 12px 0;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #f9fafb;
+      }
+
+      .finding {
+        margin: 10px 0;
+        padding: 10px 12px;
+        border-left: 4px solid #6366f1;
+        background: #eef2ff;
+      }
+
+      .ok {
+        border-left-color: #10b981;
+        background: #ecfdf5;
+      }
+
+      .warn {
+        border-left-color: #f59e0b;
+        background: #fffbeb;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sapo 작업 리뷰</h1>
+    <div class="meta">작성일: 2026-06-23 / 주제: 여행 기본 데이터 분리, Metro 캐시 이슈 확인</div>
+
+    <section class="box">
+      <h2>요약</h2>
+      <p>
+        오늘 작업은 화면 코드에서 커질 가능성이 높은 여행 기본 데이터를 도시별 파일로 나누는 데 집중했습니다.
+        기존 import 경로는 유지하면서 내부 데이터만 폴더 단위로 분리해, 앞으로 도시별 추천 일정과 지역 가이드를 추가할 때
+        한 파일이 과도하게 커지는 문제를 줄였습니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>주요 변경</h2>
+
+      <div class="finding ok">
+        <h3>1. 도시 기본 템플릿 분리</h3>
+        <ul>
+          <li><code>CITY_TEMPLATES</code>를 <code>src/data/city-templates</code> 폴더로 이동했습니다.</li>
+          <li>삿포로, 도쿄, 오사카 기본 템플릿을 도시별 파일로 나눴습니다.</li>
+          <li><code>src/constants/travelData.ts</code>에서는 기존처럼 <code>CITY_TEMPLATES</code>를 export하도록 호환성을 유지했습니다.</li>
+        </ul>
+      </div>
+
+      <div class="finding ok">
+        <h3>2. 추천 일정 프리셋 분리</h3>
+        <ul>
+          <li><code>src/data/itineraryPresets.ts</code>의 대형 데이터를 <code>src/data/itinerary-presets</code> 폴더로 분리했습니다.</li>
+          <li>홋카이도, 도쿄, 오사카, 후쿠오카, 오키나와, 나고야 프리셋을 도시별 파일로 나눴습니다.</li>
+          <li><code>buildPresetTripDays</code>, <code>hasItineraryPreset</code> 공개 API는 그대로 유지했습니다.</li>
+        </ul>
+      </div>
+
+      <div class="finding ok">
+        <h3>3. 지역 탐색 가이드 분리</h3>
+        <ul>
+          <li><code>src/data/regionGuides.ts</code>의 지역 가이드 데이터를 <code>src/data/region-guides</code> 폴더로 분리했습니다.</li>
+          <li>도시별 지역 가이드가 독립 파일로 관리되도록 바꿨습니다.</li>
+          <li><code>getRegionGuide</code>와 <code>REGION_GUIDES</code> export는 기존 사용처가 깨지지 않도록 유지했습니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>검증</h2>
+      <div class="finding ok">
+        <ul>
+          <li><code>npm exec tsc -- --noEmit</code> 통과</li>
+          <li><code>npm run lint</code> 통과</li>
+          <li><code>http://localhost:8083</code>에서 Expo web 앱 정상 응답 확인</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>메모</h2>
+      <div class="finding warn">
+        <p>
+          데이터 파일을 새 폴더로 대량 생성한 뒤 Metro가 기존 캐시로 인해 새 파일을 찾지 못하는 문제가 있었습니다.
+          기존 서버를 종료하고 <code>expo start --web --clear</code>로 재시작해 정상 동작을 확인했습니다.
+        </p>
+      </div>
+    </section>
+  </body>
+</html>
