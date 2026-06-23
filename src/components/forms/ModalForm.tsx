@@ -42,6 +42,18 @@ type CurrencyToggleProps = {
   onChange: (currency: string) => void;
 };
 
+export type FormChipOption = {
+  value: string;
+  label: string;
+};
+
+type FormChipGroupProps = {
+  options: FormChipOption[];
+  value: string;
+  onChange: (value: string) => void;
+  variant?: 'default' | 'compact';
+};
+
 export function FormModal({
   visible,
   title,
@@ -108,7 +120,7 @@ export function CurrencyToggle({ value, onChange }: CurrencyToggleProps) {
           onPress={() => onChange(currency)}
         >
           <Text style={[styles.currBtnText, value === currency && styles.currBtnTextActive]}>
-            {currency === 'JPY' ? '엔 ¥' : '원 ₩'}
+            {currency === 'JPY' ? 'JPY' : 'KRW'}
           </Text>
         </TouchableOpacity>
       ))}
@@ -116,21 +128,29 @@ export function CurrencyToggle({ value, onChange }: CurrencyToggleProps) {
   );
 }
 
-export const modalFormStyles = StyleSheet.create({
-  formRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  costInputRow: {
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'center',
-  },
-  textArea: {
-    paddingTop: 10,
-    textAlignVertical: 'top',
-  },
-});
+export function FormChipGroup({ options, value, onChange, variant = 'default' }: FormChipGroupProps) {
+  const isCompact = variant === 'compact';
+
+  return (
+    <View style={[styles.chipGroup, isCompact && styles.chipGroupCompact]}>
+      {options.map((option) => {
+        const isActive = value === option.value;
+
+        return (
+          <TouchableOpacity
+            key={option.value}
+            style={[styles.chip, isCompact && styles.chipCompact, isActive && styles.chipActive]}
+            onPress={() => onChange(option.value)}
+          >
+            <Text style={[styles.chipText, isCompact && styles.chipTextCompact, isActive && styles.chipTextActive]}>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   modalOverlay: {
@@ -213,6 +233,48 @@ const styles = StyleSheet.create({
     color: '#475569',
   },
   currBtnTextActive: {
+    color: '#ffffff',
+  },
+  chipGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chipGroupCompact: {
+    gap: 6,
+    padding: 8,
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  chipCompact: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#ffffff',
+    borderColor: '#cbd5e1',
+  },
+  chipActive: {
+    backgroundColor: '#6c5ce7',
+    borderColor: '#6c5ce7',
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  chipTextCompact: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  chipTextActive: {
     color: '#ffffff',
   },
   footer: {

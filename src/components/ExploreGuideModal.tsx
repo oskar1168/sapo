@@ -230,10 +230,7 @@ const styles = StyleSheet.create({
   },
   accordionItemActive: {
     borderColor: '#a29bfe',
-    shadowColor: '#6c5ce7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    boxShadow: '0px 4px 10px rgba(108, 92, 231, 0.05)',
     elevation: 2,
   },
   accordionHeader: {

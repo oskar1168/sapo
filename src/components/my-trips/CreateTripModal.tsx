@@ -121,10 +121,7 @@ export const modalStyles = StyleSheet.create({
     maxWidth: 400,
     maxHeight: '88%',
     padding: 24,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
+    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.15)',
     elevation: 5,
   },
   modalHeader: {
