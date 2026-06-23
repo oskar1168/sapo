@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Alert, StyleSheet, View } from 'react-native';
 import { ShoppingItem } from '../constants/travelData';
 import { CurrencyToggle, FormChipGroup, FormField, FormModal, FormTextInput } from './forms/ModalForm';
+import QuantityStepper from './forms/QuantityStepper';
 
 const shoppingCategoryOptions = [
   { value: 'dessert', label: '디저트/과자' },
@@ -93,24 +93,7 @@ export default function ShoppingModal({ visible, onClose, onSubmit, editingItem 
       </FormField>
 
       <FormField label="수량 *">
-        <View style={styles.qtyRow}>
-          <TouchableOpacity
-            style={styles.qtyBtn}
-            onPress={() => setQty(Math.max(1, parseInt(qty || '1', 10) - 1).toString())}
-          >
-            <Ionicons name="remove" size={20} color="#475569" />
-          </TouchableOpacity>
-          <FormTextInput
-            style={styles.qtyInput}
-            value={qty}
-            onChangeText={setQty}
-            keyboardType="numeric"
-            textAlign="center"
-          />
-          <TouchableOpacity style={styles.qtyBtn} onPress={() => setQty((parseInt(qty || '1', 10) + 1).toString())}>
-            <Ionicons name="add" size={20} color="#475569" />
-          </TouchableOpacity>
-        </View>
+        <QuantityStepper value={qty} onChange={setQty} />
       </FormField>
 
       <FormField label="예상 가격 (1개당)">
@@ -145,24 +128,6 @@ const styles = StyleSheet.create({
     height: 60,
     paddingTop: 10,
     textAlignVertical: 'top',
-  },
-  qtyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  qtyBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: '#f1f5f9',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  qtyInput: {
-    width: 80,
   },
   costInputRow: {
     flexDirection: 'row',
