@@ -7,18 +7,16 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
-  Linking,
-  Image,
   LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CITY_TEMPLATES } from '../constants/travelData';
+import BookingSection from '../components/explore/BookingSection';
 import RegionExploreModal from '../components/RegionExploreModal';
 import SpotThumbnail from '../components/SpotThumbnail';
 import { SUPPORTED_CITIES, getSupportedCity } from '../data/supportedCities';
-import { getPartnerProductsForCity, PartnerProduct } from '../data/partnerProducts';
+import { getPartnerProductsForCity } from '../data/partnerProducts';
 import { getRegionGuide, RegionGuide } from '../data/regionGuides';
-import { recordPartnerProductClick } from '../services/partnerTracking';
 import { getSpotDetail, getSpotDetailById } from '../services/spotCatalog';
 import { SpotRef } from '../types/spot';
 import { CityExploreItem } from '../types/travelData';
@@ -36,15 +34,6 @@ const getRegionGridColumns = (containerWidth: number) => {
     return 2;
   }
   return 1;
-};
-
-const shoppingCouponProductIds = new Set(['myrealtrip-japan-donki-coupon']);
-const productCategoryLabels: Record<PartnerProduct['category'], string> = {
-  tour: '투어',
-  ticket: '입장권',
-  transport: '교통',
-  pass: '교통패스',
-  restaurant: '맛집',
 };
 
 interface ExploreScreenProps {
@@ -67,11 +56,6 @@ export default function ExploreScreen({
   const [selectedRegionGuide, setSelectedRegionGuide] = useState<RegionGuide | null>(null);
   const [regionGridWidth, setRegionGridWidth] = useState(0);
   const [showAllRegions, setShowAllRegions] = useState(false);
-  const [bookingCategorySeed] = useState(() => Math.random());
-  const [selectedProductCategory, setSelectedProductCategory] = useState<{
-    cityCode: string;
-    category: PartnerProduct['category'];
-  } | null>(null);
 
   const hasActiveTrip = Boolean(cityCode);
   const activeCity = cityCode || SUPPORTED_CITIES[0].code;
@@ -92,20 +76,6 @@ export default function ExploreScreen({
     guidebook: [],
   };
   const partnerProducts = getPartnerProductsForCity(activeCity);
-  const mainBookingProducts = partnerProducts.filter((product) => !shoppingCouponProductIds.has(product.id));
-  const productCategories = Array.from(new Set(mainBookingProducts.map((product) => product.category)));
-  const seededProductCategory = productCategories.length > 0
-    ? productCategories[Math.floor(bookingCategorySeed * productCategories.length) % productCategories.length]
-    : null;
-  const selectedCategoryForCity =
-    selectedProductCategory?.cityCode === activeCity && productCategories.includes(selectedProductCategory.category)
-      ? selectedProductCategory.category
-      : null;
-  const effectiveProductCategory = selectedCategoryForCity || seededProductCategory;
-  const visibleBookingProducts =
-    effectiveProductCategory
-      ? mainBookingProducts.filter((product) => product.category === effectiveProductCategory)
-      : mainBookingProducts;
   const regionGridColumns = getRegionGridColumns(regionGridWidth);
   const regionGridCardWidth =
     regionGridWidth > 0
@@ -207,11 +177,6 @@ export default function ExploreScreen({
     }
   };
 
-  const handlePartnerProductPress = async (product: PartnerProduct) => {
-    await recordPartnerProductClick(product);
-    await Linking.openURL(product.targetUrl);
-  };
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Header Section */}
@@ -230,74 +195,7 @@ export default function ExploreScreen({
         </TouchableOpacity>
       </View>
 
-      {mainBookingProducts.length > 0 ? (
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderBetween}>
-            <View style={styles.sectionTitleGroup}>
-              <Text style={[styles.sectionTitleOnly, styles.sectionTitleInline]}>
-                🎒 미리 준비하면 편한 예약
-              </Text>
-              <Text style={styles.sectionDesc}>오늘은 한 가지 준비 카테고리만 먼저 추천해드려요.</Text>
-            </View>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.productCategoryContent}
-          >
-            {productCategories.map((category) => {
-              const isActive = effectiveProductCategory === category;
-              return (
-                <TouchableOpacity
-                  key={category}
-                  style={[styles.productCategoryChip, isActive && styles.productCategoryChipActive]}
-                  onPress={() => setSelectedProductCategory({ cityCode: activeCity, category })}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.productCategoryText, isActive && styles.productCategoryTextActive]}>
-                    {productCategoryLabels[category]}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.productSliderContent}
-          >
-            {visibleBookingProducts.map((product) => (
-              <TouchableOpacity
-                key={product.id}
-                style={styles.productCard}
-                onPress={() => handlePartnerProductPress(product)}
-                activeOpacity={0.82}
-              >
-                {product.imageUrl ? (
-                  <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
-                ) : (
-                  <View style={[styles.productIconBox, { backgroundColor: `${product.color}1f` }]}>
-                    <Ionicons name={product.icon as any} size={22} color={product.color} />
-                  </View>
-                )}
-                <View style={styles.productInfo}>
-                  <Text style={styles.productProvider}>MYREALTRIP</Text>
-                  <Text style={styles.productTitle} numberOfLines={2}>
-                    {product.title}
-                  </Text>
-                  <Text style={styles.productDesc} numberOfLines={2}>
-                    {product.desc}
-                  </Text>
-                </View>
-                <View style={styles.productCta}>
-                  <Text style={styles.productCtaText}>보기</Text>
-                  <Ionicons name="open-outline" size={14} color="#ffffff" />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      ) : null}
+      <BookingSection activeCity={activeCity} products={partnerProducts} />
 
       {/* Recommended Cities Grid */}
       <View style={styles.section}>
@@ -542,10 +440,6 @@ const styles = StyleSheet.create({
   sectionHeadingGroup: {
     marginBottom: 12,
   },
-  sectionTitleGroup: {
-    flex: 1,
-    gap: 3,
-  },
   sectionEyebrow: {
     fontSize: 11,
     fontWeight: '900',
@@ -688,97 +582,6 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontWeight: '600',
     textAlign: 'center',
-  },
-  productCategoryContent: {
-    gap: 8,
-    paddingRight: 20,
-    marginBottom: 12,
-  },
-  productCategoryChip: {
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    justifyContent: 'center',
-  },
-  productCategoryChipActive: {
-    backgroundColor: '#0f172a',
-    borderColor: '#0f172a',
-  },
-  productCategoryText: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: '#64748b',
-  },
-  productCategoryTextActive: {
-    color: '#ffffff',
-  },
-  productSliderContent: {
-    gap: 12,
-    paddingRight: 20,
-  },
-  productCard: {
-    width: 230,
-    minHeight: 180,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 14,
-    padding: 14,
-    gap: 10,
-  },
-  productImage: {
-    width: '100%',
-    height: 86,
-    borderRadius: 10,
-    backgroundColor: '#e2e8f0',
-  },
-  productIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  productInfo: {
-    gap: 4,
-    flex: 1,
-  },
-  productProvider: {
-    fontSize: 9.5,
-    fontWeight: '900',
-    color: '#94a3b8',
-    letterSpacing: 0,
-  },
-  productTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0f172a',
-    lineHeight: 18,
-  },
-  productDesc: {
-    fontSize: 11,
-    color: '#64748b',
-    fontWeight: '600',
-    lineHeight: 16,
-  },
-  productCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#6c5ce7',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 30,
-    gap: 4,
-  },
-  productCtaText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#ffffff',
   },
   dealsList: {
     gap: 10,

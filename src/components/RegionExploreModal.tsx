@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Alert,
-  Linking,
   Modal,
   Platform,
   SafeAreaView,
@@ -12,9 +11,9 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { PartnerProduct } from '../data/partnerProducts';
+import { partnerProviderLabels, PartnerProduct } from '../data/partnerProducts';
 import { RegionGuide } from '../data/regionGuides';
-import { recordPartnerProductClick } from '../services/partnerTracking';
+import { openPartnerProduct } from '../services/partnerLinks';
 
 type RegionExploreModalProps = {
   visible: boolean;
@@ -42,8 +41,7 @@ export default function RegionExploreModal({ visible, guide, products, onClose }
   };
 
   const handleProductPress = async (product: PartnerProduct) => {
-    await recordPartnerProductClick(product);
-    await Linking.openURL(product.targetUrl);
+    await openPartnerProduct(product);
   };
 
   return (
@@ -136,7 +134,7 @@ export default function RegionExploreModal({ visible, guide, products, onClose }
                       <Ionicons name={product.icon as any} size={19} color={product.color} />
                     </View>
                     <View style={styles.bookingInfo}>
-                      <Text style={styles.bookingProvider}>MYREALTRIP</Text>
+                      <Text style={styles.bookingProvider}>{partnerProviderLabels[product.provider]}</Text>
                       <Text style={styles.bookingTitle} numberOfLines={1}>
                         {product.title}
                       </Text>
