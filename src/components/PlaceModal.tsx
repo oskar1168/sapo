@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  TextInput,
-  ScrollView,
-  KeyboardAvoidingView,
   Platform,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { ActivityItem } from '../constants/travelData';
+import { CurrencyToggle, FormModal, FormTextInput } from './forms/ModalForm';
 
 const getCategoryLabel = (cat: string) => {
   switch (cat) {
@@ -163,26 +159,22 @@ export default function PlaceModal({
     }
   };
 
-  return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalContentContainer}
-        >
-          <View style={styles.modalContent}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>
-                {editingItem ? '방문 장소 수정' : isRecommendedSpot ? '추천 장소 일정 추가' : '방문 장소 추가'}
-              </Text>
-              <TouchableOpacity onPress={onClose} style={styles.btnClose}>
-                <Ionicons name="close" size={24} color="#60646c" />
-              </TouchableOpacity>
-            </View>
+  const modalTitle = editingItem
+    ? '방문 장소 수정'
+    : isRecommendedSpot
+      ? '추천 장소 일정 추가'
+      : '방문 장소 추가';
+  const submitLabel = editingItem ? '수정하기' : '저장하기';
 
-            {/* Scroll Form */}
-            <ScrollView style={styles.formContainer} keyboardShouldPersistTaps="handled">
+  return (
+    <FormModal
+      visible={visible}
+      title={modalTitle}
+      submitLabel={submitLabel}
+      cancelLabel="취소"
+      onClose={onClose}
+      onSubmit={handleSave}
+    >
               {/* Day Selector */}
               <View style={styles.formGroup}>
                 <Text style={styles.label}>방문 일차 *</Text>
@@ -204,8 +196,8 @@ export default function PlaceModal({
               {/* Place Name */}
               <View style={styles.formGroup}>
                 <Text style={styles.label}>장소 이름 *</Text>
-                <TextInput
-                  style={[styles.input, isLocked && styles.inputLocked]}
+                <FormTextInput
+                  locked={Boolean(isLocked)}
                   value={name}
                   onChangeText={setName}
                   placeholder="예: 스스키노 라멘 골목, 오타루 운하"
@@ -217,8 +209,7 @@ export default function PlaceModal({
               <View style={styles.formRow}>
                 <View style={[styles.formGroup, { flex: 1 }]}>
                   <Text style={styles.label}>시간 *</Text>
-                  <TextInput
-                    style={styles.input}
+                  <FormTextInput
                     value={time}
                     onChangeText={setTime}
                     placeholder="예: 12:00"
@@ -269,26 +260,14 @@ export default function PlaceModal({
               <View style={styles.formGroup}>
                 <Text style={styles.label}>1인당 예상 비용 (선택)</Text>
                 <View style={styles.costInputRow}>
-                  <TextInput
-                    style={[styles.input, { flex: 1 }]}
+                  <FormTextInput
+                    style={{ flex: 1 }}
                     value={cost}
                     onChangeText={setCost}
                     placeholder="예: 1500"
                     keyboardType="numeric"
                   />
-                  <View style={styles.currencyToggleRow}>
-                    {['JPY', 'KRW'].map((curr) => (
-                      <TouchableOpacity
-                        key={curr}
-                        style={[styles.currBtn, currency === curr && styles.currBtnActive]}
-                        onPress={() => setCurrency(curr)}
-                      >
-                        <Text style={[styles.currBtnText, currency === curr && styles.currBtnTextActive]}>
-                          {curr === 'JPY' ? '¥ 엔' : '₩ 원'}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                  <CurrencyToggle value={currency} onChange={setCurrency} />
                 </View>
                 {cost ? <Text style={styles.conversionLabel}>{getCostConversionText()}</Text> : null}
               </View>
@@ -297,8 +276,7 @@ export default function PlaceModal({
               {!isRecommendedSpot ? (
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>구글맵 주소 또는 검색어 (선택)</Text>
-                  <TextInput
-                    style={styles.input}
+                  <FormTextInput
                     value={address}
                     onChangeText={setAddress}
                     placeholder="예: 삿포로역, 스스키노 다루마"
@@ -321,8 +299,8 @@ export default function PlaceModal({
               {/* Detail Memo */}
               <View style={styles.formGroup}>
                 <Text style={styles.label}>나의 상세 메모</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
+                <FormTextInput
+                  style={styles.textArea}
                   value={memo}
                   onChangeText={setMemo}
                   placeholder="예: 몇 시 예약 완료!, 이 지점이 대기가 짧다고 함"
@@ -330,59 +308,11 @@ export default function PlaceModal({
                   numberOfLines={3}
                 />
               </View>
-            </ScrollView>
-
-            {/* Footer Buttons */}
-            <View style={styles.footer}>
-              <TouchableOpacity onPress={onClose} style={styles.btnCancel}>
-                <Text style={styles.btnCancelText}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleSave} style={styles.btnSubmit}>
-                <Text style={styles.btnSubmitText}>저장하기</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+    </FormModal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContentContainer: {
-    maxHeight: '90%',
-  },
-  modalContent: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  btnClose: {
-    padding: 4,
-  },
-  formContainer: {
-    padding: 20,
-    maxHeight: 500,
-  },
   formGroup: {
     marginBottom: 16,
   },
@@ -395,21 +325,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#334155',
     marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    height: 44,
-    fontSize: 14,
-    color: '#0f172a',
-    backgroundColor: '#f8fafc',
-  },
-  inputLocked: {
-    backgroundColor: '#e2e8f0',
-    color: '#64748b',
-    borderColor: '#cbd5e1',
   },
   textArea: {
     height: 80,
@@ -489,30 +404,6 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
   },
-  currencyToggleRow: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  currBtn: {
-    paddingHorizontal: 12,
-    height: 42,
-    justifyContent: 'center',
-    backgroundColor: '#f1f5f9',
-  },
-  currBtnActive: {
-    backgroundColor: '#2ecc71',
-  },
-  currBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  currBtnTextActive: {
-    color: '#ffffff',
-  },
   conversionLabel: {
     fontSize: 12,
     fontWeight: '600',
@@ -537,40 +428,5 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: '#2c3e50',
     lineHeight: 18,
-  },
-  footer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-  },
-  btnCancel: {
-    flex: 1,
-    height: 46,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  btnCancelText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  btnSubmit: {
-    flex: 1,
-    height: 46,
-    backgroundColor: '#6c5ce7',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  btnSubmitText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#ffffff',
   },
 });
