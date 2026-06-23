@@ -19,11 +19,13 @@ import { Ionicons } from '@expo/vector-icons';
 type FormModalProps = {
   visible: boolean;
   title: string;
-  submitLabel: string;
-  cancelLabel: string;
+  submitLabel?: string;
+  cancelLabel?: string;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit?: () => void;
   children: ReactNode;
+  footer?: ReactNode;
+  presentation?: 'sheet' | 'dialog';
 };
 
 type FormFieldProps = {
@@ -62,15 +64,19 @@ export function FormModal({
   onClose,
   onSubmit,
   children,
+  footer,
+  presentation = 'sheet',
 }: FormModalProps) {
+  const isDialog = presentation === 'dialog';
+
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
+      <View style={[styles.modalOverlay, isDialog && styles.dialogOverlay]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalContentContainer}
+          style={[styles.modalContentContainer, isDialog && styles.dialogContentContainer]}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, isDialog && styles.dialogContent]}>
             <View style={styles.header}>
               <Text style={styles.headerTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose} style={styles.btnClose}>
@@ -82,14 +88,18 @@ export function FormModal({
               {children}
             </ScrollView>
 
-            <View style={styles.footer}>
-              <TouchableOpacity onPress={onClose} style={styles.btnCancel}>
-                <Text style={styles.btnCancelText}>{cancelLabel}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onSubmit} style={styles.btnSubmit}>
-                <Text style={styles.btnSubmitText}>{submitLabel}</Text>
-              </TouchableOpacity>
-            </View>
+            {footer === undefined ? (
+              <View style={styles.footer}>
+                <TouchableOpacity onPress={onClose} style={styles.btnCancel}>
+                  <Text style={styles.btnCancelText}>{cancelLabel || '취소'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onSubmit} style={styles.btnSubmit}>
+                  <Text style={styles.btnSubmitText}>{submitLabel || '저장하기'}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              footer
+            )}
           </View>
         </KeyboardAvoidingView>
       </View>
@@ -158,14 +168,32 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
+  dialogOverlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   modalContentContainer: {
     maxHeight: '90%',
+  },
+  dialogContentContainer: {
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '88%',
   },
   modalContent: {
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+  },
+  dialogContent: {
+    borderRadius: 8,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    paddingBottom: 20,
+    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.15)',
+    elevation: 5,
   },
   header: {
     flexDirection: 'row',

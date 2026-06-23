@@ -10,7 +10,7 @@ type TripFormProps = {
   values: TripFormValues;
   onChange: (values: TripFormValues | ((prev: TripFormValues) => TripFormValues)) => void;
   showScheduleMode?: boolean;
-  footer: React.ReactNode;
+  footer?: React.ReactNode;
 };
 
 export default function TripForm({

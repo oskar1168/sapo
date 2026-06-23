@@ -1,15 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { CITY_OPTIONS, buildDefaultTripTitle } from '../../services/tripMetadata';
+import { FormModal } from '../forms/ModalForm';
 import TripForm from './TripForm';
 import { TripFormValues } from './types';
 
@@ -34,120 +28,58 @@ export default function CreateTripModal({
   onClose,
   onSubmit,
 }: CreateTripModalProps) {
-  return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{step === 1 ? '여행지를 선택하세요' : '여행 정보 입력'}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#64748b" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            style={styles.modalBody}
-            contentContainerStyle={styles.modalBodyContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {step === 1 && (
-              <View style={styles.stepContainer}>
-                {CITY_OPTIONS.map((city) => (
-                  <TouchableOpacity
-                    key={city.code}
-                    style={styles.cityItem}
-                    onPress={() => {
-                      onSelectCity(city.code);
-                      onChangeValues((prev) => ({
-                        ...prev,
-                        title: buildDefaultTripTitle(city.name),
-                      }));
-                      onChangeStep(2);
-                    }}
-                  >
-                    <Text style={styles.cityEmoji}>{city.emoji}</Text>
-                    <View style={styles.cityInfo}>
-                      <Text style={styles.cityName}>{city.name}</Text>
-                      <Text style={styles.cityDesc}>{city.desc}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {step === 2 && (
-              <TripForm
-                values={values}
-                onChange={onChangeValues}
-                showScheduleMode={true}
-                footer={
-                  <View style={styles.modalFooter}>
-                    <TouchableOpacity onPress={() => onChangeStep(1)} style={styles.btnBackStep}>
-                      <Ionicons name="arrow-back" size={16} color="#64748b" />
-                      <Text style={styles.btnBackStepText}>이전으로</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={onSubmit} style={styles.btnSubmit}>
-                      <Text style={styles.btnSubmitText}>일정 만들기</Text>
-                    </TouchableOpacity>
-                  </View>
-                }
-              />
-            )}
-          </ScrollView>
-        </View>
+  const footer =
+    step === 2 ? (
+      <View style={styles.modalFooter}>
+        <TouchableOpacity onPress={() => onChangeStep(1)} style={styles.btnBackStep}>
+          <Ionicons name="arrow-back" size={16} color="#64748b" />
+          <Text style={styles.btnBackStepText}>이전으로</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onSubmit} style={styles.btnSubmit}>
+          <Text style={styles.btnSubmitText}>일정 만들기</Text>
+        </TouchableOpacity>
       </View>
-    </Modal>
+    ) : null;
+
+  return (
+    <FormModal
+      visible={visible}
+      title={step === 1 ? '여행지를 선택하세요' : '여행 정보 입력'}
+      onClose={onClose}
+      footer={footer}
+      presentation="dialog"
+    >
+      {step === 1 ? (
+        <View style={styles.stepContainer}>
+          {CITY_OPTIONS.map((city) => (
+            <TouchableOpacity
+              key={city.code}
+              style={styles.cityItem}
+              onPress={() => {
+                onSelectCity(city.code);
+                onChangeValues((prev) => ({
+                  ...prev,
+                  title: buildDefaultTripTitle(city.name),
+                }));
+                onChangeStep(2);
+              }}
+            >
+              <Text style={styles.cityEmoji}>{city.emoji}</Text>
+              <View style={styles.cityInfo}>
+                <Text style={styles.cityName}>{city.name}</Text>
+                <Text style={styles.cityDesc}>{city.desc}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : (
+        <TripForm values={values} onChange={onChangeValues} showScheduleMode={true} />
+      )}
+    </FormModal>
   );
 }
 
-export const modalStyles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '88%',
-    padding: 24,
-    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.15)',
-    elevation: 5,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0f172a',
-    flex: 1,
-    paddingRight: 10,
-  },
-  modalBody: {
-    marginHorizontal: -4,
-  },
-  modalBodyContent: {
-    paddingHorizontal: 4,
-    paddingBottom: 2,
-  },
-});
-
 const styles = StyleSheet.create({
-  ...modalStyles,
   stepContainer: {
     gap: 14,
   },
@@ -181,7 +113,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
   },
   btnBackStep: {
     flexDirection: 'row',
