@@ -72,6 +72,19 @@ export interface CityTemplate {
   };
 }
 
+export type SpotContentSourceType = 'tv' | 'youtube' | 'sns' | 'blog' | 'magazine';
+
+export interface SpotContentSource {
+  type: SpotContentSourceType;
+  title: string;
+  subtitle?: string;
+  episode?: string;
+  person?: string;
+  url?: string;
+  note?: string;
+  verified?: boolean;
+}
+
 export interface SpotItem {
   id: string;
   name: string;
@@ -97,6 +110,7 @@ export interface SpotItem {
   sourceName?: string;
   sourceUrl?: string;
   sourceLicense?: string;
+  contentSources?: SpotContentSource[];
   thumbnailKey?: string;
   imageKey?: string;
   thumbnailUrl?: string;

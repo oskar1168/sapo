@@ -50,6 +50,7 @@ create table if not exists public.spots (
   name_ko_status text not null default 'reviewed',
   search_keywords text[] not null default '{}'::text[],
   tags text[] not null default '{}'::text[],
+  content_sources jsonb not null default '[]'::jsonb,
   wikidata_id text,
   source_name text,
   source_url text,
@@ -94,6 +95,7 @@ alter table public.spots add column if not exists source_name text;
 alter table public.spots add column if not exists source_url text;
 alter table public.spots add column if not exists source_license text;
 alter table public.spots add column if not exists tags text[] not null default '{}'::text[];
+alter table public.spots add column if not exists content_sources jsonb not null default '[]'::jsonb;
 do $$
 begin
   if not exists (
@@ -164,6 +166,9 @@ create index if not exists trips_user_updated_idx
 create index if not exists spots_active_city_sort_idx
   on public.spots (city_code, sort_order)
   where is_active;
+
+create index if not exists spots_content_sources_idx
+  on public.spots using gin (content_sources);
 
 create index if not exists spot_catalog_versions_updated_idx
   on public.spot_catalog_versions (updated_at desc);

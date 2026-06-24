@@ -1,7 +1,11 @@
 import { PartnerProduct } from '../data/partnerProducts';
 import { ensureSupabaseSession, isSupabaseConfigured, supabase } from '../lib/supabase';
 
+const isPartnerClickTrackingEnabled =
+  process.env.EXPO_PUBLIC_ENABLE_PARTNER_CLICK_TRACKING === 'true';
+
 export async function recordPartnerProductClick(product: PartnerProduct) {
+  if (!isPartnerClickTrackingEnabled) return;
   if (!isSupabaseConfigured || !supabase) return;
 
   try {

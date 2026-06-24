@@ -7,7 +7,7 @@ import {
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { getSpotImageKey, getSpotThumbnailKey } from './imageStorage';
 import { CityCode, SpotRef } from '../types/spot';
-import { SpotItem } from '../types/travelData';
+import { SpotContentSource, SpotItem } from '../types/travelData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type SpotWithSource = SpotItem & SpotRef;
@@ -28,6 +28,7 @@ type SpotCatalogRow = {
   source_name?: string | null;
   source_url?: string | null;
   source_license?: string | null;
+  content_sources?: SpotContentSource[] | null;
   rating: string | null;
   menu: string | null;
   tips?: string | null;
@@ -97,6 +98,7 @@ function spotFromSupabaseRow(row: SpotCatalogRow): SpotItem {
     sourceName: row.source_name || undefined,
     sourceUrl: row.source_url || undefined,
     sourceLicense: row.source_license || undefined,
+    contentSources: Array.isArray(row.content_sources) ? row.content_sources : undefined,
     thumbnailUrl: row.thumbnail_url || undefined,
     imageUrl: row.image_url || undefined,
     imageBlurhash: row.image_blurhash || undefined,
@@ -117,6 +119,7 @@ const SPOT_LIST_FIELDS = [
   'name_ko_status',
   'search_keywords',
   'tags',
+  'content_sources',
   'rating',
   'menu',
   'thumbnail_url',

@@ -1,3 +1,7 @@
+import type { ActivityItem } from '../../types/travelData';
+
+export type RegionItineraryItem = Omit<ActivityItem, 'id'>;
+
 export type RegionGuide = {
   cityCode: string;
   filter: string;
@@ -9,6 +13,7 @@ export type RegionGuide = {
   tags: string[];
   highlights: string[];
   route: string[];
+  itineraryItems?: RegionItineraryItem[];
   tips: string[];
   bookingProductIds: string[];
 };

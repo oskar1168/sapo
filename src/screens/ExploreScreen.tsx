@@ -8,20 +8,33 @@ import {
   Alert,
   Platform,
   LayoutChangeEvent,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { CITY_TEMPLATES } from '../constants/travelData';
+import { CITY_TEMPLATES, DETAILED_CATEGORIES } from '../constants/travelData';
 import BookingSection from '../components/explore/BookingSection';
 import RegionExploreModal from '../components/RegionExploreModal';
 import SpotThumbnail from '../components/SpotThumbnail';
 import { SUPPORTED_CITIES, getSupportedCity } from '../data/supportedCities';
 import { getPartnerProductsForCity } from '../data/partnerProducts';
-import { getRegionGuide, RegionGuide } from '../data/regionGuides';
-import { getSpotDetail, getSpotDetailById } from '../services/spotCatalog';
+import { getRegionGuide, type RegionGuide } from '../data/regionGuides';
+import { getGoogleMapsUrl } from '../services/mapLinks';
+import { getRecommendedSpots, getSpotDetail, getSpotDetailById, getSpotSource } from '../services/spotCatalog';
+import type { DayOption } from '../services/tripPlanning';
+import type { AddRegionRouteResult } from '../components/RegionExploreModal';
 import { SpotRef } from '../types/spot';
-import { CityExploreItem } from '../types/travelData';
+import { CityExploreItem, SpotItem } from '../types/travelData';
 
 const GRID_GAP = 12;
+const FEATURED_SPOT_LIMIT = 6;
+
+const contentSourceTypeLabels: Record<string, string> = {
+  tv: '방송 소개',
+  youtube: '유튜브 소개',
+  sns: 'SNS 화제',
+  blog: '블로그 소개',
+  magazine: '매체 소개',
+};
 
 const getRegionGridColumns = (containerWidth: number) => {
   if (containerWidth >= 1024) {
@@ -36,12 +49,27 @@ const getRegionGridColumns = (containerWidth: number) => {
   return 1;
 };
 
+const getFeaturedSourceLabel = (spot: SpotItem) => {
+  const source = spot.contentSources?.[0];
+  if (!source) return '추천 스팟';
+  return source.title || contentSourceTypeLabels[source.type] || '콘텐츠 소개';
+};
+
+const getFeaturedSpots = (cityCode: string) => {
+  const spots = getRecommendedSpots(cityCode);
+  const contentSpots = spots.filter((spot) => spot.contentSources?.length);
+  const fallbackSpots = spots.filter((spot) => !spot.contentSources?.length);
+  return [...contentSpots, ...fallbackSpots].slice(0, FEATURED_SPOT_LIMIT);
+};
+
 interface ExploreScreenProps {
   likedSpots: SpotRef[];
   onToggleLike: (city: string, originalIndex: number) => void;
   onAddSpotToTimeline: (city: string, originalIndex: number) => void;
   onNavigateToMyTrips: () => void;
   onStartTripPlanning: (cityCode: string) => void;
+  dayOptions?: DayOption[];
+  onAddRegionRouteToDay?: (guide: RegionGuide, dayKey: string) => AddRegionRouteResult | null;
   cityCode?: string;
 }
 
@@ -51,6 +79,8 @@ export default function ExploreScreen({
   onAddSpotToTimeline,
   onNavigateToMyTrips,
   onStartTripPlanning,
+  dayOptions = [],
+  onAddRegionRouteToDay,
   cityCode,
 }: ExploreScreenProps) {
   const [selectedRegionGuide, setSelectedRegionGuide] = useState<RegionGuide | null>(null);
@@ -83,6 +113,7 @@ export default function ExploreScreen({
       : undefined;
   const visibleRegions = showAllRegions ? exp.cities : exp.cities.slice(0, 4);
   const hasMoreRegions = exp.cities.length > 4;
+  const featuredSpots = getFeaturedSpots(activeCity);
 
   const activeLikedSpots = likedSpots
     .map((s) => (s.spotId ? getSpotDetailById(s.city, s.spotId) : getSpotDetail(s.city, s.originalIndex)))
@@ -177,6 +208,15 @@ export default function ExploreScreen({
     }
   };
 
+  const handleFeaturedSpotMapOpen = async (spot: SpotItem) => {
+    await Linking.openURL(getGoogleMapsUrl(spot));
+  };
+
+  const handleFeaturedSpotAdd = (spot: SpotItem) => {
+    const source = getSpotSource(spot, activeCity);
+    onAddSpotToTimeline(source.city, source.originalIndex);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Header Section */}
@@ -237,6 +277,71 @@ export default function ExploreScreen({
           ))}
         </View>
       </View>
+
+      {featuredSpots.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderBetween}>
+            <View style={styles.sectionTitleGroup}>
+              <Text style={[styles.sectionTitleOnly, styles.sectionTitleInline]}>
+                📺 요즘 화제 스팟
+              </Text>
+              <Text style={styles.sectionDesc}>
+                방송·유튜브 소개 장소와 많이 찾는 추천 스팟을 먼저 보여드려요.
+              </Text>
+            </View>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.featuredSpotSliderContent}
+          >
+            {featuredSpots.map((spot) => (
+              <View key={spot.id} style={styles.featuredSpotCard}>
+                <SpotThumbnail spot={spot} style={styles.featuredSpotThumb} />
+                <View style={styles.featuredSpotBody}>
+                  <View style={styles.featuredSpotBadge}>
+                    <Ionicons
+                      name={spot.contentSources?.length ? 'play-circle' : 'sparkles-outline'}
+                      size={12}
+                      color="#b45309"
+                    />
+                    <Text style={styles.featuredSpotBadgeText} numberOfLines={1}>
+                      {getFeaturedSourceLabel(spot)}
+                    </Text>
+                  </View>
+                  <Text style={styles.featuredSpotName} numberOfLines={1}>
+                    {spot.name}
+                  </Text>
+                  <Text style={styles.featuredSpotMeta} numberOfLines={1}>
+                    {DETAILED_CATEGORIES[spot.category]?.label || '추천 스팟'} · {spot.rating}
+                  </Text>
+                  <Text style={styles.featuredSpotMenu} numberOfLines={2}>
+                    {spot.menu}
+                  </Text>
+                  <View style={styles.featuredSpotActions}>
+                    <TouchableOpacity
+                      style={styles.featuredSpotActionPrimary}
+                      onPress={() => handleFeaturedSpotAdd(spot)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="add" size={14} color="#ffffff" />
+                      <Text style={styles.featuredSpotActionPrimaryText}>일정추가</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.featuredSpotActionSecondary}
+                      onPress={() => handleFeaturedSpotMapOpen(spot)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="map-outline" size={14} color="#6c5ce7" />
+                      <Text style={styles.featuredSpotActionSecondaryText}>지도</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       {/* Liked Spots horizontal slider */}
       {activeLikedSpots.length > 0 ? (
@@ -319,6 +424,8 @@ export default function ExploreScreen({
         visible={Boolean(selectedRegionGuide)}
         guide={selectedRegionGuide}
         products={partnerProducts}
+        dayOptions={dayOptions}
+        onAddRouteToDay={(guide, dayKey) => onAddRegionRouteToDay?.(guide, dayKey) || null}
         onClose={() => setSelectedRegionGuide(null)}
       />
     </ScrollView>
@@ -477,6 +584,10 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 12,
   },
+  sectionTitleGroup: {
+    flex: 1,
+    gap: 4,
+  },
   regionToggleButton: {
     height: 30,
     paddingHorizontal: 10,
@@ -496,6 +607,98 @@ const styles = StyleSheet.create({
   likedSliderContent: {
     gap: 12,
     paddingRight: 20,
+  },
+  featuredSpotSliderContent: {
+    gap: 12,
+    paddingRight: 20,
+  },
+  featuredSpotCard: {
+    width: 238,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  featuredSpotThumb: {
+    width: '100%',
+    height: 112,
+  },
+  featuredSpotBody: {
+    padding: 12,
+    gap: 6,
+  },
+  featuredSpotBadge: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    minHeight: 22,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  featuredSpotBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '900',
+    color: '#b45309',
+  },
+  featuredSpotName: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  featuredSpotMeta: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  featuredSpotMenu: {
+    minHeight: 32,
+    fontSize: 11.5,
+    lineHeight: 16,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  featuredSpotActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 2,
+  },
+  featuredSpotActionPrimary: {
+    flex: 1,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: '#6c5ce7',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  featuredSpotActionPrimaryText: {
+    fontSize: 11.5,
+    fontWeight: '900',
+    color: '#ffffff',
+  },
+  featuredSpotActionSecondary: {
+    width: 72,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: 'rgba(108, 92, 231, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(108, 92, 231, 0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  featuredSpotActionSecondaryText: {
+    fontSize: 11.5,
+    fontWeight: '900',
+    color: '#6c5ce7',
   },
   likedCard: {
     width: 220,

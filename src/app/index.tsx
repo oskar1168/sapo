@@ -13,6 +13,8 @@ import {
   updateTripMetadata,
 } from '../services/tripRepository';
 import { getSpotDetail, isSameSpotRef, loadSpotCatalog, loadCitySpots } from '../services/spotCatalog';
+import { appendRegionGuideRouteToDay, getTripDayOptions } from '../services/tripPlanning';
+import type { RegionGuide } from '../data/regionGuides';
 import { SpotRef } from '../types/spot';
 import { TripMetadata } from '../types/trip';
 
@@ -187,6 +189,24 @@ export default function AppIndex() {
     setCurrentView('myTrips');
   };
 
+  const handleAddRegionRouteToDay = (guide: RegionGuide, dayKey: string) => {
+    if (!travelData || !activeTripId) return null;
+
+    const result = appendRegionGuideRouteToDay(travelData, guide, dayKey);
+    if (result.addedCount === 0 && result.skippedCount === 0) {
+      return {
+        addedCount: 0,
+        skippedCount: 0,
+      };
+    }
+
+    void handleUpdateTripData(result.updatedData);
+    return {
+      addedCount: result.addedCount,
+      skippedCount: result.skippedCount,
+    };
+  };
+
   // Pull-to-refresh handler to invalidate cache and fetch fresh spots
   const handleRefreshSpots = async (cityCode: string) => {
     setIsRefreshing(true);
@@ -222,6 +242,8 @@ export default function AppIndex() {
           onAddSpotToTimeline={handleAddSpotToTimeline}
           onNavigateToMyTrips={() => setCurrentView('myTrips')}
           onStartTripPlanning={handleStartTripPlanning}
+          dayOptions={travelData ? getTripDayOptions(travelData) : []}
+          onAddRegionRouteToDay={handleAddRegionRouteToDay}
           cityCode={travelData?.cityCode}
         />
       ) : null}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   Modal,
@@ -12,17 +12,35 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { partnerProviderLabels, PartnerProduct } from '../data/partnerProducts';
-import { RegionGuide } from '../data/regionGuides';
+import type { RegionGuide } from '../data/regionGuides';
 import { openPartnerProduct } from '../services/partnerLinks';
+import type { DayOption } from '../services/tripPlanning';
+
+export type AddRegionRouteResult = {
+  addedCount: number;
+  skippedCount: number;
+};
 
 type RegionExploreModalProps = {
   visible: boolean;
   guide: RegionGuide | null;
   products: PartnerProduct[];
+  dayOptions: DayOption[];
   onClose: () => void;
+  onAddRouteToDay: (guide: RegionGuide, dayKey: string) => AddRegionRouteResult | null;
 };
 
-export default function RegionExploreModal({ visible, guide, products, onClose }: RegionExploreModalProps) {
+export default function RegionExploreModal({
+  visible,
+  guide,
+  products,
+  dayOptions,
+  onClose,
+  onAddRouteToDay,
+}: RegionExploreModalProps) {
+  const [isDayPickerVisible, setIsDayPickerVisible] = useState(false);
+  const [selectedDayKey, setSelectedDayKey] = useState('');
+
   if (!guide) {
     return null;
   }
@@ -31,13 +49,48 @@ export default function RegionExploreModal({ visible, guide, products, onClose }
     .map((id) => products.find((product) => product.id === id))
     .filter((product): product is PartnerProduct => Boolean(product));
 
-  const handleRouteAdd = () => {
-    const message = '지역 코스를 일정에 한 번에 추가하는 기능을 준비 중입니다.';
+  const showMessage = (title: string, message: string) => {
     if (Platform.OS === 'web') {
       alert(message);
     } else {
-      Alert.alert('일정 추가', message);
+      Alert.alert(title, message);
     }
+  };
+
+  const handleRouteAddPress = () => {
+    if (dayOptions.length === 0) {
+      showMessage('일정 추가', '먼저 여행 일정을 만든 뒤 지역 코스를 추가할 수 있어요.');
+      return;
+    }
+    if (!selectedDayKey || !dayOptions.some((day) => day.value === selectedDayKey)) {
+      setSelectedDayKey(dayOptions[0].value);
+    }
+    setIsDayPickerVisible((current) => !current);
+  };
+
+  const handleConfirmRouteAdd = () => {
+    const targetDayKey = dayOptions.some((day) => day.value === selectedDayKey)
+      ? selectedDayKey
+      : dayOptions[0]?.value || '';
+
+    if (!targetDayKey) {
+      showMessage('Day 선택', '코스를 추가할 Day를 선택해 주세요.');
+      return;
+    }
+
+    const result = onAddRouteToDay(guide, targetDayKey);
+    if (!result) {
+      showMessage('일정 추가', '먼저 여행 일정을 만든 뒤 지역 코스를 추가할 수 있어요.');
+      return;
+    }
+
+    const selectedDayLabel = dayOptions.find((day) => day.value === targetDayKey)?.label || targetDayKey;
+    const skippedText = result.skippedCount > 0 ? ` 중복된 ${result.skippedCount}개 장소는 제외했어요.` : '';
+    showMessage(
+      '코스 추가 완료',
+      `${selectedDayLabel}에 ${guide.title} 코스 ${result.addedCount}개를 추가했어요. 기존 일정은 그대로 유지됩니다.${skippedText}`,
+    );
+    setIsDayPickerVisible(false);
   };
 
   const handleProductPress = async (product: PartnerProduct) => {
@@ -101,11 +154,37 @@ export default function RegionExploreModal({ visible, guide, products, onClose }
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>추천 동선</Text>
-              <TouchableOpacity onPress={handleRouteAdd} style={styles.routeButton}>
+              <TouchableOpacity onPress={handleRouteAddPress} style={styles.routeButton}>
                 <Ionicons name="add" size={14} color="#ffffff" />
-                <Text style={styles.routeButtonText}>일정에 추가</Text>
+                <Text style={styles.routeButtonText}>하루 코스로 넣기</Text>
               </TouchableOpacity>
             </View>
+            {isDayPickerVisible ? (
+              <View style={styles.dayPickerCard}>
+                <Text style={styles.dayPickerTitle}>어느 날에 추가할까요?</Text>
+                <Text style={styles.dayPickerDesc}>
+                  기존 일정은 삭제되지 않고 선택한 Day의 마지막에 이어서 추가됩니다.
+                </Text>
+                <View style={styles.dayChipGrid}>
+                  {dayOptions.map((day) => (
+                    <TouchableOpacity
+                      key={day.value}
+                      style={[styles.dayChip, selectedDayKey === day.value && styles.dayChipActive]}
+                      onPress={() => setSelectedDayKey(day.value)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.dayChipText, selectedDayKey === day.value && styles.dayChipTextActive]}>
+                        {day.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity style={styles.confirmRouteButton} onPress={handleConfirmRouteAdd} activeOpacity={0.86}>
+                  <Ionicons name="checkmark-circle" size={16} color="#ffffff" />
+                  <Text style={styles.confirmRouteButtonText}>선택한 Day에 추가</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
             <View style={styles.routeCard}>
               {guide.route.map((step, index) => (
                 <View key={`${step}-${index}`} style={styles.routeStep}>
@@ -318,6 +397,66 @@ const styles = StyleSheet.create({
   },
   routeButtonText: {
     fontSize: 11,
+    fontWeight: '900',
+    color: '#ffffff',
+  },
+  dayPickerCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(108, 92, 231, 0.18)',
+    padding: 12,
+    marginBottom: 10,
+    gap: 9,
+  },
+  dayPickerTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  dayPickerDesc: {
+    fontSize: 11.5,
+    lineHeight: 17,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  dayChipGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  dayChip: {
+    minHeight: 34,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+  },
+  dayChipActive: {
+    borderColor: '#6c5ce7',
+    backgroundColor: '#6c5ce7',
+  },
+  dayChipText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  dayChipTextActive: {
+    color: '#ffffff',
+  },
+  confirmRouteButton: {
+    height: 38,
+    borderRadius: 9,
+    backgroundColor: '#2ecc71',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  confirmRouteButtonText: {
+    fontSize: 12.5,
     fontWeight: '900',
     color: '#ffffff',
   },

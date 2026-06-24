@@ -13,11 +13,14 @@ export type {
 
 export { CITY_TEMPLATES };
 
-export const SPOT_CATEGORIES: { [key: string]: { label: string; icon: string; dbCategories?: string[] } } = {
-  spot: { label: "🏞️ 명소 / 관광지", icon: "landscape", dbCategories: ["spot"] },
-  food: { label: "🍽️ 맛집 / 식당", icon: "restaurant", dbCategories: ["meat", "seafood", "noodle"] },
-  dessert: { label: "🍰 디저트 / 카페", icon: "cafe", dbCategories: ["dessert", "cafe"] },
-  shopping: { label: "🛍️ 쇼핑 / 소품샵", icon: "bag", dbCategories: ["shopping"] }
+export const SPOT_CATEGORIES: {
+  [key: string]: { label: string; shortLabel: string; icon: string; dbCategories?: string[] };
+} = {
+  content: { label: "📺 방송·유튜브", shortLabel: "화제", icon: "play-circle" },
+  spot: { label: "🏞️ 명소 / 관광지", shortLabel: "명소", icon: "landscape", dbCategories: ["spot"] },
+  food: { label: "🍽️ 맛집 / 식당", shortLabel: "맛집", icon: "restaurant", dbCategories: ["meat", "seafood", "noodle"] },
+  dessert: { label: "🍰 디저트 / 카페", shortLabel: "카페", icon: "cafe", dbCategories: ["dessert", "cafe"] },
+  shopping: { label: "🛍️ 쇼핑 / 소품샵", shortLabel: "쇼핑", icon: "bag", dbCategories: ["shopping"] }
 };
 
 export const DETAILED_CATEGORIES: { [key: string]: { label: string; icon: string } } = {

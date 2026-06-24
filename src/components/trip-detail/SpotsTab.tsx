@@ -47,6 +47,20 @@ const COMPANION_TAGS = [
   { value: '혼자', label: '혼자 여행' },
 ];
 
+const contentSourceTypeLabels: Record<string, string> = {
+  tv: '방송 소개',
+  youtube: '유튜브 소개',
+  sns: 'SNS 화제',
+  blog: '블로그 소개',
+  magazine: '매체 소개',
+};
+
+function getContentSourceBadgeLabel(spot: SpotItem) {
+  const source = spot.contentSources?.[0];
+  if (!source) return null;
+  return source.title || contentSourceTypeLabels[source.type] || '콘텐츠 소개';
+}
+
 export default function SpotsTab({
   cityCode,
   cityFilter,
@@ -111,6 +125,13 @@ export default function SpotsTab({
       hydratedSpot.menu,
       hydratedSpot.tips,
       hydratedSpot.address,
+      ...(hydratedSpot.contentSources || []).flatMap((source) => [
+        source.title,
+        source.subtitle,
+        source.episode,
+        source.person,
+        source.note,
+      ]),
     ]
       .filter(Boolean)
       .join(' ')
@@ -119,6 +140,7 @@ export default function SpotsTab({
     const categoryMeta = SPOT_CATEGORIES[spotCategoryFilter];
     const matchesCategory =
       spotCategoryFilter === 'all' ||
+      (spotCategoryFilter === 'content' && Boolean(hydratedSpot.contentSources?.length)) ||
       (categoryMeta && categoryMeta.dbCategories?.includes(hydratedSpot.category));
     const matchesCompanion =
       spotCompanionFilter === 'all' ||
@@ -134,6 +156,7 @@ export default function SpotsTab({
     const detailSpot = spotSource.spotId ? hydratedSpots[spotSource.spotId] || spot : spot;
     const isDetailLoading = !!(spotSource.spotId && loadingSpotDetails[spotSource.spotId]);
     const isLiked = likedSpots.some((likedSpot) => isSameSpotRef(likedSpot, spotSource));
+    const contentSourceBadgeLabel = getContentSourceBadgeLabel(detailSpot);
 
     return (
       <View style={styles.spotCard}>
@@ -165,6 +188,12 @@ export default function SpotsTab({
                   <Text style={styles.tagBadgeText}>#{tag}</Text>
                 </View>
               ))}
+              {contentSourceBadgeLabel ? (
+                <View style={[styles.spotBadge, styles.contentSourceBadge]}>
+                  <Ionicons name="play-circle" size={10} color="#b45309" />
+                  <Text style={styles.contentSourceBadgeText}>{contentSourceBadgeLabel}</Text>
+                </View>
+              ) : null}
             </View>
           </View>
           <Ionicons
@@ -189,6 +218,38 @@ export default function SpotsTab({
                 <Text style={styles.spotTimeText}>
                   운영: {detailSpot.openTime || '-'} ~ {detailSpot.closeTime || '-'}
                 </Text>
+                {detailSpot.contentSources?.length ? (
+                  <View style={styles.contentSourceBox}>
+                    <Text style={styles.contentSourceTitle}>콘텐츠에 소개된 곳</Text>
+                    {detailSpot.contentSources.map((source, index) => (
+                      <View key={`${source.title}-${index}`} style={styles.contentSourceItem}>
+                        <Text style={styles.contentSourceName}>
+                          {source.title}
+                          {source.episode ? ` · ${source.episode}` : ''}
+                        </Text>
+                        {source.subtitle || source.person ? (
+                          <Text style={styles.contentSourceMeta}>
+                            {[source.subtitle, source.person].filter(Boolean).join(' · ')}
+                          </Text>
+                        ) : null}
+                        {source.note ? <Text style={styles.contentSourceNote}>{source.note}</Text> : null}
+                        {source.url ? (
+                          <TouchableOpacity
+                            style={styles.contentSourceLink}
+                            onPress={() => Linking.openURL(source.url!)}
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="open-outline" size={13} color="#6c5ce7" />
+                            <Text style={styles.contentSourceLinkText}>출처 보기</Text>
+                          </TouchableOpacity>
+                        ) : null}
+                      </View>
+                    ))}
+                    <Text style={styles.contentSourceDisclaimer}>
+                      공개 콘텐츠 기반 참고 정보이며 공식 제휴 또는 추천을 의미하지 않습니다.
+                    </Text>
+                  </View>
+                ) : null}
               </>
             )}
 
@@ -301,7 +362,7 @@ export default function SpotsTab({
               onPress={() => onSetSpotCategoryFilter(catKey)}
             >
               <Text style={[styles.filterChipText, spotCategoryFilter === catKey && styles.filterChipTextActive]}>
-                {SPOT_CATEGORIES[catKey].label}
+                {SPOT_CATEGORIES[catKey].shortLabel}
               </Text>
             </TouchableOpacity>
           ))}
@@ -358,7 +419,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   filterChip: {
-    paddingHorizontal: 12,
+    minWidth: 52,
+    alignItems: 'center',
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: '#f1f5f9',
@@ -446,6 +509,8 @@ const styles = StyleSheet.create({
   },
   spotCardBadgeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
     marginTop: 2,
   },
   spotBadge: {
@@ -453,6 +518,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 5,
     paddingVertical: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   spotBadgeText: {
     fontSize: 9.5,
@@ -597,11 +665,69 @@ const styles = StyleSheet.create({
   },
   tagBadge: {
     backgroundColor: '#f1f2f6',
-    marginLeft: 6,
   },
   tagBadgeText: {
     fontSize: 9.5,
     color: '#57606f',
     fontWeight: '700',
+  },
+  contentSourceBadge: {
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+  },
+  contentSourceBadgeText: {
+    fontSize: 9.5,
+    color: '#b45309',
+    fontWeight: '800',
+  },
+  contentSourceBox: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+    backgroundColor: '#fffbeb',
+    borderRadius: 10,
+    padding: 10,
+    gap: 8,
+  },
+  contentSourceTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#92400e',
+  },
+  contentSourceItem: {
+    gap: 3,
+  },
+  contentSourceName: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  contentSourceMeta: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#92400e',
+  },
+  contentSourceNote: {
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#475569',
+  },
+  contentSourceLink: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 2,
+  },
+  contentSourceLinkText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#6c5ce7',
+  },
+  contentSourceDisclaimer: {
+    fontSize: 10.5,
+    lineHeight: 15,
+    color: '#78716c',
   },
 });

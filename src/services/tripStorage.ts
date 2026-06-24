@@ -141,6 +141,39 @@ async function migrateLocalTripsToSupabase(userId: string) {
   return true;
 }
 
+export async function syncLocalTripDataToSupabase() {
+  if (!isSupabaseConfigured || !supabase) {
+    return { skipped: true, trips: 0, likedSpots: 0 };
+  }
+
+  const user = await ensureSupabaseSession();
+  if (!user) {
+    return { skipped: true, trips: 0, likedSpots: 0 };
+  }
+
+  const localTrips = await loadLocalTripsList();
+  const localLikedSpots = await loadLocalLikedSpots();
+
+  if (localTrips.length > 0) {
+    await migrateLocalTripsToSupabase(user.id);
+  }
+
+  if (localLikedSpots.length > 0) {
+    const { error } = await supabase.from('liked_spots').upsert({
+      user_id: user.id,
+      spots: localLikedSpots,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+  }
+
+  return {
+    skipped: false,
+    trips: localTrips.length,
+    likedSpots: localLikedSpots.length,
+  };
+}
+
 export async function loadTripsList(): Promise<TripMetadata[]> {
   if (!isSupabaseConfigured || !supabase) {
     return loadLocalTripsList();

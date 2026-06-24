@@ -1,4 +1,5 @@
 import { ActivityItem, ChecklistItem, ShoppingItem, SpotItem } from '../types/travelData';
+import type { RegionGuide } from '../data/regionGuides';
 
 export type DayOption = {
   label: string;
@@ -80,6 +81,78 @@ const cloneTripDays = (days: Record<string, ActivityItem[]>) => {
     updatedDays[dayKey] = [...(updatedDays[dayKey] || [])];
   });
   return updatedDays;
+};
+
+const normalizePlaceName = (name: string) => name.trim().toLowerCase();
+
+const timeToMinutes = (time?: string) => {
+  if (!time) return null;
+  const match = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+  return hours * 60 + minutes;
+};
+
+const minutesToTime = (minutes: number) => {
+  const normalizedMinutes = Math.max(0, Math.min(minutes, 23 * 60 + 59));
+  const hours = Math.floor(normalizedMinutes / 60);
+  const mins = normalizedMinutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+};
+
+const getLastScheduledMinutes = (items: ActivityItem[]) => {
+  return items.reduce<number | null>((latest, item) => {
+    const minutes = timeToMinutes(item.time);
+    if (minutes === null) return latest;
+    return latest === null ? minutes : Math.max(latest, minutes);
+  }, null);
+};
+
+const getRegionItineraryItems = (guide: RegionGuide): Omit<ActivityItem, 'id'>[] => {
+  if (guide.itineraryItems?.length) {
+    return guide.itineraryItems;
+  }
+
+  return guide.route.map((step, index) => ({
+    type: 'sightseeing',
+    name: step,
+    time: minutesToTime(10 * 60 + index * 90),
+    memo: `${guide.title} 추천 동선`,
+  }));
+};
+
+export const appendRegionGuideRouteToDay = (travelData: any, guide: RegionGuide, targetDay: string) => {
+  const updatedDays = cloneTripDays(travelData.days || {});
+  const currentItems = updatedDays[targetDay] || [];
+  const existingNames = new Set(currentItems.map((item) => normalizePlaceName(item.name)));
+  const sourceItems = getRegionItineraryItems(guide);
+  const uniqueItems = sourceItems.filter((item) => !existingNames.has(normalizePlaceName(item.name)));
+  const lastScheduledMinutes = getLastScheduledMinutes(currentItems);
+  const shouldReflowAfterExisting = currentItems.length > 0;
+  const firstMinutes = shouldReflowAfterExisting
+    ? Math.min((lastScheduledMinutes ?? 10 * 60) + 90, 21 * 60)
+    : null;
+  const baseId = Date.now();
+
+  const newItems = uniqueItems.map<ActivityItem>((item, index) => ({
+    id: baseId + index,
+    ...item,
+    time: shouldReflowAfterExisting
+      ? minutesToTime((firstMinutes ?? 10 * 60) + index * 90)
+      : item.time || minutesToTime(10 * 60 + index * 90),
+    memo: item.memo || `${guide.title} 추천 동선`,
+  }));
+
+  updatedDays[targetDay] = [...currentItems, ...newItems];
+
+  return {
+    updatedData: { ...travelData, days: updatedDays },
+    addedCount: newItems.length,
+    skippedCount: sourceItems.length - uniqueItems.length,
+  };
 };
 
 export const upsertActivityItem = (

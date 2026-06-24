@@ -12,12 +12,24 @@ const spotSources = [
   { cityCode: 'osaka', file: 'src/data/spots/osaka.ts', exportName: 'OSAKA_FOOD_LIST' },
 ];
 
-function readStringLiteral(node) {
+function readLiteralValue(node) {
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
     return node.text;
   }
   if (ts.isNumericLiteral(node)) {
     return Number(node.text);
+  }
+  if (node.kind === ts.SyntaxKind.TrueKeyword) {
+    return true;
+  }
+  if (node.kind === ts.SyntaxKind.FalseKeyword) {
+    return false;
+  }
+  if (ts.isArrayLiteralExpression(node)) {
+    return node.elements.map(readLiteralValue);
+  }
+  if (ts.isObjectLiteralExpression(node)) {
+    return readSpotObject(node);
   }
   return '';
 }
@@ -30,11 +42,7 @@ function readSpotObject(node) {
     const key = property.name?.text;
     if (!key) return;
 
-    if (ts.isArrayLiteralExpression(property.initializer)) {
-      spot[key] = property.initializer.elements.map(readStringLiteral);
-    } else {
-      spot[key] = readStringLiteral(property.initializer);
-    }
+    spot[key] = readLiteralValue(property.initializer);
   });
 
   return spot;
@@ -75,6 +83,11 @@ function sqlTextArray(values) {
   return `'${`{${arrayValues}}`}'::text[]`;
 }
 
+function sqlJsonb(value) {
+  if (!value || (Array.isArray(value) && value.length === 0)) return "'[]'::jsonb";
+  return `'${JSON.stringify(value).replaceAll("'", "''")}'::jsonb`;
+}
+
 function spotToValues(cityCode, spot, index) {
   const nameKo = spot.nameKo || spot.name;
   const searchKeywords = Array.isArray(spot.searchKeywords)
@@ -93,6 +106,7 @@ function spotToValues(cityCode, spot, index) {
     sqlString(spot.nameKoStatus || 'reviewed'),
     sqlTextArray(searchKeywords),
     sqlTextArray(spot.tags || []),
+    sqlJsonb(spot.contentSources || []),
     sqlString(spot.wikidataId),
     sqlString(spot.sourceName || 'sapo-curated'),
     sqlString(spot.sourceUrl),
@@ -140,6 +154,7 @@ console.log(`insert into public.spots (
   name_ko_status,
   search_keywords,
   tags,
+  content_sources,
   wikidata_id,
   source_name,
   source_url,
@@ -169,6 +184,7 @@ on conflict (id) do update set
   name_ko_status = excluded.name_ko_status,
   search_keywords = excluded.search_keywords,
   tags = excluded.tags,
+  content_sources = excluded.content_sources,
   wikidata_id = excluded.wikidata_id,
   source_name = excluded.source_name,
   source_url = excluded.source_url,
