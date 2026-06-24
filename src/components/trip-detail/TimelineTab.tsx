@@ -4,6 +4,7 @@ import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'r
 
 import { ActivityItem } from '../../constants/travelData';
 import { getGoogleMapsUrl } from '../../services/mapLinks';
+import { TripWarning } from '../../services/tripPlanning';
 
 interface DayOption {
   label: string;
@@ -14,6 +15,7 @@ interface TimelineTabProps {
   activeDay: string;
   dayOptions: DayOption[];
   items: ActivityItem[];
+  warnings: TripWarning[];
   exchangeRate: number;
   onSelectDay: (dayKey: string) => void;
   onAddPlace: () => void;
@@ -26,6 +28,7 @@ export default function TimelineTab({
   activeDay,
   dayOptions,
   items,
+  warnings,
   exchangeRate,
   onSelectDay,
   onAddPlace,
@@ -68,6 +71,37 @@ export default function TimelineTab({
             <Text style={styles.btnAddPlaceText}>장소 추가</Text>
           </TouchableOpacity>
         </View>
+
+        {warnings.length > 0 ? (
+          <View style={styles.warningList}>
+            {warnings.map((warning) => (
+              <View
+                key={warning.id}
+                style={[
+                  styles.warningCard,
+                  warning.level === 'warning' ? styles.warningCardStrong : styles.warningCardInfo,
+                ]}
+              >
+                <Ionicons
+                  name={warning.level === 'warning' ? 'alert-circle' : 'information-circle'}
+                  size={17}
+                  color={warning.level === 'warning' ? '#d97706' : '#2563eb'}
+                />
+                <View style={styles.warningContent}>
+                  <Text
+                    style={[
+                      styles.warningTitle,
+                      warning.level === 'warning' ? styles.warningTitleStrong : styles.warningTitleInfo,
+                    ]}
+                  >
+                    {warning.title}
+                  </Text>
+                  <Text style={styles.warningMessage}>{warning.message}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         {items.length === 0 ? (
           <View style={styles.emptyTimeline}>
@@ -223,6 +257,47 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  warningList: {
+    gap: 8,
+    marginTop: -6,
+    marginBottom: 14,
+  },
+  warningCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 11,
+    gap: 8,
+  },
+  warningCardStrong: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fed7aa',
+  },
+  warningCardInfo: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe',
+  },
+  warningContent: {
+    flex: 1,
+    gap: 2,
+  },
+  warningTitle: {
+    fontSize: 12.5,
+    fontWeight: '900',
+  },
+  warningTitleStrong: {
+    color: '#92400e',
+  },
+  warningTitleInfo: {
+    color: '#1d4ed8',
+  },
+  warningMessage: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    lineHeight: 16,
+    color: '#475569',
   },
   emptyTimeline: {
     alignItems: 'center',

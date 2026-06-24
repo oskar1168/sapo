@@ -13,6 +13,15 @@ export type TripStats = {
   nights: string;
 };
 
+export type TripWarningLevel = 'info' | 'warning';
+
+export type TripWarning = {
+  id: string;
+  level: TripWarningLevel;
+  title: string;
+  message: string;
+};
+
 export const getTripDayKeys = (travelData: any) => {
   return Object.keys(travelData.days || {}).sort((a, b) => {
     return parseInt(a.replace('day', '')) - parseInt(b.replace('day', ''));
@@ -101,6 +110,129 @@ const minutesToTime = (minutes: number) => {
   const hours = Math.floor(normalizedMinutes / 60);
   const mins = normalizedMinutes % 60;
   return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+};
+
+const hasValidTime = (time?: string) => Boolean(time && /^(\d{1,2}):(\d{2})$/.test(time));
+
+const getCityDistanceThresholdKm = (cityCode?: string) => {
+  if (cityCode === 'sapporo' || cityCode === 'okinawa') return 25;
+  if (cityCode === 'fukuoka') return 6;
+  return 8;
+};
+
+const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+
+const getDistanceKm = (from: ActivityItem, to: ActivityItem) => {
+  if (
+    typeof from.latitude !== 'number' ||
+    typeof from.longitude !== 'number' ||
+    typeof to.latitude !== 'number' ||
+    typeof to.longitude !== 'number'
+  ) {
+    return null;
+  }
+
+  const earthRadiusKm = 6371;
+  const latDelta = toRadians(to.latitude - from.latitude);
+  const lonDelta = toRadians(to.longitude - from.longitude);
+  const fromLat = toRadians(from.latitude);
+  const toLat = toRadians(to.latitude);
+  const a =
+    Math.sin(latDelta / 2) * Math.sin(latDelta / 2) +
+    Math.cos(fromLat) * Math.cos(toLat) * Math.sin(lonDelta / 2) * Math.sin(lonDelta / 2);
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const getSortedItemsForRouteCheck = (items: ActivityItem[]) => {
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((left, right) => {
+      const leftMinutes = timeToMinutes(left.item.time);
+      const rightMinutes = timeToMinutes(right.item.time);
+      if (leftMinutes === null && rightMinutes === null) return left.index - right.index;
+      if (leftMinutes === null) return 1;
+      if (rightMinutes === null) return -1;
+      return leftMinutes - rightMinutes;
+    })
+    .map(({ item }) => item);
+};
+
+const AIRPORT_KEYWORDS = [
+  '공항',
+  'airport',
+  '신치토세',
+  '하네다',
+  '나리타',
+  '간사이',
+  '이타미',
+  '후쿠오카공항',
+  '나하',
+  '센트레아',
+  '중부국제',
+  'new chitose',
+  'haneda',
+  'narita',
+  'kansai',
+  'itami',
+  'fukuoka airport',
+  'naha airport',
+  'centrair',
+];
+
+const includesAirportKeyword = (item: ActivityItem) => {
+  const text = [item.name, item.address, item.memo].filter(Boolean).join(' ').toLowerCase();
+  return AIRPORT_KEYWORDS.some((keyword) => text.includes(keyword.toLowerCase()));
+};
+
+export const getTripWarningsForDay = (travelData: any, dayKey: string): TripWarning[] => {
+  const warnings: TripWarning[] = [];
+  const dayItems = (travelData.days?.[dayKey] || []) as ActivityItem[];
+  const timeGroups = new Map<string, ActivityItem[]>();
+
+  dayItems.forEach((item) => {
+    if (!hasValidTime(item.time)) return;
+    const currentItems = timeGroups.get(item.time) || [];
+    timeGroups.set(item.time, [...currentItems, item]);
+  });
+
+  timeGroups.forEach((items, time) => {
+    if (items.length < 2) return;
+    warnings.push({
+      id: `time-${dayKey}-${time}`,
+      level: 'warning',
+      title: `${time}에 일정이 겹쳐 있어요`,
+      message: `${items.map((item) => item.name).join(', ')} 일정이 같은 시간대에 들어가 있습니다.`,
+    });
+  });
+
+  const distanceThresholdKm = getCityDistanceThresholdKm(travelData.cityCode);
+  const sortedItems = getSortedItemsForRouteCheck(dayItems);
+  sortedItems.forEach((item, index) => {
+    if (index === 0) return;
+    const previousItem = sortedItems[index - 1];
+    const distanceKm = getDistanceKm(previousItem, item);
+    if (distanceKm === null || distanceKm < distanceThresholdKm) return;
+
+    warnings.push({
+      id: `distance-${dayKey}-${previousItem.id}-${item.id}`,
+      level: 'info',
+      title: '이동 거리가 길 수 있어요',
+      message: `${previousItem.name} → ${item.name} 직선거리가 약 ${distanceKm.toFixed(1)}km입니다. 이동 동선을 확인해 보세요.`,
+    });
+  });
+
+  const dayKeys = getTripDayKeys(travelData);
+  const isLastDay = dayKey === dayKeys[dayKeys.length - 1];
+  if (isLastDay && dayItems.length > 0 && !dayItems.some(includesAirportKeyword)) {
+    warnings.push({
+      id: `airport-${dayKey}`,
+      level: 'warning',
+      title: '마지막 날 공항 이동 일정이 없어요',
+      message: '출국일에는 공항 이동이나 공항 도착 일정을 하나 넣어두면 더 안전합니다.',
+    });
+  }
+
+  return warnings;
 };
 
 const getLastScheduledMinutes = (items: ActivityItem[]) => {

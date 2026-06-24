@@ -3,6 +3,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -14,16 +15,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { CITY_TEMPLATES, DETAILED_CATEGORIES } from '../constants/travelData';
 import BookingSection from '../components/explore/BookingSection';
 import RegionExploreModal from '../components/RegionExploreModal';
+import TravelMagazineModal from '../components/TravelMagazineModal';
 import SpotThumbnail from '../components/SpotThumbnail';
 import { SUPPORTED_CITIES, getSupportedCity } from '../data/supportedCities';
-import { getPartnerProductsForCity } from '../data/partnerProducts';
-import { getRegionGuide, type RegionGuide } from '../data/regionGuides';
+import { getPartnerProductsForCity, type PartnerProduct } from '../data/partnerProducts';
+import { getRegionGuide, getRegionGuidesForCity, type RegionGuide } from '../data/regionGuides';
+import { getTravelMagazinesForCity, type TravelMagazine } from '../data/travelMagazines';
 import { getGoogleMapsUrl } from '../services/mapLinks';
 import { getRecommendedSpots, getSpotDetail, getSpotDetailById, getSpotSource } from '../services/spotCatalog';
 import type { DayOption } from '../services/tripPlanning';
 import type { AddRegionRouteResult } from '../components/RegionExploreModal';
 import { SpotRef } from '../types/spot';
-import { CityExploreItem, SpotItem } from '../types/travelData';
+import { AffiliateDealItem, CityExploreItem, SpotItem } from '../types/travelData';
 
 const GRID_GAP = 12;
 const FEATURED_SPOT_LIMIT = 6;
@@ -59,7 +62,52 @@ const getFeaturedSpots = (cityCode: string) => {
   const spots = getRecommendedSpots(cityCode);
   const contentSpots = spots.filter((spot) => spot.contentSources?.length);
   const fallbackSpots = spots.filter((spot) => !spot.contentSources?.length);
-  return [...contentSpots, ...fallbackSpots].slice(0, FEATURED_SPOT_LIMIT);
+  const sourceSpots = [...contentSpots, ...fallbackSpots];
+
+  if (sourceSpots.length > 0) {
+    return sourceSpots.slice(0, FEATURED_SPOT_LIMIT);
+  }
+
+  return getRegionGuidesForCity(cityCode)
+    .flatMap((guide) =>
+      guide.route.slice(0, 1).map<SpotItem>((routeName) => ({
+        id: `${guide.cityCode}-${guide.filter}-featured`,
+        name: routeName,
+        category: 'spot',
+        rating: '추천',
+        menu: guide.subtitle,
+        tips: guide.tips[0] || guide.subtitle,
+        address: routeName,
+        openTime: '',
+        closeTime: '',
+        sourceName: `region-guide:${guide.filter}`,
+        contentSources: [
+          {
+            type: 'blog',
+            title: `${guide.title} 추천 동선`,
+            note: guide.subtitle,
+            verified: true,
+          },
+        ],
+      })),
+    )
+    .slice(0, FEATURED_SPOT_LIMIT);
+};
+
+const getExploreDealIcon = (product: PartnerProduct) => {
+  if (product.id.includes('coupon')) return 'coupon';
+  if (product.category === 'transport' || product.category === 'pass') return 'train';
+  if (product.category === 'restaurant') return 'restaurant';
+  return 'ticket';
+};
+
+const getFallbackExploreDeals = (products: PartnerProduct[]): AffiliateDealItem[] => {
+  return products.slice(0, 3).map((product) => ({
+    emoji: getExploreDealIcon(product),
+    color: product.color,
+    title: product.title,
+    desc: product.desc,
+  }));
 };
 
 interface ExploreScreenProps {
@@ -84,6 +132,7 @@ export default function ExploreScreen({
   cityCode,
 }: ExploreScreenProps) {
   const [selectedRegionGuide, setSelectedRegionGuide] = useState<RegionGuide | null>(null);
+  const [selectedMagazine, setSelectedMagazine] = useState<TravelMagazine | null>(null);
   const [regionGridWidth, setRegionGridWidth] = useState(0);
   const [showAllRegions, setShowAllRegions] = useState(false);
 
@@ -92,6 +141,7 @@ export default function ExploreScreen({
   const cityMeta = getSupportedCity(activeCity);
   const hasCityTemplate = Object.prototype.hasOwnProperty.call(CITY_TEMPLATES, activeCity);
   const template = hasCityTemplate ? CITY_TEMPLATES[activeCity] : null;
+  const partnerProducts = getPartnerProductsForCity(activeCity);
   const exp = template?.explore || {
     welcomeSubtitle: `${cityMeta.name} 여행 데이터를 준비하고 있어요.`,
     bannerTitle: `${cityMeta.name} 추천 가이드를 준비 중입니다`,
@@ -102,10 +152,9 @@ export default function ExploreScreen({
       desc: '추천 코스 준비 중',
       filter: region,
     })),
-    deals: [],
+    deals: getFallbackExploreDeals(partnerProducts),
     guidebook: [],
   };
-  const partnerProducts = getPartnerProductsForCity(activeCity);
   const regionGridColumns = getRegionGridColumns(regionGridWidth);
   const regionGridCardWidth =
     regionGridWidth > 0
@@ -114,6 +163,7 @@ export default function ExploreScreen({
   const visibleRegions = showAllRegions ? exp.cities : exp.cities.slice(0, 4);
   const hasMoreRegions = exp.cities.length > 4;
   const featuredSpots = getFeaturedSpots(activeCity);
+  const travelMagazines = getTravelMagazinesForCity(activeCity);
 
   const activeLikedSpots = likedSpots
     .map((s) => (s.spotId ? getSpotDetailById(s.city, s.spotId) : getSpotDetail(s.city, s.originalIndex)))
@@ -200,21 +250,43 @@ export default function ExploreScreen({
     }
   };
 
-  const handleDealPress = (dealTitle: string) => {
-    if (Platform.OS === 'web') {
-      alert(`🎟️ '${dealTitle}' 제휴 페이지 연결을 준비 중입니다!`);
-    } else {
-      Alert.alert('안내', `🎟️ '${dealTitle}' 제휴 페이지 연결을 준비 중입니다!`);
-    }
-  };
 
   const handleFeaturedSpotMapOpen = async (spot: SpotItem) => {
     await Linking.openURL(getGoogleMapsUrl(spot));
   };
 
   const handleFeaturedSpotAdd = (spot: SpotItem) => {
+    if (spot.sourceName?.startsWith('region-guide:')) {
+      const guideFilter = spot.sourceName.replace('region-guide:', '');
+      const regionGuide = getRegionGuide(activeCity, guideFilter);
+      if (regionGuide) {
+        setSelectedRegionGuide(regionGuide);
+        return;
+      }
+    }
+
     const source = getSpotSource(spot, activeCity);
     onAddSpotToTimeline(source.city, source.originalIndex);
+  };
+
+  const handleMagazineRouteAdd = (magazine: TravelMagazine, dayKey: string) => {
+    const guideLikeMagazine: RegionGuide = {
+      cityCode: magazine.cityCode,
+      filter: magazine.id,
+      title: magazine.title,
+      subtitle: magazine.subtitle,
+      duration: magazine.seasonLabel,
+      difficulty: '추천',
+      bestTime: magazine.seasonLabel,
+      tags: magazine.tags,
+      highlights: magazine.enjoyments.map((item) => item.title),
+      route: magazine.route,
+      itineraryItems: magazine.itineraryItems,
+      tips: magazine.tips,
+      bookingProductIds: magazine.bookingProductIds,
+    };
+
+    return onAddRegionRouteToDay?.(guideLikeMagazine, dayKey) || null;
   };
 
   return (
@@ -297,7 +369,7 @@ export default function ExploreScreen({
           >
             {featuredSpots.map((spot) => (
               <View key={spot.id} style={styles.featuredSpotCard}>
-                <SpotThumbnail spot={spot} style={styles.featuredSpotThumb} />
+                <SpotThumbnail spot={spot} style={styles.featuredSpotThumb} preferSpotImage />
                 <View style={styles.featuredSpotBody}>
                   <View style={styles.featuredSpotBadge}>
                     <Ionicons
@@ -338,6 +410,57 @@ export default function ExploreScreen({
                   </View>
                 </View>
               </View>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
+
+      {travelMagazines.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderBetween}>
+            <View style={styles.sectionTitleGroup}>
+              <Text style={[styles.sectionTitleOnly, styles.sectionTitleInline]}>여행 매거진</Text>
+              <Text style={styles.sectionDesc}>
+                시즌 축제, 추천 코스, 예약 링크까지 한 번에 볼 수 있는 콘텐츠예요.
+              </Text>
+            </View>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.magazineSliderContent}
+          >
+            {travelMagazines.map((magazine) => (
+              <TouchableOpacity
+                key={magazine.id}
+                style={styles.magazineCard}
+                activeOpacity={0.84}
+                onPress={() => setSelectedMagazine(magazine)}
+              >
+                <Image source={{ uri: magazine.coverImageUrl }} style={styles.magazineImage} />
+                <View style={styles.magazineBody}>
+                  <View style={styles.magazineMetaRow}>
+                    <View style={styles.magazineBadge}>
+                      <Ionicons name="book-outline" size={12} color="#6c5ce7" />
+                      <Text style={styles.magazineBadgeText}>{magazine.seasonLabel}</Text>
+                    </View>
+                    <Text style={styles.magazineReadTime}>{magazine.readTime}</Text>
+                  </View>
+                  <Text style={styles.magazineTitle} numberOfLines={2}>
+                    {magazine.title}
+                  </Text>
+                  <Text style={styles.magazineSubtitle} numberOfLines={2}>
+                    {magazine.subtitle}
+                  </Text>
+                  <View style={styles.magazineTagRow}>
+                    {magazine.tags.slice(0, 3).map((tag) => (
+                      <Text key={tag} style={styles.magazineTag}>
+                        #{tag}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -387,39 +510,6 @@ export default function ExploreScreen({
         </View>
       ) : null}
 
-      {/* Specials/Deals List */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitleOnly}>🛍️ 여행 필수품 & 특가 상품</Text>
-        <View style={styles.dealsList}>
-          {exp.deals.map((deal, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={styles.dealCard}
-              onPress={() => handleDealPress(deal.title)}
-              activeOpacity={0.8}
-            >
-              <View
-                style={[
-                  styles.dealIconBox,
-                  { backgroundColor: deal.color ? `${deal.color}1f` : 'rgba(74, 144, 226, 0.12)' },
-                ]}
-              >
-                <Ionicons
-                  name={deal.emoji === 'coupon' ? 'pricetag' : deal.emoji === 'train' ? 'train' : 'subway'}
-                  size={20}
-                  color={deal.color || '#6c5ce7'}
-                />
-              </View>
-              <View style={styles.dealInfo}>
-                <Text style={styles.dealTitle}>{deal.title}</Text>
-                <Text style={styles.dealDesc}>{deal.desc}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
       <RegionExploreModal
         visible={Boolean(selectedRegionGuide)}
         guide={selectedRegionGuide}
@@ -427,6 +517,14 @@ export default function ExploreScreen({
         dayOptions={dayOptions}
         onAddRouteToDay={(guide, dayKey) => onAddRegionRouteToDay?.(guide, dayKey) || null}
         onClose={() => setSelectedRegionGuide(null)}
+      />
+      <TravelMagazineModal
+        visible={Boolean(selectedMagazine)}
+        magazine={selectedMagazine}
+        products={partnerProducts}
+        dayOptions={dayOptions}
+        onAddMagazineToDay={handleMagazineRouteAdd}
+        onClose={() => setSelectedMagazine(null)}
       />
     </ScrollView>
   );
@@ -698,6 +796,79 @@ const styles = StyleSheet.create({
   featuredSpotActionSecondaryText: {
     fontSize: 11.5,
     fontWeight: '900',
+    color: '#6c5ce7',
+  },
+  magazineSliderContent: {
+    gap: 12,
+    paddingRight: 20,
+  },
+  magazineCard: {
+    width: 268,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  magazineImage: {
+    width: '100%',
+    height: 126,
+    backgroundColor: '#e2e8f0',
+  },
+  magazineBody: {
+    padding: 12,
+    gap: 7,
+  },
+  magazineMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  magazineBadge: {
+    flexShrink: 1,
+    minHeight: 23,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(108, 92, 231, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(108, 92, 231, 0.16)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  magazineBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '900',
+    color: '#6c5ce7',
+  },
+  magazineReadTime: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#94a3b8',
+  },
+  magazineTitle: {
+    minHeight: 36,
+    fontSize: 15,
+    lineHeight: 18,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  magazineSubtitle: {
+    minHeight: 34,
+    fontSize: 11.5,
+    lineHeight: 17,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  magazineTagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  magazineTag: {
+    fontSize: 10.5,
+    fontWeight: '800',
     color: '#6c5ce7',
   },
   likedCard: {

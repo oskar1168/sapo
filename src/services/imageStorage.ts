@@ -1,4 +1,4 @@
-import { DEFAULT_SPOT_IMAGE, DEFAULT_SPOT_THUMBNAIL } from '../constants/images';
+import { DEFAULT_SPOT_IMAGE, DEFAULT_SPOT_THUMBNAIL, SPOT_CATEGORY_THUMBNAILS } from '../constants/images';
 import { SpotItem } from '../types/travelData';
 
 export type SpotImageKind = 'thumb' | 'main';
@@ -18,8 +18,32 @@ export function getSpotImageKey(spot: SpotItem, city?: string) {
   return spot.imageKey || getSpotImagePath(city || getCityFromSpotId(spot.id), spot.id, 'main');
 }
 
-export function getSpotThumbnailSource(spot: SpotItem) {
-  return spot.thumbnailUrl || DEFAULT_SPOT_THUMBNAIL;
+type SpotImageSourceOptions = {
+  preferSpotImage?: boolean;
+};
+
+export function getSpotCategoryThumbnailSource(spot: SpotItem) {
+  if (spot.contentSources?.length) {
+    return SPOT_CATEGORY_THUMBNAILS.content;
+  }
+
+  if (['meat', 'seafood', 'noodle'].includes(spot.category)) {
+    return SPOT_CATEGORY_THUMBNAILS.food;
+  }
+
+  if (['dessert', 'cafe'].includes(spot.category)) {
+    return SPOT_CATEGORY_THUMBNAILS.cafe;
+  }
+
+  return SPOT_CATEGORY_THUMBNAILS[spot.category] || DEFAULT_SPOT_THUMBNAIL;
+}
+
+export function getSpotThumbnailSource(spot: SpotItem, options: SpotImageSourceOptions = {}) {
+  if (options.preferSpotImage && spot.thumbnailUrl) {
+    return spot.thumbnailUrl;
+  }
+
+  return getSpotCategoryThumbnailSource(spot);
 }
 
 export function getSpotImageSource(spot: SpotItem) {

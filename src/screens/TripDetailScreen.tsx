@@ -26,6 +26,7 @@ import {
   calculateTripStats,
   getTripDayDateString,
   getTripDayOptions,
+  getTripWarningsForDay,
 } from '../services/tripPlanning';
 import { useTripDetailActions } from '../hooks/useTripDetailActions';
 import { useTripDetailResources } from '../hooks/useTripDetailResources';
@@ -154,6 +155,7 @@ export default function TripDetailScreen({
   const getDayDateString = (dayIndex: string) => getTripDayDateString(travelData.startDate, dayIndex);
   const dayOptions = getTripDayOptions(travelData);
   const stats = calculateTripStats(travelData, exchangeRate);
+  const timelineWarnings = getTripWarningsForDay(travelData, activeDay);
   // Share itinerary link
   const handleShare = async () => {
     try {
@@ -246,6 +248,7 @@ export default function TripDetailScreen({
             activeDay={activeDay}
             dayOptions={dayOptions}
             items={travelData.days[activeDay] || []}
+            warnings={timelineWarnings}
             exchangeRate={exchangeRate}
             onSelectDay={setActiveDay}
             onAddPlace={openAddPlace}

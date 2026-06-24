@@ -7,12 +7,13 @@ import { SpotItem } from '../types/travelData';
 interface SpotThumbnailProps {
   spot: SpotItem;
   style: StyleProp<ImageStyle>;
+  preferSpotImage?: boolean;
 }
 
-export default function SpotThumbnail({ spot, style }: SpotThumbnailProps) {
+export default function SpotThumbnail({ spot, style, preferSpotImage = false }: SpotThumbnailProps) {
   return (
     <Image
-      source={getSpotThumbnailSource(spot)}
+      source={getSpotThumbnailSource(spot, { preferSpotImage })}
       style={style}
       cachePolicy="memory-disk"
       contentFit="cover"

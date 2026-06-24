@@ -6,3 +6,7 @@ export type { RegionGuide } from './region-guides';
 export function getRegionGuide(cityCode: string, filter: string) {
   return REGION_GUIDES.find((guide) => guide.cityCode === cityCode && guide.filter === filter);
 }
+
+export function getRegionGuidesForCity(cityCode: string) {
+  return REGION_GUIDES.filter((guide) => guide.cityCode === cityCode);
+}
